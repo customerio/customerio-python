@@ -3,7 +3,7 @@ import urllib
 from httplib import HTTPSConnection
 
 
-VERSION = (0, 1, 0, 'final', 0)
+VERSION = (0, 1, 1, 'final', 0)
 
 def get_version():
     version = '%s.%s' % (VERSION[0], VERSION[1])
@@ -36,7 +36,13 @@ class CustomerIO(object):
         return '%s/customers/%d/events' % (self.url_prefix, customer_id)
 
     def send_request(self, method, query_string, data):
-        data_string = urllib.urlencode(data)
+        encoded_data = {}
+        for key, value in data.items():
+            if isinstance(value, unicode):
+                encoded_data[key] = value.encode('utf8')
+            else:
+                encoded_data[key] = value
+        data_string = urllib.urlencode(encoded_data)
         http = HTTPSConnection(self.host, self.port)
         basic_auth = base64.encodestring('%s:%s' % (self.site_id, self.api_key)).replace('\n', '')
         headers = {
