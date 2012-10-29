@@ -11,3 +11,7 @@ This module has been tested with Python 2.7.
 	cio.track(customer_id=5, name='purchased', price=23.45)
 
 You can pass any keyword arguments to the `identify` and `track` methods. These kwargs will be converted to custom attributes.
+
+## Thanks
+
+* [Dimitriy Narkevich](https://github.com/dimier) for writing creating the library.
