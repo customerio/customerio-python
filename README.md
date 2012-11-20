@@ -14,4 +14,4 @@ You can pass any keyword arguments to the `identify` and `track` methods. These 
 
 ## Thanks
 
-* [Dimitriy Narkevich](https://github.com/dimier) for writing creating the library.
+* [Dimitriy Narkevich](https://github.com/dimier) for creating the library.
