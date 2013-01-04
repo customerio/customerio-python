@@ -30,10 +30,10 @@ class CustomerIO(object):
         self.url_prefix = url_prefix or '/api/v1'
 
     def get_customer_query_string(self, customer_id):
-        return '%s/customers/%d' % (self.url_prefix, customer_id)
+        return '%s/customers/%s' % (self.url_prefix, customer_id)
 
     def get_event_query_string(self, customer_id):
-        return '%s/customers/%d/events' % (self.url_prefix, customer_id)
+        return '%s/customers/%s/events' % (self.url_prefix, customer_id)
 
     def send_request(self, method, query_string, data):
         encoded_data = {}
