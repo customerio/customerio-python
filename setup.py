@@ -43,8 +43,8 @@ version = __import__(package_dir).get_version()
 setup(
     name=package_name,
     version=version,
-    author="Whitescape Ltd.",
-    author_email="hello@whitescape.com",
+    author="Peaberry Software Inc.",
+    author_email="win@customerio.com",
     license="BSD",
     description=package_description,
     packages=packages,
