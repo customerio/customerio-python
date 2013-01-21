@@ -17,4 +17,4 @@ dev: clean all
 
 upload:
 	python setup.py register
-	python setup.py upload
+	echo "*** Now upload the binary to PyPi *** (one second)" && sleep 3 && open dist & open "http://pypi.python.org/pypi?%3Aaction=pkg_edit&name=customerio" # python setup.py upload
