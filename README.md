@@ -2,6 +2,10 @@
 
 This module has been tested with Python 2.7.
 
+## Installing
+
+    pip install customerio
+
 ## Usage
 
 	from customerio import CustomerIO

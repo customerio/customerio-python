@@ -2,7 +2,7 @@ import os
 from distutils.core import setup
 
 
-package_name = "python-customerio"
+package_name = "customerio"
 package_dir = "customerio"
 package_description = "Customer.io Python bindings."
 
@@ -43,8 +43,8 @@ version = __import__(package_dir).get_version()
 setup(
     name=package_name,
     version=version,
-    author="Whitescape Ltd.",
-    author_email="hello@whitescape.com",
+    author="Peaberry Software Inc.",
+    author_email="support@customerio.com",
     license="BSD",
     description=package_description,
     packages=packages,
