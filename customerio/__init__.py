@@ -3,7 +3,7 @@ import urllib
 from httplib import HTTPSConnection
 
 
-VERSION = (0, 1, 1, 'final', 0)
+VERSION = (0, 1, 2, 'final', 0)
 
 def get_version():
     version = '%s.%s' % (VERSION[0], VERSION[1])
