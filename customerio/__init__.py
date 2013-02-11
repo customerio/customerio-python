@@ -25,7 +25,7 @@ class CustomerIO(object):
     def __init__(self, site_id=None, api_key=None, host=None, port=None, url_prefix=None):
         self.site_id = site_id
         self.api_key = api_key
-        self.host = host or 'app.customer.io'
+        self.host = host or 'track.customer.io'
         self.port = port or 443
         self.url_prefix = url_prefix or '/api/v1'
 
