@@ -41,8 +41,11 @@ class CustomerIO(object):
             if isinstance(value, unicode):
                 encoded_data[key] = value.encode('utf8')
             else:
-                encoded_data[key] = value
-        data_string = urllib.urlencode(encoded_data)
+                if isinstance(value, (list, tuple)):
+                    encoded_data[key+'[]'] = value
+                else:
+                    encoded_data[key] = value
+        data_string = urllib.urlencode(encoded_data, doseq=True)
         http = HTTPSConnection(self.host, self.port)
         basic_auth = base64.encodestring('%s:%s' % (self.site_id, self.api_key)).replace('\n', '')
         headers = {
