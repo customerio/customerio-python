@@ -1,7 +1,13 @@
+import os
+import json
 import base64
 import urllib
+from bson import json_util
 from httplib import HTTPSConnection
 
+# Defaults are Dev environment
+CUSTOMERIO_SITE_ID = os.environ.get('CUSTOMERIO_SITE_ID', 'd833ef2595f9ad132dbe')
+CUSTOMERIO_API_KEY = os.environ.get('CUSTOMERIO_API_KEY', 'c993ab51e1a3a078deee')
 
 VERSION = (0, 1, 1, 'final', 0)
 
@@ -36,24 +42,15 @@ class CustomerIO(object):
         return '%s/customers/%s/events' % (self.url_prefix, customer_id)
 
     def send_request(self, method, query_string, data):
-        encoded_data = {}
-        for key, value in data.items():
-            if isinstance(value, unicode):
-                encoded_data[key] = value.encode('utf8')
-            else:
-                if isinstance(value, (list, tuple)):
-                    encoded_data[key+'[]'] = value
-                else:
-                    encoded_data[key] = value
-        data_string = urllib.urlencode(encoded_data, doseq=True)
+        data = json.dumps(data, default=json_util.default)
         http = HTTPSConnection(self.host, self.port)
         basic_auth = base64.encodestring('%s:%s' % (self.site_id, self.api_key)).replace('\n', '')
         headers = {
             'Authorization': 'Basic %s' % basic_auth,
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Content-Length': len(data_string),
+            'Content-Type': 'application/json',
+            'Content-Length': len(data),
         }
-        http.request(method, query_string, data_string, headers)
+        http.request(method, query_string, data, headers)
         result_status = http.getresponse().status
         if result_status != 200:
             raise CustomerIOException('%s: %s %s' % (result_status, query_string, data_string))
