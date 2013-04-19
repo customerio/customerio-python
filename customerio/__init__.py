@@ -9,7 +9,7 @@ from httplib import HTTPSConnection
 CUSTOMERIO_SITE_ID = os.environ.get('CUSTOMERIO_SITE_ID', 'd833ef2595f9ad132dbe')
 CUSTOMERIO_API_KEY = os.environ.get('CUSTOMERIO_API_KEY', 'c993ab51e1a3a078deee')
 
-VERSION = (0, 1, 1, 'final', 0)
+VERSION = (0, 1, 2, 'final', 0)
 
 def get_version():
     version = '%s.%s' % (VERSION[0], VERSION[1])
