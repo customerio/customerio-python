@@ -51,9 +51,11 @@ class CustomerIO(object):
             'Content-Length': len(data_string),
         }
         http.request(method, query_string, data_string, headers)
-        result_status = http.getresponse().status
+        response = http.getresponse()
+        result_status = response.status
         if result_status != 200:
             raise CustomerIOException('%s: %s %s' % (result_status, query_string, data_string))
+        return response.read()
 
     def identify(self, **kwargs):
         url = self.get_customer_query_string(kwargs['id'])
