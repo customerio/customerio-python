@@ -2,12 +2,7 @@ import os
 import json
 import base64
 import urllib
-from bson import json_util
 from httplib import HTTPSConnection
-
-# Defaults are Dev environment
-CUSTOMERIO_SITE_ID = os.environ.get('CUSTOMERIO_SITE_ID', 'd833ef2595f9ad132dbe')
-CUSTOMERIO_API_KEY = os.environ.get('CUSTOMERIO_API_KEY', 'c993ab51e1a3a078deee')
 
 VERSION = (0, 1, 2, 'final', 0)
 
@@ -26,6 +21,12 @@ def get_version():
 class CustomerIOException(Exception):
     pass
 
+class ObjectEncoder(json.JSONEncoder):
+    def default(self, obj):
+        try:
+            return JSONEncoder.default(obj, **kwargs)
+        except:
+            return str(obj)
 
 class CustomerIO(object):
     def __init__(self, site_id=None, api_key=None, host=None, port=None, url_prefix=None):
@@ -42,7 +43,7 @@ class CustomerIO(object):
         return '%s/customers/%s/events' % (self.url_prefix, customer_id)
 
     def send_request(self, method, query_string, data):
-        data = json.dumps(data, default=json_util.default)
+        data = json.dumps(data, cls=ObjectEncoder)
         http = HTTPSConnection(self.host, self.port)
         basic_auth = base64.encodestring('%s:%s' % (self.site_id, self.api_key)).replace('\n', '')
         headers = {
