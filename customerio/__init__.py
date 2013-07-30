@@ -41,9 +41,9 @@ class CustomerIO(object):
         payload = json.dumps(data)
 
         if self.port == 443:
-            full_url = "https://%s/%s" % (self.host, query_string)
+            full_url = "https://%s%s" % (self.host, query_string)
         else:
-            full_url = "https://%s/%s:%i" % (self.host, query_string, self.port)
+            full_url = "https://%s:%i%s" % (self.host, self.port, query_string)
 
         headers = {
             'Content-Type': 'application/json',
