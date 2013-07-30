@@ -1,9 +1,6 @@
-import base64
-import urllib
-from httplib import HTTPSConnection
+import requests, json
 
-
-VERSION = (0, 1, 2, 'final', 0)
+VERSION = (0, 1, 3, 'beta', 0)
 
 def get_version():
     version = '%s.%s' % (VERSION[0], VERSION[1])
@@ -36,34 +33,38 @@ class CustomerIO(object):
         return '%s/customers/%s/events' % (self.url_prefix, customer_id)
 
     def send_request(self, method, query_string, data):
-        encoded_data = {}
-        for key, value in data.items():
-            if isinstance(value, unicode):
-                encoded_data[key] = value.encode('utf8')
-            else:
-                encoded_data[key] = value
-        data_string = urllib.urlencode(encoded_data)
-        http = HTTPSConnection(self.host, self.port)
-        basic_auth = base64.encodestring('%s:%s' % (self.site_id, self.api_key)).replace('\n', '')
+    
+        # for instance, 'POST' -> requests.post
+        # doing this to maintain the interface
+        request_func = getattr(requests, method.lower()) 
+
+        payload = json.dumps(data)
+
+        if self.port == 443:
+            full_url = "https://%s/%s" % (self.host, query_string)
+        else:
+            full_url = "https://%s/%s:%i" % (self.host, query_string, self.port)
+
         headers = {
-            'Authorization': 'Basic %s' % basic_auth,
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Content-Length': len(data_string),
+            'Content-Type': 'application/json',
         }
-        http.request(method, query_string, data_string, headers)
-        result_status = http.getresponse().status
-        if result_status != 200:
-            raise CustomerIOException('%s: %s %s' % (result_status, query_string, data_string))
+
+        response = request_func(full_url, auth=(self.site_id, self.api_key),
+            headers=headers, data=payload)
+        if response.status_code != 200:
+            raise CustomerIOException('%s: %s %s' % (
+                response.status_code,
+                query_string,
+                payload
+            ))
 
     def identify(self, **kwargs):
-        url = self.get_customer_query_string(kwargs['id'])
-        self.send_request('PUT', url, kwargs)
+        query_string = self.get_customer_query_string(kwargs['id'])
+        self.send_request('PUT', query_string, kwargs)
 
     def track(self, customer_id, name, **data):
-        url = self.get_event_query_string(customer_id)
-        encoded_data = {
-            'name': name,
+        query_string = self.get_event_query_string(customer_id)
+        post_data = {
+            'name': name, 'data': data,
         }
-        for key, value in data.iteritems():
-            encoded_data['data[%s]' % key] = value
-        self.send_request('POST', url, encoded_data)
+        self.send_request('POST', query_string, post_data)
