@@ -53,10 +53,13 @@ class CustomerIO(object):
         url = self.get_customer_query_string(kwargs['id'])
         self.send_request('PUT', url, kwargs)
 
-    def track(self, customer_id, name, **data):
+    def track(self, customer_id, name, timestamp=None, **data):
         url = self.get_event_query_string(customer_id)
         post_data = {
             'name': name,
             'data': data,
         }
+        if timestamp:
+            #TODO handle datetime objects
+            post_data['timestamp'] = timestamp
         self.send_request('POST', url, post_data)
