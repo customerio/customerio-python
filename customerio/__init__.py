@@ -89,6 +89,7 @@ class CustomerIO(object):
                 customers += next_customer_batch
             else:
                 customers += next_customer_batch[:results - len(customers)]
+            page += 1
         return customers
 
     def _list_customers(self, page=1, results_per_query=25, host="manage.customer.io"):
