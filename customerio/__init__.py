@@ -67,4 +67,48 @@ class CustomerIO(object):
         url = self.get_customer_query_string(kwargs['id'])
         self.send_request('DELETE', url, kwargs)
 
+    def list_customers(self, start_page=1, results=100):
+        """Extend the native customer retrieval method
 
+           Customer.io's internal API only allows for 25 results
+           at a time. This is a thin wrapper around that to
+           conveniently grab more customers
+        """
+        customers = []
+        page = start_page
+        results_per_query = 25
+
+        while len(customers) < results:
+            next_customer_batch = self._list_customers(page, results_per_query)
+            if len(customers) + len(next_customer_batch) <= results:
+                customers += next_customer_batch
+            else:
+                customers += next_customer_batch[:results - len(customers)]
+        return customers
+
+    def _list_customers(self, page=1, results_per_query=25):
+        """Get a list of of your customer.io customers using
+            Customer.io's internal API for customer retrieval
+
+        """
+        method = "GET"
+        host = "manage.customer.io"
+        query_string = "/api/v1/customers"
+        data = {'page': page, 'per': results_per_query}
+        data = json.dumps(data)
+
+        basic_auth = base64.encodestring('%s:%s' % (self.site_id, self.api_key)).replace('\n', '')
+        headers = {
+            'Authorization': 'Basic %s' % basic_auth,
+            'Content-Type': 'application/json',
+            'Content-Length': len(data),
+        }
+
+        http = HTTPSConnection(host, self.port)
+        http.request(method, query_string, data, headers)
+
+        response = http.getresponse()
+        content = response.read()
+        content = json.loads(content)
+        customers = content.get("customers")
+        return customers
