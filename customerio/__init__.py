@@ -90,6 +90,8 @@ class CustomerIO(object):
             else:
                 customers += next_customer_batch[:results - len(customers)]
             page += 1
+            if len(next_customer_batch) < results_per_query:
+                break
         return customers
 
     def _list_customers(self, page=1, results_per_query=25, host="manage.customer.io"):
