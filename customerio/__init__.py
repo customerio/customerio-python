@@ -1,11 +1,10 @@
-import os
 import json
 import base64
-import urllib
 from httplib import HTTPSConnection
 from datetime import datetime
 
 VERSION = (0, 1, 4, 'final', 0)
+
 
 def get_version():
     version = '%s.%s' % (VERSION[0], VERSION[1])
@@ -22,7 +21,9 @@ def get_version():
 class CustomerIOException(Exception):
     pass
 
+
 class CustomerIO(object):
+
     def __init__(self, site_id=None, api_key=None, host=None, port=None, url_prefix=None, json_encoder=json.JSONEncoder):
         self.site_id = site_id
         self.api_key = api_key
@@ -32,12 +33,16 @@ class CustomerIO(object):
         self.json_encoder = json_encoder
 
     def get_customer_query_string(self, customer_id):
+        '''Generates a customer API path'''
         return '%s/customers/%s' % (self.url_prefix, customer_id)
 
     def get_event_query_string(self, customer_id):
+        '''Generates an event API path'''
         return '%s/customers/%s/events' % (self.url_prefix, customer_id)
 
     def send_request(self, method, query_string, data):
+        '''Dispatches the request and returns a response'''
+
         data = json.dumps(data, cls=self.json_encoder)
         http = HTTPSConnection(self.host, self.port)
         basic_auth = base64.encodestring('%s:%s' % (self.site_id, self.api_key)).replace('\n', '')
@@ -53,11 +58,13 @@ class CustomerIO(object):
             raise CustomerIOException('%s: %s %s' % (result_status, query_string, data))
         return response.read()
 
-    def identify(self, **kwargs):
-        url = self.get_customer_query_string(kwargs['id'])
+    def identify(self, id, **kwargs):
+        '''Identify a single customer by their unique id, and optionally add attributes'''
+        url = self.get_customer_query_string(id)
         self.send_request('PUT', url, kwargs)
 
     def track(self, customer_id, name, **data):
+        '''Track an event for a given customer_id'''
         url = self.get_event_query_string(customer_id)
         post_data = {
             'name': name,
@@ -66,6 +73,7 @@ class CustomerIO(object):
         self.send_request('POST', url, post_data)
 
     def backfill(self, customer_id, name, timestamp, **data):
+        '''Backfill an event (track with timestamp) for a given customer_id'''
         url = self.get_event_query_string(customer_id)
 
         if isinstance(timestamp, datetime):
@@ -84,9 +92,8 @@ class CustomerIO(object):
 
         self.send_request('POST', url, post_data)
 
-
     def delete(self, customer_id):
-        """Delete a customer profile."""
+        '''Delete a customer profile'''
 
         url = self.get_customer_query_string(customer_id)
         self.send_request('DELETE', url, {})
