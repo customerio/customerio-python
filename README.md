@@ -95,3 +95,4 @@ You can pass any keyword arguments to the `identify` and `track` methods. These 
 * [Dimitriy Narkevich](https://github.com/dimier) for creating the library.
 * [EZL](https://github.com/ezl) for contributing customer deletes and improving README
 * [Noemi Millman](https://github.com/sbnoemi) for adding custom JSON encoder
+* [Jason Kraus](https://github.com/zbyte64) for event backfilling
