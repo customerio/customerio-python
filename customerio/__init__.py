@@ -52,7 +52,7 @@ class CustomerIO(object):
             'Content-Length': len(data),
         }
         http.request(method, query_string, data, headers)
-        response = http.getresponse().status
+        response = http.getresponse()
         result_status = response.status
         if result_status != 200:
             raise CustomerIOException('%s: %s %s' % (result_status, query_string, data))
