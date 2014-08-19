@@ -5,7 +5,7 @@ import urllib
 from httplib import HTTPSConnection
 from datetime import datetime
 
-VERSION = (0, 1, 3, 'final', 0)
+VERSION = (0, 1, 4, 'final', 0)
 
 def get_version():
     version = '%s.%s' % (VERSION[0], VERSION[1])
