@@ -3,6 +3,7 @@ import json
 import base64
 import urllib
 from httplib import HTTPSConnection
+from datetime import datetime
 
 VERSION = (0, 1, 3, 'final', 0)
 
@@ -59,4 +60,23 @@ class CustomerIO(object):
             'name': name,
             'data': data,
         }
+        self.send_request('POST', url, post_data)
+
+    def backfill(self, customer_id, name, timestamp, **data):
+        url = self.get_event_query_string(customer_id)
+
+        if isinstance(timestamp, datetime):
+            timestamp = int(timestamp.strftime("%s"))
+        elif not isinstance(timestamp, int):
+            try:
+                timestamp = int(timestamp)
+            except Exception as e:
+                raise CustomerIOException("{t} is not a valid timestamp ({err})".format(t=timestamp, err=e))
+
+        post_data = {
+            'name': name,
+            'data': data,
+            'timestamp': timestamp
+        }
+
         self.send_request('POST', url, post_data)
