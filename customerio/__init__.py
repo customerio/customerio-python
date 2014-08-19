@@ -80,3 +80,10 @@ class CustomerIO(object):
         }
 
         self.send_request('POST', url, post_data)
+
+
+    def delete(self, customer_id):
+        """Delete a customer profile."""
+
+        url = self.get_customer_query_string(customer_id)
+        self.send_request('DELETE', url, {})
