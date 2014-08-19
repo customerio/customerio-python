@@ -23,12 +23,13 @@ class CustomerIOException(Exception):
     pass
 
 class CustomerIO(object):
-    def __init__(self, site_id=None, api_key=None, host=None, port=None, url_prefix=None):
+    def __init__(self, site_id=None, api_key=None, host=None, port=None, url_prefix=None, json_encoder=json.JSONEncoder):
         self.site_id = site_id
         self.api_key = api_key
         self.host = host or 'track.customer.io'
         self.port = port or 443
         self.url_prefix = url_prefix or '/api/v1'
+        self.json_encoder = json_encoder
 
     def get_customer_query_string(self, customer_id):
         return '%s/customers/%s' % (self.url_prefix, customer_id)
@@ -37,7 +38,7 @@ class CustomerIO(object):
         return '%s/customers/%s/events' % (self.url_prefix, customer_id)
 
     def send_request(self, method, query_string, data):
-        data = json.dumps(data)
+        data = json.dumps(data, cls=self.json_encoder)
         http = HTTPSConnection(self.host, self.port)
         basic_auth = base64.encodestring('%s:%s' % (self.site_id, self.api_key)).replace('\n', '')
         headers = {
