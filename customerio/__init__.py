@@ -3,7 +3,7 @@ import base64
 from httplib import HTTPSConnection
 from datetime import datetime
 
-VERSION = (0, 1, 4, 'final', 0)
+VERSION = (0, 1, 5, 'final', 0)
 
 
 def get_version():
