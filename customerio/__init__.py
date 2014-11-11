@@ -72,6 +72,16 @@ class CustomerIO(object):
         }
         self.send_request('POST', url, post_data)
 
+    def track_pageview(self, customer_id, url, **data):
+        '''Track a pageview for a given customer_id'''
+        customerio_url = self.get_event_query_string(customer_id)
+        post_data = {
+            'name': url,
+            'type': 'page',
+            'data': data,
+        }
+        self.send_request('POST', customerio_url, post_data)
+
     def backfill(self, customer_id, name, timestamp, **data):
         '''Backfill an event (track with timestamp) for a given customer_id'''
         url = self.get_event_query_string(customer_id)
