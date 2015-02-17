@@ -90,6 +90,10 @@ See original REST documentation [here](http://customer.io/docs/api/rest.html#sec
 
 You can pass any keyword arguments to the `identify` and `track` methods. These kwargs will be converted to custom attributes.
 
+### Note regarding timestamps
+
+The library will automatically convert any datetime objects into UNIX timestamps, but assumes that you are using naive (not TZ-aware) datetime objects when generating a timestamp. Please ensure that any datetime objects get converted into a naive form before sending with customerio-python.
+
 ## Thanks
 
 * [Dimitriy Narkevich](https://github.com/dimier) for creating the library.
