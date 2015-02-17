@@ -3,7 +3,7 @@ import base64
 from httplib import HTTPSConnection
 from datetime import datetime
 
-VERSION = (0, 1, 5, 'final', 0)
+VERSION = (0, 1, 6, 'final', 0)
 
 
 def get_version():
@@ -43,7 +43,7 @@ class CustomerIO(object):
     def send_request(self, method, query_string, data):
         '''Dispatches the request and returns a response'''
 
-        data = json.dumps(data, cls=self.json_encoder)
+        data = json.dumps(self._sanitize(data), cls=self.json_encoder)
         http = HTTPSConnection(self.host, self.port)
         basic_auth = base64.encodestring('%s:%s' % (self.site_id, self.api_key)).replace('\n', '')
         headers = {
@@ -97,3 +97,9 @@ class CustomerIO(object):
 
         url = self.get_customer_query_string(customer_id)
         self.send_request('DELETE', url, {})
+
+    def _sanitize(self, data):
+        for k, v in data.iteritems():
+            if isinstance(v, datetime):
+                data[k] = int((v - datetime(1970, 1, 1)).total_seconds())
+        return data
