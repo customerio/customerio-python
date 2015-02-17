@@ -3,7 +3,7 @@ import base64
 from httplib import HTTPSConnection
 from datetime import datetime
 
-VERSION = (0, 1, 4, 'final', 0)
+VERSION = (0, 1, 5, 'final', 0)
 
 
 def get_version():
@@ -77,7 +77,7 @@ class CustomerIO(object):
         url = self.get_event_query_string(customer_id)
 
         if isinstance(timestamp, datetime):
-            timestamp = int(timestamp.strftime("%s"))
+            timestamp = int((timestamp - datetime(1970, 1, 1)).total_seconds())
         elif not isinstance(timestamp, int):
             try:
                 timestamp = int(timestamp)
