@@ -1,6 +1,9 @@
 import json
 import base64
-from httplib import HTTPSConnection
+try:
+    from httplib import HTTPSConnection
+except ImportError:
+    from http.client import HTTPSConnection
 from datetime import datetime
 
 VERSION = (0, 1, 6, 'final', 0)
@@ -45,12 +48,15 @@ class CustomerIO(object):
 
         data = json.dumps(self._sanitize(data), cls=self.json_encoder)
         http = HTTPSConnection(self.host, self.port)
-        basic_auth = base64.encodestring('%s:%s' % (self.site_id, self.api_key)).replace('\n', '')
+        auth = "{site_id}:{api_key}".format(site_id=self.site_id, api_key=self.api_key).encode("utf-8")
+        basic_auth = base64.b64encode(auth)
+
         headers = {
-            'Authorization': 'Basic %s' % basic_auth,
+            'Authorization': b" ".join([b"Basic", basic_auth]),
             'Content-Type': 'application/json',
             'Content-Length': len(data),
         }
+
         http.request(method, query_string, data, headers)
         response = http.getresponse()
         result_status = response.status
@@ -99,7 +105,7 @@ class CustomerIO(object):
         self.send_request('DELETE', url, {})
 
     def _sanitize(self, data):
-        for k, v in data.iteritems():
+        for k, v in data.items():
             if isinstance(v, datetime):
                 data[k] = int((v - datetime(1970, 1, 1)).total_seconds())
         return data
