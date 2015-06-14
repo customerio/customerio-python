@@ -1,6 +1,10 @@
+from __future__ import division
 import json
 import base64
-from httplib import HTTPSConnection
+try:
+    from httplib import HTTPSConnection
+except ImportError:
+    from http.client import HTTPSConnection
 from datetime import datetime
 
 VERSION = (0, 1, 6, 'final', 0)
@@ -45,12 +49,15 @@ class CustomerIO(object):
 
         data = json.dumps(self._sanitize(data), cls=self.json_encoder)
         http = HTTPSConnection(self.host, self.port)
-        basic_auth = base64.encodestring('%s:%s' % (self.site_id, self.api_key)).replace('\n', '')
+        auth = "{site_id}:{api_key}".format(site_id=self.site_id, api_key=self.api_key).encode("utf-8")
+        basic_auth = base64.b64encode(auth)
+
         headers = {
-            'Authorization': 'Basic %s' % basic_auth,
+            'Authorization': b" ".join([b"Basic", basic_auth]),
             'Content-Type': 'application/json',
             'Content-Length': len(data),
         }
+
         http.request(method, query_string, data, headers)
         response = http.getresponse()
         result_status = response.status
@@ -77,7 +84,7 @@ class CustomerIO(object):
         url = self.get_event_query_string(customer_id)
 
         if isinstance(timestamp, datetime):
-            timestamp = int((timestamp - datetime(1970, 1, 1)).total_seconds())
+            timestamp = self._timedelta_to_timestamp(timestamp - datetime(1970, 1, 1))
         elif not isinstance(timestamp, int):
             try:
                 timestamp = int(timestamp)
@@ -99,7 +106,10 @@ class CustomerIO(object):
         self.send_request('DELETE', url, {})
 
     def _sanitize(self, data):
-        for k, v in data.iteritems():
+        for k, v in data.items():
             if isinstance(v, datetime):
-                data[k] = int((v - datetime(1970, 1, 1)).total_seconds())
+                data[k] = self._timedelta_to_timestamp(v - datetime(1970, 1, 1))
         return data
+
+    def _timedelta_to_timestamp(self, td):
+        return int((td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6)
