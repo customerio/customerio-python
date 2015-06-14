@@ -7,7 +7,7 @@ except ImportError:
     from http.client import HTTPSConnection
 from datetime import datetime
 
-VERSION = (0, 1, 6, 'final', 0)
+VERSION = (0, 1, 7, 'final', 0)
 
 
 def get_version():
