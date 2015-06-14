@@ -1,6 +1,6 @@
 # Customer.io Python bindings
 
-This module has been tested with Python 2.7.
+This module has been tested with Python 2.6, 2.7 and 3.4
 
 ## Installing
 
