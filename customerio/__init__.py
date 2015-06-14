@@ -1,3 +1,4 @@
+from __future__ import division
 import json
 import base64
 try:
@@ -83,7 +84,7 @@ class CustomerIO(object):
         url = self.get_event_query_string(customer_id)
 
         if isinstance(timestamp, datetime):
-            timestamp = int((timestamp - datetime(1970, 1, 1)).total_seconds())
+            timestamp = self._timedelta_to_timestamp(timestamp - datetime(1970, 1, 1))
         elif not isinstance(timestamp, int):
             try:
                 timestamp = int(timestamp)
@@ -107,5 +108,8 @@ class CustomerIO(object):
     def _sanitize(self, data):
         for k, v in data.items():
             if isinstance(v, datetime):
-                data[k] = int((v - datetime(1970, 1, 1)).total_seconds())
+                data[k] = self._timedelta_to_timestamp(v - datetime(1970, 1, 1))
         return data
+
+    def _timedelta_to_timestamp(self, td):
+        return int((td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6)
