@@ -43,7 +43,12 @@ See original REST documentation [here](http://customer.io/docs/api/rest.html#sec
 
 ```python
 cio.track(customer_id=5, name='purchased')
-cio.track(customer_id=5, name='purchased', price=23.45)
+```
+
+### Track a custom event with custom data values
+
+```python
+cio.track(customer_id=5, name='purchased', price=23.45, product="widget")
 ```
 
 You can pass any keyword arguments to the `identify` and `track` methods. These kwargs will be converted to custom attributes.
