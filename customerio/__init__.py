@@ -7,7 +7,7 @@ except ImportError:
     from http.client import HTTPSConnection
 from datetime import datetime
 
-VERSION = (0, 1, 7, 'final', 0)
+VERSION = (0, 1, 8, 'final', 0)
 
 
 def get_version():
@@ -75,6 +75,16 @@ class CustomerIO(object):
         url = self.get_event_query_string(customer_id)
         post_data = {
             'name': name,
+            'data': data,
+        }
+        self.send_request('POST', url, post_data)
+
+    def pageview(self, customer_id, page, **data):
+        '''Track a pageview for a given customer_id'''
+        url = self.get_event_query_string(customer_id)
+        post_data = {
+            'type': "page",
+            'name': page,
             'data': data,
         }
         self.send_request('POST', url, post_data)
