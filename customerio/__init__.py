@@ -5,9 +5,17 @@ try:
     from httplib import HTTPSConnection
 except ImportError:
     from http.client import HTTPSConnection
-from datetime import datetime
 
-VERSION = (0, 1, 8, 'final', 0)
+from datetime import datetime
+try:
+    from datetime import timezone
+    USE_PY3_TIMESTAMPS = True
+except ImportError:
+    USE_PY3_TIMESTAMPS = False
+
+import time
+
+VERSION = (0, 1, 9, 'final', 0)
 
 
 def get_version():
@@ -94,7 +102,7 @@ class CustomerIO(object):
         url = self.get_event_query_string(customer_id)
 
         if isinstance(timestamp, datetime):
-            timestamp = self._timedelta_to_timestamp(timestamp - datetime(1970, 1, 1))
+            timestamp = self._datetime_to_timestamp(timestamp)
         elif not isinstance(timestamp, int):
             try:
                 timestamp = int(timestamp)
@@ -118,8 +126,11 @@ class CustomerIO(object):
     def _sanitize(self, data):
         for k, v in data.items():
             if isinstance(v, datetime):
-                data[k] = self._timedelta_to_timestamp(v - datetime(1970, 1, 1))
+                data[k] = self._datetime_to_timestamp(v)
         return data
 
-    def _timedelta_to_timestamp(self, td):
-        return int((td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6)
+    def _datetime_to_timestamp(self, dt):
+        if USE_PY3_TIMESTAMPS:
+            return dt.replace(tzinfo=timezone.utc).timestamp()
+        else:
+            return int(time.mktime(dt.timetuple()))
