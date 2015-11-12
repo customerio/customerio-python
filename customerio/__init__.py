@@ -43,6 +43,7 @@ class CustomerIO(object):
         self.port = port or 443
         self.url_prefix = url_prefix or '/api/v1'
         self.json_encoder = json_encoder
+        self.http = HTTPSConnection(self.host, self.port)
 
     def get_customer_query_string(self, customer_id):
         '''Generates a customer API path'''
@@ -56,7 +57,6 @@ class CustomerIO(object):
         '''Dispatches the request and returns a response'''
 
         data = json.dumps(self._sanitize(data), cls=self.json_encoder)
-        http = HTTPSConnection(self.host, self.port)
         auth = "{site_id}:{api_key}".format(site_id=self.site_id, api_key=self.api_key).encode("utf-8")
         basic_auth = base64.b64encode(auth)
 
@@ -66,8 +66,8 @@ class CustomerIO(object):
             'Content-Length': len(data),
         }
 
-        http.request(method, query_string, data, headers)
-        response = http.getresponse()
+        self.http.request(method, query_string, data, headers)
+        response = self.http.getresponse()
         result_status = response.status
         if result_status != 200:
             raise CustomerIOException('%s: %s %s' % (result_status, query_string, data))
