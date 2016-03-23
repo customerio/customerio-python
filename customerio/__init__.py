@@ -15,7 +15,7 @@ except ImportError:
 
 import time
 
-VERSION = (0, 1, 10, 'final', 0)
+VERSION = (0, 1, 11, 'final', 0)
 
 
 def get_version():
@@ -36,13 +36,17 @@ class CustomerIOException(Exception):
 
 class CustomerIO(object):
 
-    def __init__(self, site_id=None, api_key=None, host=None, port=None, url_prefix=None, json_encoder=json.JSONEncoder):
+    def __init__(self, site_id=None, api_key=None, host=None, port=None, url_prefix=None, json_encoder=json.JSONEncoder, retries=3):
         self.site_id = site_id
         self.api_key = api_key
         self.host = host or 'track.customer.io'
         self.port = port or 443
         self.url_prefix = url_prefix or '/api/v1'
         self.json_encoder = json_encoder
+        self.retries = retries
+        self.setup_connection()
+
+    def setup_connection(self):
         self.http = HTTPSConnection(self.host, self.port)
 
     def get_customer_query_string(self, customer_id):
@@ -66,8 +70,27 @@ class CustomerIO(object):
             'Content-Length': len(data),
         }
 
-        self.http.request(method, query_string, data, headers)
-        response = self.http.getresponse()
+        # Retry request a number of times before raising an exception
+        retry = 0
+        success = False
+        while not success:
+            try:
+                self.http.request(method, query_string, data, headers)
+                response = self.http.getresponse()
+                success = True
+            except Exception as e:
+                retry += 1
+                if retry > self.retries:
+                    # Raise exception alerting user that the system might be
+                    # experiencing an outage and refer them to system status page.
+                    message = '''Failed to receive valid reponse after {count} retries.
+Check system status at http://status.customer.io.
+Last caught exception -- {klass}: {message}
+                    '''.format(klass=type(e), message=e, count=self.retries)
+                    raise CustomerIOException(message)
+                # Setup connection again in case connection was closed by the server
+                self.setup_connection()
+
         result_status = response.status
         if result_status != 200:
             raise CustomerIOException('%s: %s %s' % (result_status, query_string, data))
