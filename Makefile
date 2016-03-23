@@ -18,3 +18,6 @@ dev: clean all
 upload:
 	python setup.py register
 	echo "*** Now upload the binary to PyPi *** (one second)" && sleep 3 && open dist & open "http://pypi.python.org/pypi?%3Aaction=pkg_edit&name=customerio" # python setup.py upload
+
+run_tests:
+	python -m unittest discover -v
