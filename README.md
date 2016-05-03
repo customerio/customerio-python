@@ -65,7 +65,7 @@ event_type = "purchase"
 
 # Backfill an event one hour in the past
 event_date = datetime.utcnow() - timedelta(hours=1)
-cio.backfill(customer_id, event_type, timestamp, price=23.45, coupon=True)
+cio.backfill(customer_id, event_type, event_date, price=23.45, coupon=True)
 
 event_timestamp = 1408482633
 cio.backfill(customer_id, event_type, event_timestamp, price=34.56)
