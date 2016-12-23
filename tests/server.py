@@ -1,4 +1,8 @@
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+try:
+    from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+except ImportError:
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+
 from functools import wraps
 from random import randint
 
@@ -25,14 +29,21 @@ class Handler(BaseHTTPRequestHandler):
     The handler reads the post body and fails for the `fail_count` specified.
     After sending specified number of bad responses will sent a valid response.
     '''
+    def do_DELETE(self):
+        self.send_response(200)
+        self.end_headers()
+
+    def do_POST(self):
+        self.send_response(200)
+        self.end_headers()
 
     def do_PUT(self):
         global request_counts
 
         # extract params
         _id = self.path.split("/")[-1]
-        content_len = int(self.headers.getheader('content-length', 0))
-        params = json.loads(self.rfile.read(content_len))
+        content_len = int(self.headers.get('content-length', 0))
+        params = json.loads(self.rfile.read(content_len).decode('utf-8'))
         fail_count = params.get('fail_count', 0)
 
         # retrieve number of requests already served
@@ -40,6 +51,7 @@ class Handler(BaseHTTPRequestHandler):
         if processed > fail_count:
             # return a valid response
             self.send_response(200)
+            self.end_headers()
             return
 
         # increment number of requests and return invalid response
