@@ -152,6 +152,6 @@ Last caught exception -- {klass}: {message}
 
     def _datetime_to_timestamp(self, dt):
         if USE_PY3_TIMESTAMPS:
-            return dt.replace(tzinfo=timezone.utc).timestamp()
+            return int(dt.replace(tzinfo=timezone.utc).timestamp())
         else:
             return int(time.mktime(dt.timetuple()))
