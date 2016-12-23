@@ -1,14 +1,14 @@
-from __future__ import division
+from __future__ import division, print_function
+from datetime import datetime
+import time
+
 import requests
 
-from datetime import datetime
 try:
     from datetime import timezone
     USE_PY3_TIMESTAMPS = True
 except ImportError:
     USE_PY3_TIMESTAMPS = False
-
-import time
 
 VERSION = (0, 1, 11, 'final', 0)
 
@@ -31,7 +31,7 @@ class CustomerIOException(Exception):
 
 class CustomerIO(object):
 
-    def __init__(self, site_id=None, api_key=None, host=None, port=None, url_prefix=None, retries=3, timeout=10, retry_interval=0.5):
+    def __init__(self, site_id=None, api_key=None, host=None, port=None, url_prefix=None, json_encoder=None, retries=3, timeout=10, retry_interval=0.5):
         self.site_id = site_id
         self.api_key = api_key
         self.host = host or 'track.customer.io'
@@ -40,6 +40,10 @@ class CustomerIO(object):
         self.retries = retries
         self.timeout = timeout
         self.retry_interval = retry_interval
+
+        if json_encoder is not None:
+            print("DeprecationWarning: With the switch to using requests library the `json_encoder` param is no longer used.")
+
         self.setup_base_url()
         self.setup_connection()
 
