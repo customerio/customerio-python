@@ -1,6 +1,7 @@
-from __future__ import division, print_function
+from __future__ import division
 from datetime import datetime
 import time
+import warnings
 
 from requests import Session
 from requests.adapters import HTTPAdapter
@@ -14,7 +15,6 @@ except ImportError:
 
 VERSION = (0, 2, 0, 'final', 0)
 
-
 def get_version():
     version = '%s.%s' % (VERSION[0], VERSION[1])
     if VERSION[2]:
@@ -26,6 +26,7 @@ def get_version():
             version = '%s %s %s' % (version, VERSION[3], VERSION[4])
     return version
 
+warnings.simplefilter("default")
 
 class CustomerIOException(Exception):
     pass
@@ -44,7 +45,7 @@ class CustomerIO(object):
         self.backoff_factor = backoff_factor
 
         if json_encoder is not None:
-            print("DeprecationWarning: With the switch to using requests library the `json_encoder` param is no longer used.")
+            warnings.warn("With the switch to using requests library the `json_encoder` param is no longer used.", DeprecationWarning)
 
         self.setup_base_url()
         self.setup_connection()
