@@ -1,22 +1,19 @@
 from __future__ import division
-import json
-import base64
-try:
-    from httplib import HTTPSConnection
-except ImportError:
-    from http.client import HTTPSConnection
-
 from datetime import datetime
+import time
+import warnings
+
+from requests import Session
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
+
 try:
     from datetime import timezone
     USE_PY3_TIMESTAMPS = True
 except ImportError:
     USE_PY3_TIMESTAMPS = False
 
-import time
-
-VERSION = (0, 1, 11, 'final', 0)
-
+VERSION = (0, 2, 0, 'final', 0)
 
 def get_version():
     version = '%s.%s' % (VERSION[0], VERSION[1])
@@ -29,6 +26,7 @@ def get_version():
             version = '%s %s %s' % (version, VERSION[3], VERSION[4])
     return version
 
+warnings.simplefilter("default")
 
 class CustomerIOException(Exception):
     pass
@@ -36,65 +34,69 @@ class CustomerIOException(Exception):
 
 class CustomerIO(object):
 
-    def __init__(self, site_id=None, api_key=None, host=None, port=None, url_prefix=None, json_encoder=json.JSONEncoder, retries=3):
+    def __init__(self, site_id=None, api_key=None, host=None, port=None, url_prefix=None, json_encoder=None, retries=3, timeout=10, backoff_factor=0.02):
         self.site_id = site_id
         self.api_key = api_key
         self.host = host or 'track.customer.io'
         self.port = port or 443
         self.url_prefix = url_prefix or '/api/v1'
-        self.json_encoder = json_encoder
         self.retries = retries
+        self.timeout = timeout
+        self.backoff_factor = backoff_factor
+
+        if json_encoder is not None:
+            warnings.warn("With the switch to using requests library the `json_encoder` param is no longer used.", DeprecationWarning)
+
+        self.setup_base_url()
         self.setup_connection()
 
+    def setup_base_url(self):
+        template = 'https://{host}:{port}/{prefix}'
+        if self.port == 443:
+            template = 'https://{host}/{prefix}'
+
+        if '://' in self.host:
+            self.host = self.host.split('://')[1]
+
+        self.base_url = template.format(
+            host=self.host.strip('/'),
+            port=self.port,
+            prefix=self.url_prefix.strip('/'))
+
     def setup_connection(self):
-        self.http = HTTPSConnection(self.host, self.port)
+        self.http = Session()
+        # Retry request a number of times before raising an exception
+        # also define backoff_factor to delay each retry
+        self.http.mount('https://', HTTPAdapter(max_retries=Retry(
+            total=self.retries, backoff_factor=self.backoff_factor)))
+        self.http.auth = (self.site_id, self.api_key)
 
     def get_customer_query_string(self, customer_id):
         '''Generates a customer API path'''
-        return '%s/customers/%s' % (self.url_prefix, customer_id)
+        return '{base}/customers/{id}'.format(base=self.base_url, id=customer_id)
 
     def get_event_query_string(self, customer_id):
         '''Generates an event API path'''
-        return '%s/customers/%s/events' % (self.url_prefix, customer_id)
+        return '{base}/customers/{id}/events'.format(base=self.base_url, id=customer_id)
 
-    def send_request(self, method, query_string, data):
+    def send_request(self, method, url, data):
         '''Dispatches the request and returns a response'''
 
-        data = json.dumps(self._sanitize(data), cls=self.json_encoder)
-        auth = "{site_id}:{api_key}".format(site_id=self.site_id, api_key=self.api_key).encode("utf-8")
-        basic_auth = base64.b64encode(auth)
-
-        headers = {
-            'Authorization': b" ".join([b"Basic", basic_auth]),
-            'Content-Type': 'application/json',
-            'Content-Length': len(data),
-        }
-
-        # Retry request a number of times before raising an exception
-        retry = 0
-        success = False
-        while not success:
-            try:
-                self.http.request(method, query_string, data, headers)
-                response = self.http.getresponse()
-                success = True
-            except Exception as e:
-                retry += 1
-                if retry > self.retries:
-                    # Raise exception alerting user that the system might be
-                    # experiencing an outage and refer them to system status page.
-                    message = '''Failed to receive valid reponse after {count} retries.
+        try:
+            response = self.http.request(method, url=url, json=self._sanitize(data), timeout=self.timeout)
+        except Exception as e:
+            # Raise exception alerting user that the system might be
+            # experiencing an outage and refer them to system status page.
+            message = '''Failed to receive valid reponse after {count} retries.
 Check system status at http://status.customer.io.
 Last caught exception -- {klass}: {message}
-                    '''.format(klass=type(e), message=e, count=self.retries)
-                    raise CustomerIOException(message)
-                # Setup connection again in case connection was closed by the server
-                self.setup_connection()
+            '''.format(klass=type(e), message=e, count=self.retries)
+            raise CustomerIOException(message)
 
-        result_status = response.status
+        result_status = response.status_code
         if result_status != 200:
-            raise CustomerIOException('%s: %s %s' % (result_status, query_string, data))
-        return response.read()
+            raise CustomerIOException('%s: %s %s' % (result_status, url, data))
+        return response.text
 
     def identify(self, id, **kwargs):
         '''Identify a single customer by their unique id, and optionally add attributes'''
@@ -142,7 +144,6 @@ Last caught exception -- {klass}: {message}
 
     def delete(self, customer_id):
         '''Delete a customer profile'''
-
         url = self.get_customer_query_string(customer_id)
         self.send_request('DELETE', url, {})
 
@@ -154,6 +155,6 @@ Last caught exception -- {klass}: {message}
 
     def _datetime_to_timestamp(self, dt):
         if USE_PY3_TIMESTAMPS:
-            return dt.replace(tzinfo=timezone.utc).timestamp()
+            return int(dt.replace(tzinfo=timezone.utc).timestamp())
         else:
             return int(time.mktime(dt.timetuple()))
