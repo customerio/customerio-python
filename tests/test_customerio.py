@@ -15,6 +15,18 @@ requests.packages.urllib3.disable_warnings()
 
 class TestCustomerIO(HTTPSTestCase):
     '''Starts server which the client connects to in the following tests'''
+    def setUp(self):
+        self.cio = CustomerIO(
+            site_id='siteid',
+            api_key='apikey',
+            host=self.server.server_address[0],
+            port=self.server.server_port,
+            retries=5,
+            backoff_factor=0)
+
+        # do not verify the ssl certificate as it is self signed
+        # should only be done for tests
+        self.cio.http.verify = False
 
     def _check_request(self, resp, rq, *args, **kwargs):
         request = resp.request
@@ -28,41 +40,19 @@ class TestCustomerIO(HTTPSTestCase):
 
 
     def test_client_connection_handling(self):
-        retries = 5
-
-        cio = CustomerIO(
-            site_id='siteid',
-            api_key='apikey',
-            host=self.server.server_address[0],
-            port=self.server.server_port,
-            retries=retries,
-            retry_interval=0)
-
-        # do not verify the ssl certificate as it is self signed
-        # should only be done for tests
-        cio.http.verify = False
-
+        retries = self.cio.retries
         # should not raise exception as i should be less than retries and 
         # therefore the last request should return a valid response
         for i in range(retries):
-            cio.identify(i, fail_count=i)
+            self.cio.identify(i, fail_count=i)
 
         # should raise expection as we get invalid responses for all retries
         with self.assertRaises(CustomerIOException):
-            cio.identify(retries, fail_count=retries)
+            self.cio.identify(retries, fail_count=retries)
 
 
     def test_identify_call(self):
-        cio = CustomerIO(
-            site_id='siteid',
-            api_key='apikey',
-            host=self.server.server_address[0],
-            port=self.server.server_port)
-
-        # do not verify the ssl certificate as it is self signed
-        # should only be done for tests
-        cio.http.verify = False
-        cio.http.hooks=dict(response=partial(self._check_request, rq={
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
             'method': 'PUT',
             'authorization': _basic_auth_str('siteid', 'apikey'),
             'content_type': 'application/json',
@@ -70,23 +60,14 @@ class TestCustomerIO(HTTPSTestCase):
             'body': {"name": "john", "email": "john@test.com"},
         }))
 
-        cio.identify(id=1, name='john', email='john@test.com')
+        self.cio.identify(id=1, name='john', email='john@test.com')
 
         with self.assertRaises(TypeError):
-            cio.identify(random_attr="some_value")
+            self.cio.identify(random_attr="some_value")
 
 
     def test_track_call(self):
-        cio = CustomerIO(
-            site_id='siteid',
-            api_key='apikey',
-            host=self.server.server_address[0],
-            port=self.server.server_port)
-
-        # do not verify the ssl certificate as it is self signed
-        # should only be done for tests
-        cio.http.verify = False
-        cio.http.hooks=dict(response=partial(self._check_request, rq={
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
             'method': 'POST',
             'authorization': _basic_auth_str('siteid', 'apikey'),
             'content_type': 'application/json',
@@ -94,23 +75,14 @@ class TestCustomerIO(HTTPSTestCase):
             'body': {"data": {"email": "john@test.com"}, "name": "sign_up"},
         }))
 
-        cio.track(customer_id=1, name='sign_up', email='john@test.com')
+        self.cio.track(customer_id=1, name='sign_up', email='john@test.com')
 
         with self.assertRaises(TypeError):
-            cio.track(random_attr="some_value")
+            self.cio.track(random_attr="some_value")
 
 
     def test_pageview_call(self):
-        cio = CustomerIO(
-            site_id='siteid',
-            api_key='apikey',
-            host=self.server.server_address[0],
-            port=self.server.server_port)
-
-        # do not verify the ssl certificate as it is self signed
-        # should only be done for tests
-        cio.http.verify = False
-        cio.http.hooks=dict(response=partial(self._check_request, rq={
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
             'method': 'POST',
             'authorization': _basic_auth_str('siteid', 'apikey'),
             'content_type': 'application/json',
@@ -118,23 +90,14 @@ class TestCustomerIO(HTTPSTestCase):
             'body': {"data": {"referer": "category_1"}, "type": "page", "name": "product_1"},
         }))
 
-        cio.pageview(customer_id=1, page='product_1', referer='category_1')
+        self.cio.pageview(customer_id=1, page='product_1', referer='category_1')
 
         with self.assertRaises(TypeError):
-            cio.pageview(random_attr="some_value")
+            self.cio.pageview(random_attr="some_value")
 
 
     def test_delete_call(self):
-        cio = CustomerIO(
-            site_id='siteid',
-            api_key='apikey',
-            host=self.server.server_address[0],
-            port=self.server.server_port)
-
-        # do not verify the ssl certificate as it is self signed
-        # should only be done for tests
-        cio.http.verify = False
-        cio.http.hooks=dict(response=partial(self._check_request, rq={
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
             'method': 'DELETE',
             'authorization': _basic_auth_str('siteid', 'apikey'),
             'content_type': 'application/json',
@@ -142,23 +105,14 @@ class TestCustomerIO(HTTPSTestCase):
             'body': {},
         }))
 
-        cio.delete(customer_id=1)
+        self.cio.delete(customer_id=1)
 
         with self.assertRaises(TypeError):
-            cio.delete(random_attr="some_value")
+            self.cio.delete(random_attr="some_value")
 
 
     def test_backfill_call(self):
-        cio = CustomerIO(
-            site_id='siteid',
-            api_key='apikey',
-            host=self.server.server_address[0],
-            port=self.server.server_port)
-
-        # do not verify the ssl certificate as it is self signed
-        # should only be done for tests
-        cio.http.verify = False
-        cio.http.hooks=dict(response=partial(self._check_request, rq={
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
             'method': 'POST',
             'authorization': _basic_auth_str('siteid', 'apikey'),
             'content_type': 'application/json',
@@ -166,18 +120,18 @@ class TestCustomerIO(HTTPSTestCase):
             'body': {"timestamp": 1234567890, "data": {"email": "john@test.com"}, "name": "signup"},
         }))
 
-        cio.backfill(customer_id=1, name='signup', timestamp=1234567890, email='john@test.com')
+        self.cio.backfill(customer_id=1, name='signup', timestamp=1234567890, email='john@test.com')
 
         with self.assertRaises(TypeError):
-            cio.backfill(random_attr="some_value")
+            self.cio.backfill(random_attr="some_value")
 
 
     def test_base_url(self):
         test_cases = [
             # host, port, prefix, result
-            (None, None, None, 'https://track.customer.io:443/api/v1'),
-            (None, None, 'v2', 'https://track.customer.io:443/v2'),
-            (None, None, '/v2/', 'https://track.customer.io:443/v2'),
+            (None, None, None, 'https://track.customer.io/api/v1'),
+            (None, None, 'v2', 'https://track.customer.io/v2'),
+            (None, None, '/v2/', 'https://track.customer.io/v2'),
             ('sub.domain.com', 1337, '/v2/', 'https://sub.domain.com:1337/v2'),
             ('/sub.domain.com/', 1337, '/v2/', 'https://sub.domain.com:1337/v2'),
             ('http://sub.domain.com/', 1337, '/v2/', 'https://sub.domain.com:1337/v2'),
@@ -188,20 +142,18 @@ class TestCustomerIO(HTTPSTestCase):
             self.assertEqual(cio.base_url, result)
 
 
-    @unittest.skipIf(sys.version_info.major > 2, "python2 specific test")
+    @unittest.skipIf(sys.version_info.major > 2, "python2 specific test case")
     def test_sanitize_py2(self):
-        cio = CustomerIO()
         data_in = dict(dt=datetime.fromtimestamp(1234567890))
-        data_out = cio._sanitize(data_in)
+        data_out = self.cio._sanitize(data_in)
         self.assertEqual(data_out, dict(dt=1234567890))
 
 
-    @unittest.skipIf(sys.version_info.major < 3, "python3 specific test")
+    @unittest.skipIf(sys.version_info.major < 3, "python3 specific test case")
     def test_sanitize_py3(self):
-        cio = CustomerIO()
         from datetime import timezone
         data_in = dict(dt=datetime(2009, 2, 13, 23, 31, 30, 0, timezone.utc))
-        data_out = cio._sanitize(data_in)
+        data_out = self.cio._sanitize(data_in)
         self.assertEqual(data_out, dict(dt=1234567890))
 
 

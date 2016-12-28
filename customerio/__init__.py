@@ -2,7 +2,9 @@ from __future__ import division, print_function
 from datetime import datetime
 import time
 
-import requests
+from requests import Session
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 
 try:
     from datetime import timezone
@@ -31,7 +33,7 @@ class CustomerIOException(Exception):
 
 class CustomerIO(object):
 
-    def __init__(self, site_id=None, api_key=None, host=None, port=None, url_prefix=None, json_encoder=None, retries=3, timeout=10, retry_interval=0.5):
+    def __init__(self, site_id=None, api_key=None, host=None, port=None, url_prefix=None, json_encoder=None, retries=3, timeout=10, backoff_factor=0.02):
         self.site_id = site_id
         self.api_key = api_key
         self.host = host or 'track.customer.io'
@@ -39,7 +41,7 @@ class CustomerIO(object):
         self.url_prefix = url_prefix or '/api/v1'
         self.retries = retries
         self.timeout = timeout
-        self.retry_interval = retry_interval
+        self.backoff_factor = backoff_factor
 
         if json_encoder is not None:
             print("DeprecationWarning: With the switch to using requests library the `json_encoder` param is no longer used.")
@@ -48,16 +50,24 @@ class CustomerIO(object):
         self.setup_connection()
 
     def setup_base_url(self):
+        template = 'https://{host}:{port}/{prefix}'
+        if self.port == 443:
+            template = 'https://{host}/{prefix}'
+
         if '://' in self.host:
             self.host = self.host.split('://')[1]
 
-        self.base_url = 'https://{host}:{port}/{prefix}'.format(
+        self.base_url = template.format(
             host=self.host.strip('/'),
             port=self.port,
             prefix=self.url_prefix.strip('/'))
 
     def setup_connection(self):
-        self.http = requests.Session()
+        self.http = Session()
+        # Retry request a number of times before raising an exception
+        # also define backoff_factor to delay each retry
+        self.http.mount('https://', HTTPAdapter(max_retries=Retry(
+            total=self.retries, backoff_factor=self.backoff_factor)))
         self.http.auth = (self.site_id, self.api_key)
 
     def get_customer_query_string(self, customer_id):
@@ -71,24 +81,16 @@ class CustomerIO(object):
     def send_request(self, method, url, data):
         '''Dispatches the request and returns a response'''
 
-        # Retry request a number of times before raising an exception
-        retry = 0
-        success = False
-        while not success:
-            try:
-                response = self.http.request(method, url=url, json=self._sanitize(data), timeout=self.timeout)
-                success = True
-            except Exception as e:
-                time.sleep(self.retry_interval)
-                retry += 1
-                if retry > self.retries:
-                    # Raise exception alerting user that the system might be
-                    # experiencing an outage and refer them to system status page.
-                    message = '''Failed to receive valid reponse after {count} retries.
+        try:
+            response = self.http.request(method, url=url, json=self._sanitize(data), timeout=self.timeout)
+        except Exception as e:
+            # Raise exception alerting user that the system might be
+            # experiencing an outage and refer them to system status page.
+            message = '''Failed to receive valid reponse after {count} retries.
 Check system status at http://status.customer.io.
 Last caught exception -- {klass}: {message}
-                    '''.format(klass=type(e), message=e, count=self.retries)
-                    raise CustomerIOException(message)
+            '''.format(klass=type(e), message=e, count=self.retries)
+            raise CustomerIOException(message)
 
         result_status = response.status_code
         if result_status != 200:
