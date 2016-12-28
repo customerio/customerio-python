@@ -12,7 +12,7 @@ try:
 except ImportError:
     USE_PY3_TIMESTAMPS = False
 
-VERSION = (0, 1, 11, 'final', 0)
+VERSION = (0, 2, 0, 'final', 0)
 
 
 def get_version():
