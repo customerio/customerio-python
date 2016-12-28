@@ -1,0 +1,17 @@
+language: python
+
+python:
+  - "2.6"
+  - "2.7"
+  - "3.3"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+
+env:
+ - REQUESTS="requests" # latest
+ - REQUESTS="requests==2.5" # min version of requests library 
+
+install: pip install $REQUESTS
+
+script: make test

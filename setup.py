@@ -23,6 +23,6 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
     ],
-    install_requires=['requests'],
+    install_requires=['requests>=2.5'],
     test_suite="tests",
 )
