@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-VERSION = (0, 2, 1, 'final', 0)
+VERSION = (0, 2, 2, 'final', 0)
 
 def get_version():
     version = '%s.%s' % (VERSION[0], VERSION[1])
@@ -33,5 +33,6 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
     ],
+    install_requires=['requests>=2.5'],
     test_suite="tests",
 )
