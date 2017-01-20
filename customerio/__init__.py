@@ -37,6 +37,10 @@ class CustomerIO(object):
         self.setup_base_url()
         self.setup_connection()
 
+    def close(self):
+        if self.http:
+            self.http.close()
+
     def setup_base_url(self):
         template = 'https://{host}:{port}/{prefix}'
         if self.port == 443:
