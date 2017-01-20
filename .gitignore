@@ -1,3 +1,5 @@
 *.pyc
 *.pyo
 tests/server.pem
+customerio.egg-info/
+dist
