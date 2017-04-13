@@ -70,7 +70,7 @@ class CustomerIO(object):
         '''Dispatches the request and returns a response'''
 
         try:
-            response = self.http.request(method, url=url, json=self._sanitize(data), timeout=self.timeout)
+            response = self.http.request(method, url=url, json=data, timeout=self.timeout)
         except Exception as e:
             # Raise exception alerting user that the system might be
             # experiencing an outage and refer them to system status page.
@@ -88,14 +88,14 @@ Last caught exception -- {klass}: {message}
     def identify(self, id, **kwargs):
         '''Identify a single customer by their unique id, and optionally add attributes'''
         url = self.get_customer_query_string(id)
-        self.send_request('PUT', url, kwargs)
+        self.send_request('PUT', url, self._sanitize(kwargs))
 
     def track(self, customer_id, name, **data):
         '''Track an event for a given customer_id'''
         url = self.get_event_query_string(customer_id)
         post_data = {
             'name': name,
-            'data': data,
+            'data': self._sanitize(data),
         }
         self.send_request('POST', url, post_data)
 
@@ -105,7 +105,7 @@ Last caught exception -- {klass}: {message}
         post_data = {
             'type': "page",
             'name': page,
-            'data': data,
+            'data': self._sanitize(data),
         }
         self.send_request('POST', url, post_data)
 
@@ -123,7 +123,7 @@ Last caught exception -- {klass}: {message}
 
         post_data = {
             'name': name,
-            'data': data,
+            'data': self._sanitize(data),
             'timestamp': timestamp
         }
 
