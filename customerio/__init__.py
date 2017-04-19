@@ -13,7 +13,6 @@ try:
 except ImportError:
     USE_PY3_TIMESTAMPS = False
 
-warnings.simplefilter("default")
 
 class CustomerIOException(Exception):
     pass
