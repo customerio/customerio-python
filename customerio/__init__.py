@@ -2,6 +2,7 @@ from __future__ import division
 from datetime import datetime
 import time
 import warnings
+import math
 
 from requests import Session
 from requests.adapters import HTTPAdapter
@@ -138,6 +139,8 @@ Last caught exception -- {klass}: {message}
         for k, v in data.items():
             if isinstance(v, datetime):
                 data[k] = self._datetime_to_timestamp(v)
+            if isinstance(v, float) and math.isnan(v):
+                data[k] = None
         return data
 
     def _datetime_to_timestamp(self, dt):
