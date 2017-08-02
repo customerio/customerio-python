@@ -95,9 +95,10 @@ See original REST documentation [here](http://customer.io/docs/api/rest.html#sec
 
 You can pass any keyword arguments to the `identify` and `track` methods. These kwargs will be converted to custom attributes.
 
-## Thanks
+## Thanks!
 
 * [Dimitriy Narkevich](https://github.com/dimier) for creating the library.
 * [EZL](https://github.com/ezl) for contributing customer deletes and improving README
 * [Noemi Millman](https://github.com/sbnoemi) for adding custom JSON encoder
 * [Jason Kraus](https://github.com/zbyte64) for event backfilling
+* [Nicolas Paris](https://github.com/niparis) for better handling of NaN values
