@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-VERSION = (0, 2, 3, 'final', 0)
+VERSION = (0, 2, 4, 'final', 0)
 
 def get_version():
     version = '%s.%s' % (VERSION[0], VERSION[1])
