@@ -95,6 +95,11 @@ See original REST documentation [here](http://customer.io/docs/api/rest.html#sec
 
 You can pass any keyword arguments to the `identify` and `track` methods. These kwargs will be converted to custom attributes.
 
+
+### Running tests
+
+Changes to the library can be tested by running `make test` from the parent directory.
+
 ## Thanks!
 
 * [Dimitriy Narkevich](https://github.com/dimier) for creating the library.
