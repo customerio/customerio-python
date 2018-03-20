@@ -112,7 +112,7 @@ cio.add_device(customer_id=1, device_id='device_hash', platform='ios', data={'la
 
 This method returns nothing.
 
-## Delete a device
+### Delete a device
 ```python
 cio.delete_device(customer_id=1, device_id='device_hash')
 ```
