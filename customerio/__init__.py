@@ -139,15 +139,26 @@ Last caught exception -- {klass}: {message}
         url = self.get_customer_query_string(customer_id)
         self.send_request('DELETE', url, {})
 
-    def add_device(self, customer_id, device_id, platform, last_used):
+    def add_device(self, customer_id, device_id, platform, **data):
         '''Add a device to a customer profile'''
-        payload = {
-            'device': {
+        if customer_id == '':
+            raise CustomerIOException("customer_id cannot be blank in add_device")
+        
+        if device_id == '':
+            raise CustomerIOException("device_id cannot be blank in add_device")
+        
+        if platform not in ['ios', 'android']:
+            raise CustomerIOException("supported platforms are 'ios' and 'android'")
+
+        device = {
                 'id': device_id,
                 'platform': platform,
-                'last_used': last_used
             }
-        }
+
+        if not data:
+            data = {'data': {} }
+
+        payload = {'device': self._merge(device, data['data']) }
         url = self.get_device_query_string(customer_id)
         self.send_request('PUT', url, payload)
 
@@ -170,3 +181,9 @@ Last caught exception -- {klass}: {message}
             return int(dt.replace(tzinfo=timezone.utc).timestamp())
         else:
             return int(time.mktime(dt.timetuple()))
+
+    def _merge(self, x, y):
+        '''Merge two dictionaries. Used instead of z = {**x, **y} to support Python < 3.5'''
+        z  = x.copy()
+        z.update(y)
+        return z

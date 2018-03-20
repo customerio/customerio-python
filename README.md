@@ -95,8 +95,33 @@ See original REST documentation [here](http://customer.io/docs/api/rest.html#sec
 
 You can pass any keyword arguments to the `identify` and `track` methods. These kwargs will be converted to custom attributes.
 
+### Add a device
+```python
+cio.add_device(customer_id=1, device_id='device_hash', platform='ios')
+```
 
-### Running tests
+Adds the device `device_hash` with the platform `ios` for a specified customer.
+
+Supported platforms are `ios` and `android`. 
+
+Optionally, `last_used` can be passed in to specify the last touch of the device. Otherwise, this attribute is set by the API.
+
+```python
+cio.add_device(customer_id=1, device_id='device_hash', platform='ios', data={'last_used': 1514764800})
+```
+
+This method returns nothing.
+
+## Delete a device
+```python
+cio.delete_device(customer_id=1, device_id='device_hash')
+```
+
+Deletes the specified device for a specified customer.
+
+This method returns nothing. Attempts to delete non-existent devices will not raise any errors.
+
+## Running tests
 
 Changes to the library can be tested by running `make test` from the parent directory.
 

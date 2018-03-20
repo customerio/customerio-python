@@ -148,13 +148,61 @@ class TestCustomerIO(HTTPSTestCase):
             'authorization': _basic_auth_str('siteid', 'apikey'),
             'content_type': 'application/json',
             'url_suffix': '/customers/1/devices',
-            'body': {"device": {"id": "device_1", "platform":"ios", "last_used": 1234567890} }
+            'body': {"device": {"id": "device_1", "platform":"ios"}}
         }))
 
-        self.cio.add_device(customer_id=1, device_id="device_1", platform="ios", last_used=1234567890)
+        self.cio.add_device(customer_id=1, device_id="device_1", platform="ios")
         with self.assertRaises(TypeError):
             self.cio.add_device(random_attr="some_value")
 
+    def test_device_call_last_used(self):
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'method': 'PUT',
+            'authorization': _basic_auth_str('siteid', 'apikey'),
+            'content_type': 'application/json',
+            'url_suffix': '/customers/1/devices',
+            'body': {"device": {"id": "device_2", "platform": "android", "last_used": 1234567890}}
+        }))
+
+        self.cio.add_device(customer_id=1, device_id="device_2", platform="android", data={"last_used": 1234567890})
+        with self.assertRaises(TypeError):
+            self.cio.add_device(random_attr="some_value")
+
+    def test_device_call_valid_platform(self):
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'method': 'PUT',
+            'authorization': _basic_auth_str('siteid', 'apikey'),
+            'content_type': 'application/json',
+            'url_suffix': '/customers/1/devices',
+            'body': {"device": {"id": "device_3", "platform": "notsupported"}}
+        }))
+
+        with self.assertRaises(CustomerIOException):
+            self.cio.add_device(customer_id=1, device_id="device_3", platform="notsupported")
+   
+    def test_device_call_has_customer_id(self):
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'method': 'PUT',
+            'authorization': _basic_auth_str('siteid', 'apikey'),
+            'content_type': 'application/json',
+            'url_suffix': '/customers/1/devices',
+            'body': {"device": {"id": "device_4", "platform": "ios"}}
+        }))
+
+        with self.assertRaises(CustomerIOException):
+            self.cio.add_device(customer_id="", device_id="device_4", platform="ios")
+    
+    def test_device_call_has_device_id(self):
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'method': 'PUT',
+            'authorization': _basic_auth_str('siteid', 'apikey'),
+            'content_type': 'application/json',
+            'url_suffix': '/customers/1/devices',
+            'body': {"device": {"id": "device_5", "platform": "ios"}}
+        }))
+
+        with self.assertRaises(CustomerIOException):
+            self.cio.add_device(customer_id=1, device_id="", platform="ios")
 
     def test_device_delete_call(self):
         self.cio.http.hooks=dict(response=partial(self._check_request, rq={
@@ -167,7 +215,7 @@ class TestCustomerIO(HTTPSTestCase):
 
         self.cio.delete_device(customer_id=1, device_id="device_1")
         with self.assertRaises(TypeError):
-            self.cio.add_device(random_attr="some_value")
+            self.cio.delete_device(random_attr="some_value")
 
 
     @unittest.skipIf(sys.version_info.major > 2, "python2 specific test case")
