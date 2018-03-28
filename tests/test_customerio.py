@@ -164,9 +164,7 @@ class TestCustomerIO(HTTPSTestCase):
             'body': {"device": {"id": "device_2", "platform": "android", "last_used": 1234567890}}
         }))
 
-        self.cio.add_device(customer_id=1, device_id="device_2", platform="android", data={"last_used": 1234567890})
-        with self.assertRaises(TypeError):
-            self.cio.add_device(random_attr="some_value")
+        self.cio.add_device(customer_id=1, device_id="device_2", platform="android", last_used=1234567890)
 
     def test_device_call_valid_platform(self):
         self.cio.http.hooks=dict(response=partial(self._check_request, rq={
@@ -178,7 +176,7 @@ class TestCustomerIO(HTTPSTestCase):
         }))
 
         with self.assertRaises(CustomerIOException):
-            self.cio.add_device(customer_id=1, device_id="device_3", platform="notsupported")
+            self.cio.add_device(customer_id=1, device_id="device_3", platform=None)
    
     def test_device_call_has_customer_id(self):
         self.cio.http.hooks=dict(response=partial(self._check_request, rq={

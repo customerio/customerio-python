@@ -8,7 +8,6 @@ from requests import Session
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
-
 try:
     from datetime import timezone
     USE_PY3_TIMESTAMPS = True
@@ -141,24 +140,20 @@ Last caught exception -- {klass}: {message}
 
     def add_device(self, customer_id, device_id, platform, **data):
         '''Add a device to a customer profile'''
-        if customer_id == '':
+        if not customer_id:
             raise CustomerIOException("customer_id cannot be blank in add_device")
         
-        if device_id == '':
+        if not device_id:
             raise CustomerIOException("device_id cannot be blank in add_device")
         
-        if platform not in ['ios', 'android']:
-            raise CustomerIOException("supported platforms are 'ios' and 'android'")
+        if not platform:
+            raise CustomerIOException("platform cannot be blank in add_device")
 
-        device = {
-                'id': device_id,
-                'platform': platform,
-            }
-
-        if not data:
-            data = {'data': {} }
-
-        payload = {'device': self._merge(device, data['data']) }
+        data.update({
+            'id': device_id,
+            'platform': platform,
+        })
+        payload = {'device': data }
         url = self.get_device_query_string(customer_id)
         self.send_request('PUT', url, payload)
 
@@ -181,9 +176,3 @@ Last caught exception -- {klass}: {message}
             return int(dt.replace(tzinfo=timezone.utc).timestamp())
         else:
             return int(time.mktime(dt.timetuple()))
-
-    def _merge(self, x, y):
-        '''Merge two dictionaries. Used instead of z = {**x, **y} to support Python < 3.5'''
-        z  = x.copy()
-        z.update(y)
-        return z

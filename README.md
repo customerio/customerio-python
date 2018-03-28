@@ -107,7 +107,7 @@ Supported platforms are `ios` and `android`.
 Optionally, `last_used` can be passed in to specify the last touch of the device. Otherwise, this attribute is set by the API.
 
 ```python
-cio.add_device(customer_id=1, device_id='device_hash', platform='ios', data={'last_used': 1514764800})
+cio.add_device(customer_id=1, device_id='device_hash', platform='ios', last_used=1514764800})
 ```
 
 This method returns nothing.
