@@ -55,7 +55,7 @@ You can pass any keyword arguments to the `identify` and `track` methods. These 
 
 See original REST documentation [here](http://customer.io/docs/api/rest.html#section-Track_a_custom_event)
 
-### Track an custom anonymous event with custom data values
+### Track a custom anonymous event with custom data values
 
 ```python
 cio.track_anonymous(name='purchased', price=23.45, product="widget")
