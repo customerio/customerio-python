@@ -81,19 +81,18 @@ Keyword arguments to backfill work the same as a call to ```cio.track```.
 See original REST documentation [here](http://customer.io/docs/api/rest.html#section-Track_a_custom_event)
 
 ### Delete a customer profile
+```python
+cio.delete(customer_id=5)
+```
 
-    ```python
-    cio.delete(customer_id=5)
-    ```
+Deletes the customer profile for a specified customer.
 
-    Deletes the customer profile for a specified customer.
+This method returns nothing.  Attempts to delete non-existent customers will not raise any errors.
 
-    This method returns nothing.  Attempts to delete non-existent customers will not raise any errors.
-
-    See original REST documentation [here](http://customer.io/docs/api/rest.html#section-Deleting_customers)
+See original REST documentation [here](http://customer.io/docs/api/rest.html#section-Deleting_customers)
 
 
-    You can pass any keyword arguments to the `identify` and `track` methods. These kwargs will be converted to custom attributes.
+You can pass any keyword arguments to the `identify` and `track` methods. These kwargs will be converted to custom attributes.
 
 ### Add a device
 ```python
