@@ -134,6 +134,12 @@ Last caught exception -- {klass}: {message}
         url = self.get_customer_query_string(customer_id)
         self.send_request('DELETE', url, {})
 
+    def suppress(self, customer_id):
+        self.send_request('POST', '{base}/customers/{id}/suppress'.format(base=self.base_url, id=customer_id), {})
+    
+    def unsuppress(self, customer_id):
+        self.send_request('POST', '{base}/customers/{id}/unsuppress'.format(base=self.base_url, id=customer_id), {})
+
     def _sanitize(self, data):
         for k, v in data.items():
             if isinstance(v, datetime):

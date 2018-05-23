@@ -126,6 +126,29 @@ class TestCustomerIO(HTTPSTestCase):
             self.cio.backfill(random_attr="some_value")
 
 
+    def test_suppress_call(self):
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'method': 'POST',
+            'authorization': _basic_auth_str('siteid', 'apikey'),
+            'content_type': 'application/json',
+            'url_suffix': '/customers/1/suppress',
+            'body': {},
+        }))
+
+        self.cio.suppress(1)
+
+    def test_unsuppress_call(self):
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'method': 'POST',
+            'authorization': _basic_auth_str('siteid', 'apikey'),
+            'content_type': 'application/json',
+            'url_suffix': '/customers/1/unsuppress',
+            'body': {},
+        }))
+
+        self.cio.unsuppress(1)
+
+
     def test_base_url(self):
         test_cases = [
             # host, port, prefix, result
