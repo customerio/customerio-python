@@ -223,7 +223,7 @@ class TestCustomerIO(HTTPSTestCase):
             'body': {},
         }))
 
-        self.cio.suppress(1)
+        self.cio.suppress(customer_id=1)
 
         with self.assertRaises(CustomerIOException):
             self.cio.suppress(None)
@@ -236,6 +236,8 @@ class TestCustomerIO(HTTPSTestCase):
             'url_suffix': '/customers/1/unsuppress',
             'body': {},
         }))
+
+        self.cio.unsuppress(customer_id=1)
 
         with self.assertRaises(CustomerIOException):
             self.cio.unsuppress(None)
