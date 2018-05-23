@@ -1,8 +1,8 @@
 from __future__ import division
 from datetime import datetime
+import math
 import time
 import warnings
-import math
 
 from requests import Session
 from requests.adapters import HTTPAdapter
@@ -65,6 +65,10 @@ class CustomerIO(object):
     def get_event_query_string(self, customer_id):
         '''Generates an event API path'''
         return '{base}/customers/{id}/events'.format(base=self.base_url, id=customer_id)
+
+    def get_device_query_string(self, customer_id):
+        '''Generates a device API path'''
+        return '{base}/customers/{id}/devices'.format(base=self.base_url, id=customer_id)
 
     def send_request(self, method, url, data):
         '''Dispatches the request and returns a response'''
@@ -133,6 +137,31 @@ Last caught exception -- {klass}: {message}
         '''Delete a customer profile'''
         url = self.get_customer_query_string(customer_id)
         self.send_request('DELETE', url, {})
+
+    def add_device(self, customer_id, device_id, platform, **data):
+        '''Add a device to a customer profile'''
+        if not customer_id:
+            raise CustomerIOException("customer_id cannot be blank in add_device")
+        
+        if not device_id:
+            raise CustomerIOException("device_id cannot be blank in add_device")
+        
+        if not platform:
+            raise CustomerIOException("platform cannot be blank in add_device")
+
+        data.update({
+            'id': device_id,
+            'platform': platform,
+        })
+        payload = {'device': data }
+        url = self.get_device_query_string(customer_id)
+        self.send_request('PUT', url, payload)
+
+    def delete_device(self, customer_id, device_id):
+        '''Delete a device from a customer profile'''
+        url = self.get_device_query_string(customer_id)
+        delete_url = '{base}/{token}'.format(base=url, token=device_id)
+        self.send_request('DELETE', delete_url, {})
 
     def suppress(self, customer_id):
         self.send_request('POST', '{base}/customers/{id}/suppress'.format(base=self.base_url, id=customer_id), {})
