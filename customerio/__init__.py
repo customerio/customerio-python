@@ -163,6 +163,18 @@ Last caught exception -- {klass}: {message}
         delete_url = '{base}/{token}'.format(base=url, token=device_id)
         self.send_request('DELETE', delete_url, {})
 
+    def suppress(self, customer_id):
+        if not customer_id:
+            raise CustomerIOException("customer_id cannot be blank in suppress")
+
+        self.send_request('POST', '{base}/customers/{id}/suppress'.format(base=self.base_url, id=customer_id), {})
+    
+    def unsuppress(self, customer_id):
+        if not customer_id:
+            raise CustomerIOException("customer_id cannot be blank in unsuppress")
+
+        self.send_request('POST', '{base}/customers/{id}/unsuppress'.format(base=self.base_url, id=customer_id), {})
+
     def _sanitize(self, data):
         for k, v in data.items():
             if isinstance(v, datetime):

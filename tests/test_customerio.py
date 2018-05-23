@@ -125,7 +125,6 @@ class TestCustomerIO(HTTPSTestCase):
         with self.assertRaises(TypeError):
             self.cio.backfill(random_attr="some_value")
 
-
     def test_base_url(self):
         test_cases = [
             # host, port, prefix, result
@@ -214,6 +213,34 @@ class TestCustomerIO(HTTPSTestCase):
         self.cio.delete_device(customer_id=1, device_id="device_1")
         with self.assertRaises(TypeError):
             self.cio.delete_device(random_attr="some_value")
+    
+    def test_suppress_call(self):
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'method': 'POST',
+            'authorization': _basic_auth_str('siteid', 'apikey'),
+            'content_type': 'application/json',
+            'url_suffix': '/customers/1/suppress',
+            'body': {},
+        }))
+
+        self.cio.suppress(customer_id=1)
+
+        with self.assertRaises(CustomerIOException):
+            self.cio.suppress(None)
+
+    def test_unsuppress_call(self):
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'method': 'POST',
+            'authorization': _basic_auth_str('siteid', 'apikey'),
+            'content_type': 'application/json',
+            'url_suffix': '/customers/1/unsuppress',
+            'body': {},
+        }))
+
+        self.cio.unsuppress(customer_id=1)
+
+        with self.assertRaises(CustomerIOException):
+            self.cio.unsuppress(None)
 
 
     @unittest.skipIf(sys.version_info.major > 2, "python2 specific test case")
