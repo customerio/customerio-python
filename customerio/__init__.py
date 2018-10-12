@@ -175,6 +175,30 @@ Last caught exception -- {klass}: {message}
 
         self.send_request('POST', '{base}/customers/{id}/unsuppress'.format(base=self.base_url, id=customer_id), {})
 
+    def add_to_segment(self, segment_id, customer_ids):
+        '''Add customers to a manual segment'''
+        if not segment_id:
+            raise CustomerIOException("segment_id cannot be blank in add_to_segment")
+
+        if not customer_ids:
+            raise CustomerIOException("customer_ids cannot be blank in add_to_segment")
+
+        url = '{base}/segments/{id}/add_customers'.format(base=self.base_url, id=segment_id)
+        payload = {'ids': customer_ids}
+        self.send_request('POST', url, payload)
+
+    def remove_from_segment(self, segment_id, customer_ids):
+        '''Remove customers from a manual segment'''
+        if not segment_id:
+            raise CustomerIOException("segment_id cannot be blank in remove_from_segment")
+
+        if not customer_ids:
+            raise CustomerIOException("customer_ids cannot be blank in remove_from_segment")
+
+        url = '{base}/segments/{id}/remove_customers'.format(base=self.base_url, id=segment_id)
+        payload = {'ids': customer_ids}
+        self.send_request('POST', url, payload)
+
     def _sanitize(self, data):
         for k, v in data.items():
             if isinstance(v, datetime):
