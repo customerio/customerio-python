@@ -175,6 +175,36 @@ Last caught exception -- {klass}: {message}
 
         self.send_request('POST', '{base}/customers/{id}/unsuppress'.format(base=self.base_url, id=customer_id), {})
 
+    def add_to_segment(self, segment_id, customer_ids):
+        '''Add customers to a manual segment, customer_ids should be a list of strings'''
+        if not segment_id:
+            raise CustomerIOException("segment_id cannot be blank in add_to_segment")
+
+        if not customer_ids:
+            raise CustomerIOException("customer_ids cannot be blank in add_to_segment")
+        
+        if not isinstance(customer_ids, list):
+            raise CustomerIOException("customer_ids must be a list in add_to_segment")
+
+        url = '{base}/segments/{id}/add_customers'.format(base=self.base_url, id=segment_id)
+        payload = {'ids': self._stringify_list(customer_ids)}
+        self.send_request('POST', url, payload)
+
+    def remove_from_segment(self, segment_id, customer_ids):
+        '''Remove customers from a manual segment, customer_ids should be a list of strings'''
+        if not segment_id:
+            raise CustomerIOException("segment_id cannot be blank in remove_from_segment")
+
+        if not customer_ids:
+            raise CustomerIOException("customer_ids cannot be blank in remove_from_segment")
+
+        if not isinstance(customer_ids, list):
+            raise CustomerIOException("customer_ids must be a list in remove_from_segment")
+
+        url = '{base}/segments/{id}/remove_customers'.format(base=self.base_url, id=segment_id)
+        payload = {'ids': self._stringify_list(customer_ids)}
+        self.send_request('POST', url, payload)
+
     def _sanitize(self, data):
         for k, v in data.items():
             if isinstance(v, datetime):
@@ -188,3 +218,14 @@ Last caught exception -- {klass}: {message}
             return int(dt.replace(tzinfo=timezone.utc).timestamp())
         else:
             return int(time.mktime(dt.timetuple()))
+
+    def _stringify_list(self, customer_ids):
+        customer_string_ids = []
+        for v in customer_ids:
+            if isinstance(v, str):
+                customer_string_ids.append(v)
+            elif isinstance(v, int):
+                customer_string_ids.append(str(v))
+            else:
+                raise CustomerIOException('customer_ids cannot be {type}'.format(type=type(v)))
+        return customer_string_ids

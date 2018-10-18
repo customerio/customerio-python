@@ -242,6 +242,46 @@ class TestCustomerIO(HTTPSTestCase):
         with self.assertRaises(CustomerIOException):
             self.cio.unsuppress(None)
 
+    def test_add_to_segment_call(self):
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'method': 'POST',
+            'authorization': _basic_auth_str('siteid', 'apikey'),
+            'content_type': 'application/json',
+            'url_suffix': '/segments/1/add_customers',
+            'body': {'ids': ['1','2','3']},
+        }))
+
+        self.cio.add_to_segment(segment_id=1, customer_ids=[1,2,3])
+
+        with self.assertRaises(CustomerIOException):
+            self.cio.add_to_segment(None, None)
+
+        with self.assertRaises(CustomerIOException):
+            self.cio.add_to_segment(segment_id=1, customer_ids=False)
+
+        with self.assertRaises(CustomerIOException):
+            self.cio.add_to_segment(segment_id=1, customer_ids=[False,True,False])
+
+    def test_remove_from_segment_call(self):
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'method': 'POST',
+            'authorization': _basic_auth_str('siteid', 'apikey'),
+            'content_type': 'application/json',
+            'url_suffix': '/segments/1/remove_customers',
+            'body': {'ids': ['1','2','3']},
+        }))
+
+        self.cio.remove_from_segment(segment_id=1, customer_ids=[1,2,3])
+
+        with self.assertRaises(CustomerIOException):
+            self.cio.remove_from_segment(None, None)
+
+        with self.assertRaises(CustomerIOException):
+            self.cio.add_to_segment(segment_id=1, customer_ids=False)
+
+        with self.assertRaises(CustomerIOException):
+            self.cio.add_to_segment(segment_id=1, customer_ids=[False,True,False])
+
 
     @unittest.skipIf(sys.version_info.major > 2, "python2 specific test case")
     def test_sanitize_py2(self):
