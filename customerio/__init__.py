@@ -3,6 +3,7 @@ from datetime import datetime
 import math
 import time
 import warnings
+import json
 
 from requests import Session
 from requests.adapters import HTTPAdapter
@@ -17,6 +18,27 @@ except ImportError:
 
 class CustomerIOException(Exception):
     pass
+
+
+class CustomJSONEncoder(json.JSONEncoder):
+    def _datetime_to_timestamp(self, dt):
+        if USE_PY3_TIMESTAMPS:
+            return int(dt.replace(tzinfo=timezone.utc).timestamp())
+        else:
+            return int(time.mktime(dt.timetuple()))
+
+    def default(self, obj):
+        ''' Add special handling for data types not supported by the standard json library.
+
+        :param obj: Value being serialized to JSON
+        :return: The serialized value as a native python type.
+        '''
+        if isinstance(obj, datetime):
+            return self._datetime_to_timestamp(obj)
+        if isinstance(obj, float) and math.isnan(obj):
+            return None
+
+        return json.JSONEncoder.default(self, obj)
 
 
 class CustomerIO(object):
@@ -74,7 +96,12 @@ class CustomerIO(object):
         '''Dispatches the request and returns a response'''
 
         try:
-            response = self.http.request(method, url=url, json=self._sanitize(data), timeout=self.timeout)
+            response = self.http.request(
+                method,
+                url=url,
+                data=json.dumps(data, cls=CustomJSONEncoder),
+                timeout=self.timeout,
+            )
         except Exception as e:
             # Raise exception alerting user that the system might be
             # experiencing an outage and refer them to system status page.
@@ -116,14 +143,6 @@ Last caught exception -- {klass}: {message}
     def backfill(self, customer_id, name, timestamp, **data):
         '''Backfill an event (track with timestamp) for a given customer_id'''
         url = self.get_event_query_string(customer_id)
-
-        if isinstance(timestamp, datetime):
-            timestamp = self._datetime_to_timestamp(timestamp)
-        elif not isinstance(timestamp, int):
-            try:
-                timestamp = int(timestamp)
-            except Exception as e:
-                raise CustomerIOException("{t} is not a valid timestamp ({err})".format(t=timestamp, err=e))
 
         post_data = {
             'name': name,
@@ -204,20 +223,6 @@ Last caught exception -- {klass}: {message}
         url = '{base}/segments/{id}/remove_customers'.format(base=self.base_url, id=segment_id)
         payload = {'ids': self._stringify_list(customer_ids)}
         self.send_request('POST', url, payload)
-
-    def _sanitize(self, data):
-        for k, v in data.items():
-            if isinstance(v, datetime):
-                data[k] = self._datetime_to_timestamp(v)
-            if isinstance(v, float) and math.isnan(v):
-                data[k] = None
-        return data
-
-    def _datetime_to_timestamp(self, dt):
-        if USE_PY3_TIMESTAMPS:
-            return int(dt.replace(tzinfo=timezone.utc).timestamp())
-        else:
-            return int(time.mktime(dt.timetuple()))
 
     def _stringify_list(self, customer_ids):
         customer_string_ids = []
