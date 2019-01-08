@@ -1,8 +1,8 @@
 from __future__ import division
 from datetime import datetime
+import math
 import time
 import warnings
-import math
 
 from requests import Session
 from requests.adapters import HTTPAdapter
@@ -65,6 +65,10 @@ class CustomerIO(object):
     def get_event_query_string(self, customer_id):
         '''Generates an event API path'''
         return '{base}/customers/{id}/events'.format(base=self.base_url, id=customer_id)
+
+    def get_device_query_string(self, customer_id):
+        '''Generates a device API path'''
+        return '{base}/customers/{id}/devices'.format(base=self.base_url, id=customer_id)
 
     def send_request(self, method, url, data):
         '''Dispatches the request and returns a response'''
@@ -134,6 +138,73 @@ Last caught exception -- {klass}: {message}
         url = self.get_customer_query_string(customer_id)
         self.send_request('DELETE', url, {})
 
+    def add_device(self, customer_id, device_id, platform, **data):
+        '''Add a device to a customer profile'''
+        if not customer_id:
+            raise CustomerIOException("customer_id cannot be blank in add_device")
+        
+        if not device_id:
+            raise CustomerIOException("device_id cannot be blank in add_device")
+        
+        if not platform:
+            raise CustomerIOException("platform cannot be blank in add_device")
+
+        data.update({
+            'id': device_id,
+            'platform': platform,
+        })
+        payload = {'device': data }
+        url = self.get_device_query_string(customer_id)
+        self.send_request('PUT', url, payload)
+
+    def delete_device(self, customer_id, device_id):
+        '''Delete a device from a customer profile'''
+        url = self.get_device_query_string(customer_id)
+        delete_url = '{base}/{token}'.format(base=url, token=device_id)
+        self.send_request('DELETE', delete_url, {})
+
+    def suppress(self, customer_id):
+        if not customer_id:
+            raise CustomerIOException("customer_id cannot be blank in suppress")
+
+        self.send_request('POST', '{base}/customers/{id}/suppress'.format(base=self.base_url, id=customer_id), {})
+    
+    def unsuppress(self, customer_id):
+        if not customer_id:
+            raise CustomerIOException("customer_id cannot be blank in unsuppress")
+
+        self.send_request('POST', '{base}/customers/{id}/unsuppress'.format(base=self.base_url, id=customer_id), {})
+
+    def add_to_segment(self, segment_id, customer_ids):
+        '''Add customers to a manual segment, customer_ids should be a list of strings'''
+        if not segment_id:
+            raise CustomerIOException("segment_id cannot be blank in add_to_segment")
+
+        if not customer_ids:
+            raise CustomerIOException("customer_ids cannot be blank in add_to_segment")
+        
+        if not isinstance(customer_ids, list):
+            raise CustomerIOException("customer_ids must be a list in add_to_segment")
+
+        url = '{base}/segments/{id}/add_customers'.format(base=self.base_url, id=segment_id)
+        payload = {'ids': self._stringify_list(customer_ids)}
+        self.send_request('POST', url, payload)
+
+    def remove_from_segment(self, segment_id, customer_ids):
+        '''Remove customers from a manual segment, customer_ids should be a list of strings'''
+        if not segment_id:
+            raise CustomerIOException("segment_id cannot be blank in remove_from_segment")
+
+        if not customer_ids:
+            raise CustomerIOException("customer_ids cannot be blank in remove_from_segment")
+
+        if not isinstance(customer_ids, list):
+            raise CustomerIOException("customer_ids must be a list in remove_from_segment")
+
+        url = '{base}/segments/{id}/remove_customers'.format(base=self.base_url, id=segment_id)
+        payload = {'ids': self._stringify_list(customer_ids)}
+        self.send_request('POST', url, payload)
+
     def _sanitize(self, data):
         for k, v in data.items():
             if isinstance(v, datetime):
@@ -147,3 +218,14 @@ Last caught exception -- {klass}: {message}
             return int(dt.replace(tzinfo=timezone.utc).timestamp())
         else:
             return int(time.mktime(dt.timetuple()))
+
+    def _stringify_list(self, customer_ids):
+        customer_string_ids = []
+        for v in customer_ids:
+            if isinstance(v, str):
+                customer_string_ids.append(v)
+            elif isinstance(v, int):
+                customer_string_ids.append(str(v))
+            else:
+                raise CustomerIOException('customer_ids cannot be {type}'.format(type=type(v)))
+        return customer_string_ids

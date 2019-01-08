@@ -81,7 +81,6 @@ Keyword arguments to backfill work the same as a call to ```cio.track```.
 See original REST documentation [here](http://customer.io/docs/api/rest.html#section-Track_a_custom_event)
 
 ### Delete a customer profile
-
 ```python
 cio.delete(customer_id=5)
 ```
@@ -94,6 +93,72 @@ See original REST documentation [here](http://customer.io/docs/api/rest.html#sec
 
 
 You can pass any keyword arguments to the `identify` and `track` methods. These kwargs will be converted to custom attributes.
+
+### Add a device
+```python
+cio.add_device(customer_id=1, device_id='device_hash', platform='ios')
+```
+
+Adds the device `device_hash` with the platform `ios` for a specified customer.
+
+Supported platforms are `ios` and `android`. 
+
+Optionally, `last_used` can be passed in to specify the last touch of the device. Otherwise, this attribute is set by the API.
+
+```python
+cio.add_device(customer_id=1, device_id='device_hash', platform='ios', last_used=1514764800})
+```
+
+This method returns nothing.
+
+### Delete a device
+```python
+cio.delete_device(customer_id=1, device_id='device_hash')
+```
+
+Deletes the specified device for a specified customer.
+
+This method returns nothing. Attempts to delete non-existent devices will not raise any errors.
+
+### Suppress a customer
+```python
+cio.suppress(customer_id=1)
+```
+
+Suppresses the specified customer. They will be deleted from Customer.io, and we will ignore all further attempts to identify or track activity for the suppressed customer ID
+
+See REST documentation [here](https://learn.customer.io/api/#apisuppress_add)
+
+### Unsuppress a customer
+```python
+cio.unsuppress(customer_id=1)
+```
+
+Unsuppresses the specified customer. We will remove the supplied id from our suppression list and start accepting new identify and track calls for the customer as normal
+
+See REST documentation [here](https://learn.customer.io/api/#apisuppress_delete)
+
+### Add customers to a manual segment
+```python
+cio.add_to_segment(segment_id=1,customer_ids=['1','2','3'])
+```
+
+Add the list of customer ids to the specified manual segment. If you send customer ids that don't exist yet in an add_to_segment request, we will automatically create customer profiles for the new customer ids.
+
+See REST documentation [here](https://customer.io/docs/api/#apiadd_customers)
+
+### Remove customers from a manual segment
+```python
+cio.remove_from_segment(segment_id=1,customer_ids=['1','2','3'])
+```
+
+Remove the list of customer ids from the specified manual segment.
+
+See REST documentation [here](https://customer.io/docs/api/#apiremove_customers)
+
+## Running tests
+
+Changes to the library can be tested by running `make test` from the parent directory.
 
 ## Thanks!
 
