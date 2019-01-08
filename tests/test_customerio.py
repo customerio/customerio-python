@@ -30,8 +30,9 @@ class TestCustomerIO(HTTPSTestCase):
 
     def _check_request(self, resp, rq, *args, **kwargs):
         request = resp.request
+        body = request.body.decode('utf-8') if isinstance(request.body, bytes) else request.body
         self.assertEqual(request.method, rq['method'])
-        self.assertEqual(json.loads(request.body.decode('utf-8')), rq['body'])
+        self.assertEqual(json.loads(body), rq['body'])
         self.assertEqual(request.headers['Authorization'], rq['authorization'])
         self.assertEqual(request.headers['Content-Type'], rq['content_type'])
         self.assertEqual(int(request.headers['Content-Length']), len(json.dumps(rq['body'])))
