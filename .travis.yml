@@ -5,7 +5,13 @@ python:
   - "3.4"
   - "3.5"
   - "3.6"
-  - "3.7"
+
+# 3.7 needs enabling sudo and dist: xenial
+matrix:
+  include:
+    - python: 3.7
+      dist: xenial
+      sudo: true
 
 env:
  - REQUESTS="requests" # latest
@@ -14,3 +20,8 @@ env:
 install: pip install $REQUESTS
 
 script: make test
+
+# whitelist
+branches:
+  only:
+    - master
