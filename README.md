@@ -1,4 +1,4 @@
-# Customer.io Python bindings
+# Customer.io Python bindings [![CircleCI](https://circleci.com/gh/customerio/customerio-python.svg?style=svg)](https://circleci.com/gh/customerio/customerio-python)
 
 This module has been tested with Python 2.7, 3.4, 3.5, 3.6 and 3.7.
 

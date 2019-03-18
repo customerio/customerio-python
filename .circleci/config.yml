@@ -1,0 +1,118 @@
+version: 2.1
+
+commands:
+  runtests:
+    description: Run tests in python 3+
+    steps:
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ .Environment.CIRCLE_JOB }}-{{ checksum "requirements.txt" }}
+
+      - run:
+          name: install dependencies
+          command: |
+            python -m venv venv
+            . venv/bin/activate
+            pip install -r requirements.txt
+
+      - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-{{ .Environment.CIRCLE_JOB }}-{{ checksum "requirements.txt" }}
+
+      # run tests!
+      - run:
+          name: run tests
+          command: |
+            . venv/bin/activate
+            make test
+
+  runtests27:
+    description: Run tests in python 2.7
+    steps:
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ .Environment.CIRCLE_JOB }}-{{ checksum "requirements.txt" }}
+
+      - run:
+          name: install dependencies
+          command: |
+            mkdir -p ./venv
+            virtualenv ./venv
+            . venv/bin/activate
+            pip install -r requirements.txt
+
+      - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-{{ .Environment.CIRCLE_JOB }}-{{ checksum "requirements.txt" }}
+
+      # run tests!
+      - run:
+          name: run tests
+          command: |
+            . venv/bin/activate
+            make test
+
+jobs:
+  python37:
+    docker:
+      - image: circleci/python:3.7
+
+    working_directory: ~/customerio-python
+
+    steps:
+      - checkout
+      - runtests
+  
+  python36:
+    docker:
+      - image: circleci/python:3.6
+
+    working_directory: ~/customerio-python
+
+    steps:
+      - checkout
+      - runtests
+
+  python35:
+    docker:
+      - image: circleci/python:3.5
+
+    working_directory: ~/customerio-python
+
+    steps:
+      - checkout
+      - runtests
+
+  python34:
+    docker:
+      - image: circleci/python:3.4
+
+    working_directory: ~/customerio-python
+
+    steps:
+      - checkout
+      - runtests
+
+  python27:
+    docker:
+      - image: circleci/python:2.7
+
+    working_directory: ~/customerio-python
+
+    steps:
+      - checkout
+      - runtests27
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - python37
+      - python36
+      - python35
+      - python34
+      - python27
