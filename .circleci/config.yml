@@ -4,14 +4,10 @@ commands:
   runtests:
     description: Run tests in python 3+
     steps:
-      - run:
-          name: get python version
-          command: PYVER=$(python --version 2>&1 | awk '{print $2}')
-
       # Download and cache dependencies
       - restore_cache:
           keys:
-            - v1-dependencies-python$PYVER-{{ checksum "requirements.txt" }}
+            - v1-dependencies-{{ .Environment.CIRCLE_JOB }}-{{ checksum "requirements.txt" }}
 
       - run:
           name: install dependencies
@@ -23,7 +19,7 @@ commands:
       - save_cache:
           paths:
             - ./venv
-          key: v1-dependencies-python$PYVER-{{ checksum "requirements.txt" }}
+          key: v1-dependencies-{{ .Environment.CIRCLE_JOB }}-{{ checksum "requirements.txt" }}
 
       # run tests!
       - run:
@@ -35,14 +31,10 @@ commands:
   runtests27:
     description: Run tests in python 2.7
     steps:
-      - run:
-          name: get python version
-          command: PYVER=$(python --version 2>&1 | awk '{print $2}')
-
       # Download and cache dependencies
       - restore_cache:
           keys:
-            - v1-dependencies-python$PYVER-{{ checksum "requirements.txt" }}
+            - v1-dependencies-{{ .Environment.CIRCLE_JOB }}-{{ checksum "requirements.txt" }}
 
       - run:
           name: install dependencies
@@ -55,7 +47,7 @@ commands:
       - save_cache:
           paths:
             - ./venv
-          key: v1-dependencies-python$PYVER-{{ checksum "requirements.txt" }}
+          key: v1-dependencies-{{ .Environment.CIRCLE_JOB }}-{{ checksum "requirements.txt" }}
 
       # run tests!
       - run:
