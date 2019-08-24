@@ -1,3 +1,4 @@
+"""A CustomerIO API wrapper for Python."""
 from __future__ import division
 from datetime import datetime
 import math
@@ -5,6 +6,7 @@ import time
 import warnings
 
 from requests import Session
+from requests.status_codes import codes
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
@@ -20,8 +22,8 @@ class CustomerIOException(Exception):
 
 
 class CustomerIO(object):
-
-    def __init__(self, site_id=None, api_key=None, host=None, port=None, url_prefix=None, json_encoder=None, retries=3, timeout=10, backoff_factor=0.02):
+    def __init__(self, site_id=None, api_key=None, host=None, port=None, url_prefix=None, json_encoder=None,
+                 retries=3, timeout=10, backoff_factor=0.02):
         self.site_id = site_id
         self.api_key = api_key
         self.host = host or 'track.customer.io'
@@ -59,43 +61,43 @@ class CustomerIO(object):
         self.http.auth = (self.site_id, self.api_key)
 
     def get_customer_query_string(self, customer_id):
-        '''Generates a customer API path'''
+        """Generates a customer API path"""
         return '{base}/customers/{id}'.format(base=self.base_url, id=customer_id)
 
     def get_event_query_string(self, customer_id):
-        '''Generates an event API path'''
+        """Generates an event API path"""
         return '{base}/customers/{id}/events'.format(base=self.base_url, id=customer_id)
 
     def get_device_query_string(self, customer_id):
-        '''Generates a device API path'''
+        """Generates a device API path"""
         return '{base}/customers/{id}/devices'.format(base=self.base_url, id=customer_id)
 
     def send_request(self, method, url, data):
-        '''Dispatches the request and returns a response'''
+        """Dispatches the request and returns a response"""
 
         try:
             response = self.http.request(method, url=url, json=self._sanitize(data), timeout=self.timeout)
         except Exception as e:
             # Raise exception alerting user that the system might be
             # experiencing an outage and refer them to system status page.
-            message = '''Failed to receive valid reponse after {count} retries.
-Check system status at http://status.customer.io.
-Last caught exception -- {klass}: {message}
-            '''.format(klass=type(e), message=e, count=self.retries)
+            message = """Failed to receive valid response after {count} retries. 
+            Check system status at http://status.customer.io.
+            Last caught exception -- {klass}: {message}
+            """.format(klass=type(e), message=e, count=self.retries)
             raise CustomerIOException(message)
 
         result_status = response.status_code
-        if result_status != 200:
+        if result_status != codes.ok:
             raise CustomerIOException('%s: %s %s' % (result_status, url, data))
         return response.text
 
     def identify(self, id, **kwargs):
-        '''Identify a single customer by their unique id, and optionally add attributes'''
+        """Identify a single customer by their unique id, and optionally add attributes"""
         url = self.get_customer_query_string(id)
         self.send_request('PUT', url, kwargs)
 
     def track(self, customer_id, name, **data):
-        '''Track an event for a given customer_id'''
+        """Track an event for a given customer_id"""
         url = self.get_event_query_string(customer_id)
         post_data = {
             'name': name,
@@ -104,7 +106,7 @@ Last caught exception -- {klass}: {message}
         self.send_request('POST', url, post_data)
 
     def pageview(self, customer_id, page, **data):
-        '''Track a pageview for a given customer_id'''
+        """Track a pageview for a given customer_id"""
         url = self.get_event_query_string(customer_id)
         post_data = {
             'type': "page",
@@ -114,7 +116,7 @@ Last caught exception -- {klass}: {message}
         self.send_request('POST', url, post_data)
 
     def backfill(self, customer_id, name, timestamp, **data):
-        '''Backfill an event (track with timestamp) for a given customer_id'''
+        """Backfill an event (track with timestamp) for a given customer_id"""
         url = self.get_event_query_string(customer_id)
 
         if isinstance(timestamp, datetime):
@@ -134,12 +136,12 @@ Last caught exception -- {klass}: {message}
         self.send_request('POST', url, post_data)
 
     def delete(self, customer_id):
-        '''Delete a customer profile'''
+        """Delete a customer profile"""
         url = self.get_customer_query_string(customer_id)
         self.send_request('DELETE', url, {})
 
     def add_device(self, customer_id, device_id, platform, **data):
-        '''Add a device to a customer profile'''
+        """Add a device to a customer profile"""
         if not customer_id:
             raise CustomerIOException("customer_id cannot be blank in add_device")
         
@@ -158,7 +160,7 @@ Last caught exception -- {klass}: {message}
         self.send_request('PUT', url, payload)
 
     def delete_device(self, customer_id, device_id):
-        '''Delete a device from a customer profile'''
+        """Delete a device from a customer profile"""
         url = self.get_device_query_string(customer_id)
         delete_url = '{base}/{token}'.format(base=url, token=device_id)
         self.send_request('DELETE', delete_url, {})
@@ -176,7 +178,7 @@ Last caught exception -- {klass}: {message}
         self.send_request('POST', '{base}/customers/{id}/unsuppress'.format(base=self.base_url, id=customer_id), {})
 
     def add_to_segment(self, segment_id, customer_ids):
-        '''Add customers to a manual segment, customer_ids should be a list of strings'''
+        """Add customers to a manual segment, customer_ids should be a list of strings"""
         if not segment_id:
             raise CustomerIOException("segment_id cannot be blank in add_to_segment")
 
@@ -191,7 +193,7 @@ Last caught exception -- {klass}: {message}
         self.send_request('POST', url, payload)
 
     def remove_from_segment(self, segment_id, customer_ids):
-        '''Remove customers from a manual segment, customer_ids should be a list of strings'''
+        """Remove customers from a manual segment, customer_ids should be a list of strings"""
         if not segment_id:
             raise CustomerIOException("segment_id cannot be blank in remove_from_segment")
 
