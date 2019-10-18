@@ -26,7 +26,7 @@ class TestCustomerIO(HTTPSTestCase):
 
         # do not verify the ssl certificate as it is self signed
         # should only be done for tests
-        self.cio.http.verify = '/home/circleci/customerio-python/tests/server.pem'
+        self.cio.http.verify = 'False'
 
     def _check_request(self, resp, rq, *args, **kwargs):
         request = resp.request
