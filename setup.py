@@ -34,6 +34,6 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
     ],
-    install_requires=['requests==2.20.0'],
+    install_requires=['requests>=2.20.0'],
     test_suite="tests",
 )
