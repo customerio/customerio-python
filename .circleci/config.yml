@@ -87,16 +87,6 @@ jobs:
       - checkout
       - runtests
 
-  python34:
-    docker:
-      - image: circleci/python:3.4
-
-    working_directory: ~/customerio-python
-
-    steps:
-      - checkout
-      - runtests
-
   python27:
     docker:
       - image: circleci/python:2.7
@@ -114,5 +104,4 @@ workflows:
       - python37
       - python36
       - python35
-      - python34
       - python27
