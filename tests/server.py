@@ -80,7 +80,8 @@ class HTTPSTestCase(unittest.TestCase):
         # upgrade to https
         cls.server.socket = ssl.wrap_socket(cls.server.socket,
             certfile='./tests/server.pem',
-            server_side=True)
+            server_side=True,
+            ssl_version=PROTOCOL_TLS)
         # start server instance in new thread
         cls.server_thread = threading.Thread(target=cls.server.serve_forever)
         cls.server_thread.start()

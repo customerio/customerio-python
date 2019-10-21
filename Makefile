@@ -21,5 +21,5 @@ upload:
 
 test:
 	openssl version
-	openssl req -new -newkey rsa:2048 -days 10 -nodes -x509 -subj "/C=CA/ST=Ontario/L=Toronto/O=Test/CN=127.0.0.1" -keyout ./tests/key.pem -out ./tests/server.pem
+	openssl req -new -newkey rsa:2048 -days 10 -nodes -x509 -subj "/C=CA/ST=Ontario/L=Toronto/O=Test/CN=127.0.0.1" -keyout ./tests/server.pem -out ./tests/server.pem
 	python -m unittest discover -v
