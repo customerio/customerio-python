@@ -5,7 +5,6 @@ except ImportError:
 
 from functools import wraps
 from random import randint
-
 import json
 import ssl
 import time
@@ -76,12 +75,13 @@ class HTTPSTestCase(unittest.TestCase):
         # create a server
         cls.server = HTTPServer(("localhost", 0), Handler)
         # hack needed to setup ssl server
-        # ssl.wrap_socket = sslwrap(ssl.wrap_socket)
+        ssl.wrap_socket = sslwrap(ssl.wrap_socket)
+
         # upgrade to https
         cls.server.socket = ssl.wrap_socket(cls.server.socket,
             certfile='./tests/server.pem',
-            server_side=True,
-            ssl_version=ssl.PROTOCOL_TLSv1.2)
+            server_side=True)
+            # ssl_version=ssl.PROTOCOL_TLSv1)
         # start server instance in new thread
         cls.server_thread = threading.Thread(target=cls.server.serve_forever)
         cls.server_thread.start()
