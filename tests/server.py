@@ -81,7 +81,7 @@ class HTTPSTestCase(unittest.TestCase):
         cls.server.socket = ssl.wrap_socket(cls.server.socket,
             certfile='./tests/server.pem',
             server_side=True,
-            ssl_version='PROTOCOL_TLS')
+            ssl_version='PROTOCOL_SSLv23')
         # start server instance in new thread
         cls.server_thread = threading.Thread(target=cls.server.serve_forever)
         cls.server_thread.start()
