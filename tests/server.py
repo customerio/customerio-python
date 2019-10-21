@@ -14,7 +14,7 @@ import unittest
 def sslwrap(func):
     @wraps(func)
     def bar(*args, **kw):
-        kw['ssl_version'] = ssl.PROTOCOL_TLSv1
+        kw['ssl_version'] = ssl.PROTOCOL_SSLv23
         return func(*args, **kw)
     return bar
 
