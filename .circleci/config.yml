@@ -14,7 +14,8 @@ commands:
           command: |
             python -m venv venv
             . venv/bin/activate
-            pip install -r requirements.txt
+            export version=$(awk -F'=' '{print $2}' requirements.txt)
+            pip install requests==$(echo $version)
 
       - save_cache:
           paths:
@@ -27,13 +28,13 @@ commands:
           command: |
             . venv/bin/activate
             make test
+            deactivate
       - run:
           name: reinstall the requests for minor version
           command: |
             python -m venv venv
             . venv/bin/activate
-            pip uninstall requests --yes
-            pip install requests==2.20.0 
+            pip install --upgrade requests
       - run:
           name: run tests again for the minor version
           command: |
