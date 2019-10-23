@@ -28,14 +28,14 @@ commands:
             . venv/bin/activate
             make test
       - run:
-          name: reinstall the requests
+          name: reinstall the requests for minor version
           command: |
             python -m venv venv
             . venv/bin/activate
             pip uninstall requests --yes
             pip install requests==2.20.0 
       - run:
-          name: run tests again
+          name: run tests again for the minor version
           command: |
             . venv/bin/activate
             make test
