@@ -27,6 +27,18 @@ commands:
           command: |
             . venv/bin/activate
             make test
+      - run:
+          name: reinstall the requests
+          command: |
+            python -m venv venv
+            . venv/bin/activate
+            pip uninstall requests
+            pip install requests==2.20.0
+      - run:
+          name: run tests again
+          command: |
+            . venv/bin/activate
+            make test
 
   runtests27:
     description: Run tests in python 2.7
