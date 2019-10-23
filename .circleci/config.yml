@@ -14,7 +14,7 @@ commands:
           command: |
             python -m venv venv
             . venv/bin/activate
-            export version=$(awk -F'=' '{print $2}' requirements.txt)
+            export version=$(grep -v '^$' requirements.txt | grep requests | awk -F'=' '{print $2}' )
             pip install requests==$(echo $version)
 
       - save_cache:
@@ -55,7 +55,7 @@ commands:
             mkdir -p ./venv
             virtualenv ./venv
             . venv/bin/activate
-            export version=$(awk -F'=' '{print $2}' requirements.txt)
+            export version=$(grep -v '^$' requirements.txt | grep requests | awk -F'=' '{print $2}' )
             pip install requests==$(echo $version)
 
       - save_cache:
