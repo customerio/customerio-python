@@ -32,8 +32,8 @@ commands:
           command: |
             python -m venv venv
             . venv/bin/activate
-            pip uninstall requests
-            pip install requests==2.20.0
+            pip uninstall requests --yes
+            pip install requests==2.20.0 
       - run:
           name: run tests again
           command: |
