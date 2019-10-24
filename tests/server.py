@@ -76,7 +76,6 @@ class HTTPSTestCase(unittest.TestCase):
         cls.server = HTTPServer(("localhost", 0), Handler)
         # hack needed to setup ssl server
         ssl.wrap_socket = sslwrap(ssl.wrap_socket)
-
         # upgrade to https
         cls.server.socket = ssl.wrap_socket(cls.server.socket,
             certfile='./tests/server.pem',
