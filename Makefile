@@ -20,6 +20,5 @@ upload:
 	echo "*** Now upload the binary to PyPi *** (one second)" && sleep 3 && open dist & open "http://pypi.python.org/pypi?%3Aaction=pkg_edit&name=customerio" # python setup.py upload
 
 test:
-	openssl version -a
 	openssl req -new -newkey rsa:2048 -days 10 -nodes -x509 -subj "/C=CA/ST=Ontario/L=Toronto/O=Test/CN=127.0.0.1" -keyout ./tests/server.pem -out ./tests/server.pem
 	python -m unittest discover -v

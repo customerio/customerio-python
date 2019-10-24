@@ -36,7 +36,7 @@ commands:
             . venv/bin/activate
             pip install --upgrade requests
       - run:
-          name: run tests again for the minor version
+          name: run tests again for the latest version
           command: |
             . venv/bin/activate
             make test
@@ -76,7 +76,7 @@ commands:
             . venv/bin/activate
             pip install --upgrade requests
       - run:
-          name: run tests again for the minor version
+          name: run tests again for the latest version
           command: |
             . venv/bin/activate
             make test
