@@ -10,11 +10,12 @@ commands:
             - v1-dependencies-{{ .Environment.CIRCLE_JOB }}-{{ checksum "requirements.txt" }}
 
       - run:
-          name: install dependencies
+          name: install dependencies for the minor version
           command: |
             python -m venv venv
             . venv/bin/activate
-            pip install -r requirements.txt
+            export version=$(grep -v '^$' requirements.txt | grep requests | awk -F'=' '{print $2}' )
+            pip install requests==$(echo $version)
 
       - save_cache:
           paths:
@@ -24,6 +25,18 @@ commands:
       # run tests!
       - run:
           name: run tests
+          command: |
+            . venv/bin/activate
+            make test
+            deactivate
+      - run:
+          name: reinstall the requests to the latest version
+          command: |
+            python -m venv venv
+            . venv/bin/activate
+            pip install --upgrade requests
+      - run:
+          name: run tests again for the latest version
           command: |
             . venv/bin/activate
             make test
@@ -42,7 +55,8 @@ commands:
             mkdir -p ./venv
             virtualenv ./venv
             . venv/bin/activate
-            pip install -r requirements.txt
+            export version=$(grep -v '^$' requirements.txt | grep requests | awk -F'=' '{print $2}' )
+            pip install requests==$(echo $version)
 
       - save_cache:
           paths:
@@ -52,6 +66,17 @@ commands:
       # run tests!
       - run:
           name: run tests
+          command: |
+            . venv/bin/activate
+            make test
+            deactivate
+      - run:
+          name: reinstall the requests to the latest version
+          command: |
+            . venv/bin/activate
+            pip install --upgrade requests
+      - run:
+          name: run tests again for the latest version
           command: |
             . venv/bin/activate
             make test
