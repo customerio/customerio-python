@@ -66,6 +66,10 @@ class CustomerIO(object):
         '''Generates an event API path'''
         return '{base}/customers/{id}/events'.format(base=self.base_url, id=customer_id)
 
+    def get_anonymous_event_query_string(self):
+        '''Generates an anonymous event API path'''
+        return '{base}/events'.format(base=self.base_url)
+
     def get_device_query_string(self, customer_id):
         '''Generates a device API path'''
         return '{base}/customers/{id}/devices'.format(base=self.base_url, id=customer_id)
@@ -97,6 +101,15 @@ Last caught exception -- {klass}: {message}
     def track(self, customer_id, name, **data):
         '''Track an event for a given customer_id'''
         url = self.get_event_query_string(customer_id)
+        post_data = {
+            'name': name,
+            'data': data,
+        }
+        self.send_request('POST', url, post_data)
+
+    def track_anonymous(self, name, **data):
+        '''Track an anonymous event'''
+        url = self.get_anonymous_event_query_string()
         post_data = {
             'name': name,
             'data': data,
