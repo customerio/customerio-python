@@ -1,5 +1,5 @@
 """
-Sample code to demonstrate sending event data to CustomerIO using large CSVs. This script uses Python3.
+Sample code to demonstrate sending data, contained in CSVs, to CustomerIO as events. This script uses Python3.
 """
 import csv
 import time
@@ -13,7 +13,6 @@ logger = logging.getLogger(__name__)
 
 class CIOEventManager(object):
     def __init__(self, cio_site_id, cio_api_key, csv_full_file_path):
-        self.csv_full_file_path = csv_full_file_path
         self.site_id = cio_site_id
         self.api_key = cio_api_key
         self.csv_full_file_path = os.path.normpath(csv_full_file_path)
@@ -37,7 +36,7 @@ class CIOEventManager(object):
                                                                                                   message=e.message))
 
     def pre_process(self):
-        """Use this function to do some tasks before the CSV is processed"""
+        """Use this method to do some tasks before the CSV is processed"""
         pass
 
     def send_events(self, no_of_processes=4):
@@ -57,5 +56,5 @@ class CIOEventManager(object):
         pool.join()
 
     def _post_process(self):
-        """Use this function to do some tasks after the CSV is processed"""
+        """Use this method to do some tasks after the CSV is processed"""
         pass
