@@ -16,5 +16,5 @@ except ImportError:
 
 
 from .client_base import CustomerIOException
-from customerio import CustomerIO
-from api import APIClient
+from .track import CustomerIO
+from .api import APIClient
