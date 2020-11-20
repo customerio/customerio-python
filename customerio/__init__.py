@@ -15,6 +15,6 @@ except ImportError:
     USE_PY3_TIMESTAMPS = False
 
 
-from client_base import CustomerIOException
+from .client_base import CustomerIOException
 from customerio import CustomerIO
 from api import APIClient
