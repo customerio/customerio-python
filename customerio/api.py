@@ -1,4 +1,4 @@
-from client_base import ClientBase
+from .client_base import ClientBase
 
 
 class APIClient(ClientBase):

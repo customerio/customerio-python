@@ -1,4 +1,4 @@
-from client_base import ClientBase, CustomerIOException
+from .client_base import ClientBase, CustomerIOException
 from datetime import datetime
 
 
