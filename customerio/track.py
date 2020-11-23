@@ -1,5 +1,6 @@
 from .client_base import ClientBase, CustomerIOException
 from datetime import datetime
+import warnings
 
 
 class CustomerIO(ClientBase):

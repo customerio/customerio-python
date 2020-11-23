@@ -2,7 +2,6 @@ from __future__ import division
 from datetime import datetime
 import math
 import time
-import warnings
 
 from requests import Session
 from requests.adapters import HTTPAdapter
