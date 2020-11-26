@@ -1,3 +1,6 @@
+"""
+Implements the base client that is used by other classes to make requests
+"""
 from __future__ import division
 from datetime import datetime
 import math
@@ -13,13 +16,10 @@ try:
 except ImportError:
     USE_PY3_TIMESTAMPS = False
 
-
 class CustomerIOException(Exception):
     pass
 
-
 class ClientBase(object):
-
     def __init__(self, retries=3, timeout=10, backoff_factor=0.02):
         self.timeout = timeout
         self.retries = retries
