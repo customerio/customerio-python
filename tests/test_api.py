@@ -48,11 +48,7 @@ class TestAPIClient(HTTPSTestCase):
         }))
 
         self.client.send_email(
-            "customer_1", transactional_message_id=100, subject="transactional message")
-
-        # with self.assertRaises(TypeError):
-        #     self.client.identify(random_attr="some_value")
-
+            customer_id="customer_1", transactional_message_id=100, subject="transactional message")
 
 if __name__ == '__main__':
     unittest.main()
