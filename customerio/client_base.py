@@ -23,9 +23,7 @@ class ClientBase(object):
     def __init__(self, retries=3, timeout=10, backoff_factor=0.02):
         self.timeout = timeout
         self.retries = retries
-        self.setup_connection(retries, backoff_factor)
 
-    def setup_connection(self, retries, backoff_factor):
         self.http = Session()
         # Retry request a number of times before raising an exception
         # also define backoff_factor to delay each retry
