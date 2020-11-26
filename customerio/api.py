@@ -10,6 +10,5 @@ class APIClient(ClientBase):
         self.http.headers = {
             "Authorization": "Bearer {key}".format(key=key)}
 
-    def send_email(self, customer_id, **kwargs):
-        kwargs.update({"customer_id": customer_id})
+    def send_email(self, **kwargs):
         return self.send_request('POST', self.url + "/v1/send/email", kwargs)
