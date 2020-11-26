@@ -1,5 +1,5 @@
 """
-Implements the client that interacts with Customer.io's Transactional API using app keys.
+Implements the client that interacts with Customer.io's App API using app keys.
 """
 from .client_base import ClientBase
 
