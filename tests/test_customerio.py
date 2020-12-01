@@ -31,13 +31,19 @@ class TestCustomerIO(HTTPSTestCase):
     def _check_request(self, resp, rq, *args, **kwargs):
         request = resp.request
         body = request.body.decode('utf-8') if isinstance(request.body, bytes) else request.body
-        self.assertEqual(request.method, rq['method'])
-        self.assertEqual(json.loads(body), rq['body'])
-        self.assertEqual(request.headers['Authorization'], rq['authorization'])
-        self.assertEqual(request.headers['Content-Type'], rq['content_type'])
-        self.assertEqual(int(request.headers['Content-Length']), len(json.dumps(rq['body'])))
-        self.assertTrue(request.url.endswith(rq['url_suffix']),
-            'url: {} expected suffix: {}'.format(request.url, rq['url_suffix']))
+        if rq.get('method', None):
+            self.assertEqual(request.method, rq['method'])
+        if rq.get('body', None):
+            self.assertEqual(json.loads(body), rq['body'])
+        if rq.get('authorization', None):
+            self.assertEqual(request.headers['Authorization'], rq['authorization'])
+        if rq.get('content_type', None):
+            self.assertEqual(request.headers['Content-Type'], rq['content_type'])
+        if rq.get('body', None):
+            self.assertEqual(int(request.headers['Content-Length']), len(json.dumps(rq['body'])))
+        if rq.get('url_suffix', None):
+            self.assertTrue(request.url.endswith(rq['url_suffix']),
+                'url: {} expected suffix: {}'.format(request.url, rq['url_suffix']))
 
 
     def test_client_connection_handling(self):
