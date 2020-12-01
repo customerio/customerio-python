@@ -47,7 +47,7 @@ Last caught exception -- {klass}: {message}
 
         result_status = response.status_code
         if result_status != 200:
-            raise CustomerIOException('%s: %s %s' % (result_status, url, data))
+            raise CustomerIOException('%s: %s %s %s' % (result_status, url, data, response.text))
         return response.text
 
     def _sanitize(self, data):

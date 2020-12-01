@@ -2,6 +2,7 @@
 Implements the client that interacts with Customer.io's App API using app keys.
 """
 import base64
+import json
 from .client_base import ClientBase, CustomerIOException
 
 
@@ -16,7 +17,8 @@ class APIClient(ClientBase):
     def send_email(self, request):
         if isinstance(request, SendEmailRequest):
             request = request._to_dict()
-        return self.send_request('POST', self.url + "/v1/send/email", request)
+        resp = self.send_request('POST', self.url + "/v1/send/email", request)
+        return json.loads(resp)
 
 
 class SendEmailRequest(object):
