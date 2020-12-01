@@ -4,13 +4,16 @@ Implements the client that interacts with Customer.io's Track API using Site ID 
 from .client_base import ClientBase, CustomerIOException
 from datetime import datetime
 import warnings
-
+from urllib.parse import quote
 
 class CustomerIO(ClientBase):
-    def __init__(self, site_id=None, api_key=None, host=None, port=None, url_prefix=None, json_encoder=None, retries=3, timeout=10, backoff_factor=0.02):
+    def __init__(self, site_id=None, api_key=None, host=None, port=None, url_prefix=None, json_encoder=None, retries=3, timeout=10, backoff_factor=0.02,
+            url_encode_id=False, sanitize_data_field=False):
         self.host = host or 'track.customer.io'
         self.port = port or 443
         self.url_prefix = url_prefix or '/api/v1'
+        self.url_encode_id = url_encode_id
+        self.sanitize_data_field = sanitize_data_field
 
         if json_encoder is not None:
             warnings.warn(
@@ -20,6 +23,9 @@ class CustomerIO(ClientBase):
         ClientBase.__init__(self, retries=retries,
                             timeout=timeout, backoff_factor=backoff_factor)
         self.http.auth = (site_id, api_key)
+
+    def _url_encode(self, id):
+        return quote(id, safe='') if self.url_encode_id else id
 
     def setup_base_url(self):
         template = 'https://{host}:{port}/{prefix}'
@@ -36,15 +42,15 @@ class CustomerIO(ClientBase):
 
     def get_customer_query_string(self, customer_id):
         '''Generates a customer API path'''
-        return '{base}/customers/{id}'.format(base=self.base_url, id=customer_id)
+        return '{base}/customers/{id}'.format(base=self.base_url, id=self._url_encode(customer_id))
 
     def get_event_query_string(self, customer_id):
         '''Generates an event API path'''
-        return '{base}/customers/{id}/events'.format(base=self.base_url, id=customer_id)
+        return '{base}/customers/{id}/events'.format(base=self.base_url, id=self._url_encode(customer_id))
 
     def get_device_query_string(self, customer_id):
         '''Generates a device API path'''
-        return '{base}/customers/{id}/devices'.format(base=self.base_url, id=customer_id)
+        return '{base}/customers/{id}/devices'.format(base=self.base_url, id=self._url_encode(customer_id))
 
     def identify(self, id, **kwargs):
         '''Identify a single customer by their unique id, and optionally add attributes'''
@@ -56,7 +62,7 @@ class CustomerIO(ClientBase):
         url = self.get_event_query_string(customer_id)
         post_data = {
             'name': name,
-            'data': data,
+            'data': self._sanitize(data) if self.sanitize_data_field else data,
         }
         self.send_request('POST', url, post_data)
 
@@ -66,7 +72,7 @@ class CustomerIO(ClientBase):
         post_data = {
             'type': "page",
             'name': page,
-            'data': data,
+            'data': self._sanitize(data) if self.sanitize_data_field else data,
         }
         self.send_request('POST', url, post_data)
 
@@ -85,7 +91,7 @@ class CustomerIO(ClientBase):
 
         post_data = {
             'name': name,
-            'data': data,
+            'data': self._sanitize(data) if self.sanitize_data_field else data,
             'timestamp': timestamp
         }
 

@@ -1,5 +1,5 @@
 import warnings
 
-from .client_base import CustomerIOException
-from .track import CustomerIO
-from .api import APIClient
+from customerio.client_base import CustomerIOException
+from customerio.track import CustomerIO
+from customerio.api import APIClient, SendEmailRequest
