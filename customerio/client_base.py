@@ -2,7 +2,7 @@
 Implements the base client that is used by other classes to make requests
 """
 from __future__ import division
-from datetime import datetime
+from datetime import datetime, timezone
 import math
 import time
 
@@ -10,11 +10,6 @@ from requests import Session
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
-try:
-    from datetime import timezone
-    USE_PY3_TIMESTAMPS = True
-except ImportError:
-    USE_PY3_TIMESTAMPS = False
 
 class CustomerIOException(Exception):
     pass
@@ -59,10 +54,7 @@ Last caught exception -- {klass}: {message}
         return data
 
     def _datetime_to_timestamp(self, dt):
-        if USE_PY3_TIMESTAMPS:
-            return int(dt.replace(tzinfo=timezone.utc).timestamp())
-        else:
-            return int(time.mktime(dt.timetuple()))
+        return int(dt.replace(tzinfo=timezone.utc).timestamp())
 
     def _stringify_list(self, customer_ids):
         customer_string_ids = []

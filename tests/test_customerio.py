@@ -243,19 +243,34 @@ class TestCustomerIO(HTTPSTestCase):
         with self.assertRaises(CustomerIOException):
             self.cio.unsuppress(None)
 
-    @unittest.skipIf(sys.version_info.major > 2, "python2 specific test case")
-    def test_sanitize_py2(self):
-        data_in = dict(dt=datetime.fromtimestamp(1234567890))
-        data_out = self.cio._sanitize(data_in)
-        self.assertEqual(data_out, dict(dt=1234567890))
-
-
-    @unittest.skipIf(sys.version_info.major < 3, "python3 specific test case")
-    def test_sanitize_py3(self):
+    def test_sanitize(self):
         from datetime import timezone
         data_in = dict(dt=datetime(2009, 2, 13, 23, 31, 30, 0, timezone.utc))
         data_out = self.cio._sanitize(data_in)
         self.assertEqual(data_out, dict(dt=1234567890))
+
+    def test_ids_are_encoded_in_url(self):
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'url_suffix': '/customers/1/unsuppress',
+        })
+        self.cio.unsuppress(customer_id=1)
+
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'url_suffix': '/customers/1%2F',
+        })
+        self.cio.identify(customer_id="1/")
+
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'url_suffix': '/customers/1%20/events',
+        })
+        self.cio.track(customer_id="1 ", name="test")
+
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'url_suffix': '/customers/1%2F/devices/2%20',
+        })
+        self.cio.delete_device(customer_id="1/", device_id="2 ")
+
+
 
 
 if __name__ == '__main__':

@@ -123,7 +123,7 @@ class CustomerIO(ClientBase):
     def delete_device(self, customer_id, device_id):
         '''Delete a device from a customer profile'''
         url = self.get_device_query_string(customer_id)
-        delete_url = '{base}/{token}'.format(base=url, token=device_id)
+        delete_url = '{base}/{token}'.format(base=url, token=self._url_encode(device_id))
         self.send_request('DELETE', delete_url, {})
 
     def suppress(self, customer_id):
@@ -132,7 +132,7 @@ class CustomerIO(ClientBase):
                 "customer_id cannot be blank in suppress")
 
         self.send_request(
-            'POST', '{base}/customers/{id}/suppress'.format(base=self.base_url, id=customer_id), {})
+            'POST', '{base}/customers/{id}/suppress'.format(base=self.base_url, id=self._url_encode(customer_id)), {})
 
     def unsuppress(self, customer_id):
         if not customer_id:
@@ -140,4 +140,4 @@ class CustomerIO(ClientBase):
                 "customer_id cannot be blank in unsuppress")
 
         self.send_request(
-            'POST', '{base}/customers/{id}/unsuppress'.format(base=self.base_url, id=customer_id), {})
+            'POST', '{base}/customers/{id}/unsuppress'.format(base=self.base_url, id=self._url_encode(customer_id)), {})
