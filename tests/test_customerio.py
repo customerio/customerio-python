@@ -264,7 +264,7 @@ class TestCustomerIO(HTTPSTestCase):
         self.cio.http.hooks=dict(response=partial(self._check_request, rq={
             'url_suffix': '/customers/1%2F',
         }))
-        self.cio.identify(customer_id="1/")
+        self.cio.identify(id="1/")
 
         self.cio.http.hooks=dict(response=partial(self._check_request, rq={
             'url_suffix': '/customers/1%20/events',
