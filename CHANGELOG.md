@@ -10,4 +10,4 @@
 
 ### Changed
 - ID fields in request path are url escaped
-- Sanitize event data (customerio/customerio-python#32)
+- Sanitize event data ([#32](https://github.com/customerio/customerio-python/pull/32))
