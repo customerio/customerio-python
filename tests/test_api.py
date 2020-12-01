@@ -51,7 +51,7 @@ class TestAPIClient(HTTPSTestCase):
         self.client.send_email(SendEmailRequest(
             identifiers={"id":"customer_1"},
             transactional_message_id=100,
-            subject="transactional message",
+            subject="transactional message"
         ))
 
 if __name__ == '__main__':
