@@ -138,6 +138,48 @@ Unsuppresses the specified customer. We will remove the supplied id from our sup
 
 See REST documentation [here](https://learn.customer.io/api/#apisuppress_delete)
 
+### Send Transactional Messages
+
+To use the [Transactional API](https://customer.io/docs/transactional-api), instantiate the Customer.io object using an [app key](https://customer.io/docs/managing-credentials#app-api-keys) and create a request object containing:
+
+* `transactional_message_id`: the ID of the transactional message you want to send
+* `to`: the email address of your recipients 
+* an `identifiers` object containing the `id` of your recipient. If the `id` does not exist, Customer.io will create it.
+* a `message_data` object containing properties that you want reference in your message using Liquid.
+
+You can also send base64-encoded attachments with your transactional message. Use `add_attachment` to both add and encode your attachments.
+
+Use `send_email` referencing your request object to send a transactional message. [Learn more about transactional messages and `SendEmailRequest` properties](https://customer.io/docs/transactional-api).
+
+```python
+from customerio import APIClient
+
+client = APIClient("your API key")
+
+request = SendEmailRequest({
+  "to": "person@example.com",
+  "transactional_message_id": "3",
+  "message_data": {
+    "name": "person",
+    "items": [
+      {
+        "name": "shoes",
+        "price": "59.99",
+      },
+    ]
+  },
+  "identifiers": {
+    "id": "2",
+  },
+})
+
+with open("path to file", "r") as f:
+  request.add_attachment('receipt.pdf', f.read())
+
+response = client.send_email(request)
+print(response)
+```
+
 ## Running tests
 
 Changes to the library can be tested by running `make test` from the parent directory.
