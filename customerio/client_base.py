@@ -4,7 +4,6 @@ Implements the base client that is used by other classes to make requests
 from __future__ import division
 from datetime import datetime, timezone
 import math
-import time
 
 from requests import Session
 from requests.adapters import HTTPAdapter
