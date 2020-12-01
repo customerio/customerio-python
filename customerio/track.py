@@ -7,13 +7,10 @@ import warnings
 from urllib.parse import quote
 
 class CustomerIO(ClientBase):
-    def __init__(self, site_id=None, api_key=None, host=None, port=None, url_prefix=None, json_encoder=None, retries=3, timeout=10, backoff_factor=0.02,
-            url_encode_id=False, sanitize_data_field=False):
+    def __init__(self, site_id=None, api_key=None, host=None, port=None, url_prefix=None, json_encoder=None, retries=3, timeout=10, backoff_factor=0.02):
         self.host = host or 'track.customer.io'
         self.port = port or 443
         self.url_prefix = url_prefix or '/api/v1'
-        self.url_encode_id = url_encode_id
-        self.sanitize_data_field = sanitize_data_field
 
         if json_encoder is not None:
             warnings.warn(
@@ -25,7 +22,7 @@ class CustomerIO(ClientBase):
         self.http.auth = (site_id, api_key)
 
     def _url_encode(self, id):
-        return quote(id, safe='') if self.url_encode_id else id
+        return quote(id, safe='')
 
     def setup_base_url(self):
         template = 'https://{host}:{port}/{prefix}'
@@ -62,7 +59,7 @@ class CustomerIO(ClientBase):
         url = self.get_event_query_string(customer_id)
         post_data = {
             'name': name,
-            'data': self._sanitize(data) if self.sanitize_data_field else data,
+            'data': self._sanitize(data),
         }
         self.send_request('POST', url, post_data)
 
@@ -72,7 +69,7 @@ class CustomerIO(ClientBase):
         post_data = {
             'type': "page",
             'name': page,
-            'data': self._sanitize(data) if self.sanitize_data_field else data,
+            'data': self._sanitize(data),
         }
         self.send_request('POST', url, post_data)
 
@@ -91,7 +88,7 @@ class CustomerIO(ClientBase):
 
         post_data = {
             'name': name,
-            'data': self._sanitize(data) if self.sanitize_data_field else data,
+            'data': self._sanitize(data),
             'timestamp': timestamp
         }
 
@@ -144,41 +141,3 @@ class CustomerIO(ClientBase):
 
         self.send_request(
             'POST', '{base}/customers/{id}/unsuppress'.format(base=self.base_url, id=customer_id), {})
-
-    def add_to_segment(self, segment_id, customer_ids):
-        '''Add customers to a manual segment, customer_ids should be a list of strings'''
-        if not segment_id:
-            raise CustomerIOException(
-                "segment_id cannot be blank in add_to_segment")
-
-        if not customer_ids:
-            raise CustomerIOException(
-                "customer_ids cannot be blank in add_to_segment")
-
-        if not isinstance(customer_ids, list):
-            raise CustomerIOException(
-                "customer_ids must be a list in add_to_segment")
-
-        url = '{base}/segments/{id}/add_customers'.format(
-            base=self.base_url, id=segment_id)
-        payload = {'ids': self._stringify_list(customer_ids)}
-        self.send_request('POST', url, payload)
-
-    def remove_from_segment(self, segment_id, customer_ids):
-        '''Remove customers from a manual segment, customer_ids should be a list of strings'''
-        if not segment_id:
-            raise CustomerIOException(
-                "segment_id cannot be blank in remove_from_segment")
-
-        if not customer_ids:
-            raise CustomerIOException(
-                "customer_ids cannot be blank in remove_from_segment")
-
-        if not isinstance(customer_ids, list):
-            raise CustomerIOException(
-                "customer_ids must be a list in remove_from_segment")
-
-        url = '{base}/segments/{id}/remove_customers'.format(
-            base=self.base_url, id=segment_id)
-        payload = {'ids': self._stringify_list(customer_ids)}
-        self.send_request('POST', url, payload)

@@ -23,7 +23,7 @@ class SendEmailRequest(object):
     def __init__(self,
             transactional_message_id=None,
             to=None,
-            customer_id=None,
+            identifiers=None,
             _from=None,
             from_id=None,
             headers=None,
@@ -46,7 +46,7 @@ class SendEmailRequest(object):
 
         self.transactional_message_id = transactional_message_id
         self.to = to
-        self.customer_id = customer_id
+        self.identifiers = identifiers
         self._from = _from
         self.from_id = from_id
         self.headers = headers
@@ -71,7 +71,7 @@ class SendEmailRequest(object):
             self.headers = {}
 
         if self.headers.get(name, None):
-            raise CustomerIOException("header with name {name} already exists".format(name=name))
+            raise CustomerIOException("header {name} already exists".format(name=name))
 
         self.headers[name] = value
 
@@ -80,7 +80,7 @@ class SendEmailRequest(object):
             self.attachments = {}
 
         if self.attachments.get(name, None):
-            raise CustomerIOException("attachment with name {name} already exists".format(name=name))
+            raise CustomerIOException("attachment {name} already exists".format(name=name))
 
         if encode:
             if isinstance(content, str):
@@ -95,16 +95,25 @@ class SendEmailRequest(object):
             self.message_data = {}
 
         if self.message_data.get(name, None):
-            raise CustomerIOException("message_data with name {name} already exists".format(name=name))
+            raise CustomerIOException("message_data {name} already exists".format(name=name))
 
         self.message_data[name] = value
+
+    def add_identifier(self, name, value):
+        if not self.identifiers:
+            self.identifiers = {}
+
+        if self.identifiers.get(name, None):
+            raise CustomerIOException("identifier {name} already exists".format(name=name))
+
+        self.identifiers[name] = value
 
     def _to_dict(self):
         field_map = dict(
             _from="from",
             transactional_message_id="transactional_message_id",
             to="to",
-            customer_id="customer_id",
+            identifiers="identifiers",
             from_id="from_id",
             headers="headers",
             reply_to="reply_to",
