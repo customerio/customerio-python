@@ -138,24 +138,6 @@ Unsuppresses the specified customer. We will remove the supplied id from our sup
 
 See REST documentation [here](https://learn.customer.io/api/#apisuppress_delete)
 
-### Add customers to a manual segment
-```python
-cio.add_to_segment(segment_id=1,customer_ids=['1','2','3'])
-```
-
-Add the list of customer ids to the specified manual segment. If you send customer ids that don't exist yet in an add_to_segment request, we will automatically create customer profiles for the new customer ids.
-
-See REST documentation [here](https://customer.io/docs/api/#apiadd_customers)
-
-### Remove customers from a manual segment
-```python
-cio.remove_from_segment(segment_id=1,customer_ids=['1','2','3'])
-```
-
-Remove the list of customer ids from the specified manual segment.
-
-See REST documentation [here](https://customer.io/docs/api/#apiremove_customers)
-
 ## Running tests
 
 Changes to the library can be tested by running `make test` from the parent directory.

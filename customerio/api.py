@@ -66,15 +66,6 @@ class SendEmailRequest(object):
         self.message_data = message_data
         self.attachments = attachments
 
-    def add_header(self, name, value):
-        if not self.headers:
-            self.headers = {}
-
-        if self.headers.get(name, None):
-            raise CustomerIOException("header {name} already exists".format(name=name))
-
-        self.headers[name] = value
-
     def add_attachment(self, name, content, encode=True):
         if not self.attachments:
             self.attachments = {}
@@ -89,24 +80,6 @@ class SendEmailRequest(object):
                 content = base64.b64encode(content).decode()
 
         self.attachments[name] = content
-
-    def add_message_data(self, name, value):
-        if not self.message_data:
-            self.message_data = {}
-
-        if self.message_data.get(name, None):
-            raise CustomerIOException("message_data {name} already exists".format(name=name))
-
-        self.message_data[name] = value
-
-    def add_identifier(self, name, value):
-        if not self.identifiers:
-            self.identifiers = {}
-
-        if self.identifiers.get(name, None):
-            raise CustomerIOException("identifier {name} already exists".format(name=name))
-
-        self.identifiers[name] = value
 
     def _to_dict(self):
         field_map = dict(
