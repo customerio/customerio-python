@@ -22,7 +22,7 @@ class CustomerIO(ClientBase):
         self.http.auth = (site_id, api_key)
 
     def _url_encode(self, id):
-        return quote(id, safe='')
+        return quote(str(id), safe='')
 
     def setup_base_url(self):
         template = 'https://{host}:{port}/{prefix}'
