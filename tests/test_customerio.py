@@ -252,25 +252,23 @@ class TestCustomerIO(HTTPSTestCase):
     def test_ids_are_encoded_in_url(self):
         self.cio.http.hooks=dict(response=partial(self._check_request, rq={
             'url_suffix': '/customers/1/unsuppress',
-        })
+        }))
         self.cio.unsuppress(customer_id=1)
 
         self.cio.http.hooks=dict(response=partial(self._check_request, rq={
             'url_suffix': '/customers/1%2F',
-        })
+        }))
         self.cio.identify(customer_id="1/")
 
         self.cio.http.hooks=dict(response=partial(self._check_request, rq={
             'url_suffix': '/customers/1%20/events',
-        })
+        }))
         self.cio.track(customer_id="1 ", name="test")
 
         self.cio.http.hooks=dict(response=partial(self._check_request, rq={
             'url_suffix': '/customers/1%2F/devices/2%20',
-        })
+        }))
         self.cio.delete_device(customer_id="1/", device_id="2 ")
-
-
 
 
 if __name__ == '__main__':
