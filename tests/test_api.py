@@ -4,7 +4,7 @@ import json
 import sys
 import unittest
 
-from customerio import APIClient
+from customerio import APIClient, SendEmailRequest
 from tests.server import HTTPSTestCase
 
 import requests
@@ -44,11 +44,15 @@ class TestAPIClient(HTTPSTestCase):
             'authorization': "Bearer app_api_key",
             'content_type': 'application/json',
             'url_suffix': '/v1/send/email',
-            'body': {"customer_id": "customer_1", "transactional_message_id": 100, "subject": "transactional message"},
+            'body': {"identifiers": {"id":"customer_1"}, "transactional_message_id": 100, "subject": "transactional message"},
         }))
 
-        self.client.send_email(
-            customer_id="customer_1", transactional_message_id=100, subject="transactional message")
+
+        self.client.send_email(SendEmailRequest(
+            identifiers={"id":"customer_1"},
+            transactional_message_id=100,
+            subject="transactional message"
+        ))
 
 if __name__ == '__main__':
     unittest.main()
