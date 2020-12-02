@@ -51,7 +51,7 @@ class TestCustomerIO(HTTPSTestCase):
         # should not raise exception as i should be less than retries and 
         # therefore the last request should return a valid response
         for i in range(retries):
-            self.cio.identify(i, fail_count=i)
+            self.cio.identify(str(i), fail_count=i)
 
         # should raise expection as we get invalid responses for all retries
         with self.assertRaises(CustomerIOException):
