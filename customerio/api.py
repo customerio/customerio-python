@@ -66,7 +66,7 @@ class SendEmailRequest(object):
         self.message_data = message_data
         self.attachments = attachments
 
-    def add_attachment(self, name, content, encode=True):
+    def attach(self, name, content, encode=True):
         '''Helper method to add base64 encode the attachments'''
         if not self.attachments:
             self.attachments = {}

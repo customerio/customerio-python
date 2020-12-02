@@ -1,3 +1,4 @@
+import base64
 from datetime import datetime
 from functools import partial
 import json
@@ -39,20 +40,25 @@ class TestAPIClient(HTTPSTestCase):
                         'url: {} expected suffix: {}'.format(request.url, rq['url_suffix']))
 
     def test_send_email(self):
+        data = "1,2,3"
+        expected = base64.b64encode(bytes(data,"utf-8")).decode()
+
         self.client.http.hooks = dict(response=partial(self._check_request, rq={
             'method': 'POST',
             'authorization': "Bearer app_api_key",
             'content_type': 'application/json',
             'url_suffix': '/v1/send/email',
-            'body': {"identifiers": {"id":"customer_1"}, "transactional_message_id": 100, "subject": "transactional message"},
+            'body': {"identifiers": {"id":"customer_1"}, "transactional_message_id": 100, "subject": "transactional message", "attachments":{"sample.csv": expected}},
         }))
 
-
-        self.client.send_email(SendEmailRequest(
+        email = SendEmailRequest(
             identifiers={"id":"customer_1"},
             transactional_message_id=100,
             subject="transactional message"
-        ))
+        )
+        email.attach('sample.csv', data)
+
+        self.client.send_email(email)
 
 if __name__ == '__main__':
     unittest.main()

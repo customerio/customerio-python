@@ -174,7 +174,7 @@ request = SendEmailRequest({
 })
 
 with open("path to file", "r") as f:
-  request.add_attachment('receipt.pdf', f.read())
+  request.attach('receipt.pdf', f.read())
 
 response = client.send_email(request)
 print(response)
