@@ -29,10 +29,8 @@ class SendEmailRequest(object):
             to=None,
             identifiers=None,
             _from=None,
-            from_id=None,
             headers=None,
             reply_to=None,
-            reply_to_id=None,
             bcc=None,
             subject=None,
             preheader=None,
@@ -52,10 +50,8 @@ class SendEmailRequest(object):
         self.to = to
         self.identifiers = identifiers
         self._from = _from
-        self.from_id = from_id
         self.headers = headers
         self.reply_to = reply_to
-        self.reply_to_id = reply_to_id
         self.bcc = bcc
         self.subject = subject
         self.preheader = preheader
@@ -96,10 +92,8 @@ class SendEmailRequest(object):
             transactional_message_id="transactional_message_id",
             to="to",
             identifiers="identifiers",
-            from_id="from_id",
             headers="headers",
             reply_to="reply_to",
-            reply_to_id="reply_to_id",
             bcc="bcc",
             subject="subject",
             preheader="preheader",
