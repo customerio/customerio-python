@@ -3,6 +3,7 @@
 ## [1.0.0]
 ### Added
 - Support for transactional api
+- Validations for behavioural api methods
 
 ### Removed
 - Manual segmentation functions `add_to_segment` & `remove_from_segment`

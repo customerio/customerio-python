@@ -51,11 +51,15 @@ class CustomerIO(ClientBase):
 
     def identify(self, id, **kwargs):
         '''Identify a single customer by their unique id, and optionally add attributes'''
+        if not id:
+            raise CustomerIOException("id cannot be blank in identify")
         url = self.get_customer_query_string(id)
         self.send_request('PUT', url, kwargs)
 
     def track(self, customer_id, name, **data):
         '''Track an event for a given customer_id'''
+        if not customer_id:
+            raise CustomerIOException("customer_id cannot be blank in track")
         url = self.get_event_query_string(customer_id)
         post_data = {
             'name': name,
@@ -65,6 +69,8 @@ class CustomerIO(ClientBase):
 
     def pageview(self, customer_id, page, **data):
         '''Track a pageview for a given customer_id'''
+        if not customer_id:
+            raise CustomerIOException("customer_id cannot be blank in pageview")
         url = self.get_event_query_string(customer_id)
         post_data = {
             'type': "page",
@@ -75,6 +81,9 @@ class CustomerIO(ClientBase):
 
     def backfill(self, customer_id, name, timestamp, **data):
         '''Backfill an event (track with timestamp) for a given customer_id'''
+        if not customer_id:
+            raise CustomerIOException("customer_id cannot be blank in backfill")
+
         url = self.get_event_query_string(customer_id)
 
         if isinstance(timestamp, datetime):
@@ -96,6 +105,9 @@ class CustomerIO(ClientBase):
 
     def delete(self, customer_id):
         '''Delete a customer profile'''
+        if not customer_id:
+            raise CustomerIOException("customer_id cannot be blank in delete")
+
         url = self.get_customer_query_string(customer_id)
         self.send_request('DELETE', url, {})
 
@@ -122,6 +134,12 @@ class CustomerIO(ClientBase):
 
     def delete_device(self, customer_id, device_id):
         '''Delete a device from a customer profile'''
+        if not customer_id:
+            raise CustomerIOException("customer_id cannot be blank in delete_device")
+
+        if not device_id:
+            raise CustomerIOException("device_id cannot be blank in delete_device")
+
         url = self.get_device_query_string(customer_id)
         delete_url = '{base}/{token}'.format(base=url, token=self._url_encode(device_id))
         self.send_request('DELETE', delete_url, {})
