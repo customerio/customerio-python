@@ -142,14 +142,13 @@ See REST documentation [here](https://learn.customer.io/api/#apisuppress_delete)
 
 To use the [Transactional API](https://customer.io/docs/transactional-api), instantiate the Customer.io object using an [app key](https://customer.io/docs/managing-credentials#app-api-keys) and create a request object containing:
 
-* `transactional_message_id`: the ID of the transactional message you want to send
+* `transactional_message_id`: the ID of the transactional message you want to send, or the `body`, `from`, and `subject` of a new message.
 * `to`: the email address of your recipients 
 * an `identifiers` object containing the `id` of your recipient. If the `id` does not exist, Customer.io will create it.
 * a `message_data` object containing properties that you want reference in your message using Liquid.
+* You can also send attachments with your message. Use `attach` to encode attachments.
 
-You can also send base64-encoded attachments with your transactional message. Using the `SendEmailRequest` object provides an `attach` method to both add and encode your attachments.
-
-Use `send_email` referencing your request object to send a transactional message. [Learn more about transactional messages and `SendEmailRequest` properties](https://customer.io/docs/transactional-api).
+Use `send_email` referencing your request to send a transactional message. [Learn more about transactional messages and `SendEmailRequest` properties](https://customer.io/docs/transactional-api).
 
 ```python
 from customerio import APIClient
