@@ -3,3 +3,7 @@
 tests/server.pem
 dist
 customerio.egg-info
+.DS_Store
+MANIFEST
+build/
+setup.cfg

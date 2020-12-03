@@ -31,13 +31,19 @@ class TestCustomerIO(HTTPSTestCase):
     def _check_request(self, resp, rq, *args, **kwargs):
         request = resp.request
         body = request.body.decode('utf-8') if isinstance(request.body, bytes) else request.body
-        self.assertEqual(request.method, rq['method'])
-        self.assertEqual(json.loads(body), rq['body'])
-        self.assertEqual(request.headers['Authorization'], rq['authorization'])
-        self.assertEqual(request.headers['Content-Type'], rq['content_type'])
-        self.assertEqual(int(request.headers['Content-Length']), len(json.dumps(rq['body'])))
-        self.assertTrue(request.url.endswith(rq['url_suffix']),
-            'url: {} expected suffix: {}'.format(request.url, rq['url_suffix']))
+        if rq.get('method', None):
+            self.assertEqual(request.method, rq['method'])
+        if rq.get('body', None):
+            self.assertEqual(json.loads(body), rq['body'])
+        if rq.get('authorization', None):
+            self.assertEqual(request.headers['Authorization'], rq['authorization'])
+        if rq.get('content_type', None):
+            self.assertEqual(request.headers['Content-Type'], rq['content_type'])
+        if rq.get('body', None):
+            self.assertEqual(int(request.headers['Content-Length']), len(json.dumps(rq['body'])))
+        if rq.get('url_suffix', None):
+            self.assertTrue(request.url.endswith(rq['url_suffix']),
+                'url: {} expected suffix: {}'.format(request.url, rq['url_suffix']))
 
 
     def test_client_connection_handling(self):
@@ -45,7 +51,7 @@ class TestCustomerIO(HTTPSTestCase):
         # should not raise exception as i should be less than retries and 
         # therefore the last request should return a valid response
         for i in range(retries):
-            self.cio.identify(i, fail_count=i)
+            self.cio.identify(str(i), fail_count=i)
 
         # should raise expection as we get invalid responses for all retries
         with self.assertRaises(CustomerIOException):
@@ -243,60 +249,32 @@ class TestCustomerIO(HTTPSTestCase):
         with self.assertRaises(CustomerIOException):
             self.cio.unsuppress(None)
 
-    def test_add_to_segment_call(self):
-        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
-            'method': 'POST',
-            'authorization': _basic_auth_str('siteid', 'apikey'),
-            'content_type': 'application/json',
-            'url_suffix': '/segments/1/add_customers',
-            'body': {'ids': ['1','2','3']},
-        }))
-
-        self.cio.add_to_segment(segment_id=1, customer_ids=[1,2,3])
-
-        with self.assertRaises(CustomerIOException):
-            self.cio.add_to_segment(None, None)
-
-        with self.assertRaises(CustomerIOException):
-            self.cio.add_to_segment(segment_id=1, customer_ids=False)
-
-        with self.assertRaises(CustomerIOException):
-            self.cio.add_to_segment(segment_id=1, customer_ids=[False,True,False])
-
-    def test_remove_from_segment_call(self):
-        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
-            'method': 'POST',
-            'authorization': _basic_auth_str('siteid', 'apikey'),
-            'content_type': 'application/json',
-            'url_suffix': '/segments/1/remove_customers',
-            'body': {'ids': ['1','2','3']},
-        }))
-
-        self.cio.remove_from_segment(segment_id=1, customer_ids=[1,2,3])
-
-        with self.assertRaises(CustomerIOException):
-            self.cio.remove_from_segment(None, None)
-
-        with self.assertRaises(CustomerIOException):
-            self.cio.add_to_segment(segment_id=1, customer_ids=False)
-
-        with self.assertRaises(CustomerIOException):
-            self.cio.add_to_segment(segment_id=1, customer_ids=[False,True,False])
-
-
-    @unittest.skipIf(sys.version_info.major > 2, "python2 specific test case")
-    def test_sanitize_py2(self):
-        data_in = dict(dt=datetime.fromtimestamp(1234567890))
-        data_out = self.cio._sanitize(data_in)
-        self.assertEqual(data_out, dict(dt=1234567890))
-
-
-    @unittest.skipIf(sys.version_info.major < 3, "python3 specific test case")
-    def test_sanitize_py3(self):
+    def test_sanitize(self):
         from datetime import timezone
         data_in = dict(dt=datetime(2009, 2, 13, 23, 31, 30, 0, timezone.utc))
         data_out = self.cio._sanitize(data_in)
         self.assertEqual(data_out, dict(dt=1234567890))
+
+    def test_ids_are_encoded_in_url(self):
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'url_suffix': '/customers/1/unsuppress',
+        }))
+        self.cio.unsuppress(customer_id=1)
+
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'url_suffix': '/customers/1%2F',
+        }))
+        self.cio.identify(id="1/")
+
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'url_suffix': '/customers/1%20/events',
+        }))
+        self.cio.track(customer_id="1 ", name="test")
+
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'url_suffix': '/customers/1%2F/devices/2%20',
+        }))
+        self.cio.delete_device(customer_id="1/", device_id="2 ")
 
 
 if __name__ == '__main__':

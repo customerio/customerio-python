@@ -35,6 +35,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         self.send_response(200)
         self.end_headers()
+        self.wfile.write(bytes("{}", "utf-8"))
 
     def do_PUT(self):
         global request_counts
