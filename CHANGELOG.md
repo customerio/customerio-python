@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.0]
+## [1.0.0] December 3, 2020
 ### Added
 - Support for transactional api
 - Validations for behavioural api methods
