@@ -13,9 +13,9 @@ pip install customerio
 ```python
 from customerio import CustomerIO
 cio = CustomerIO(site_id, api_key)
-cio.identify(id=5, email='customer@example.com', name='Bob', plan='premium')
-cio.track(customer_id=5, name='purchased')
-cio.track(customer_id=5, name='purchased', price=23.45)
+cio.identify(id="5", email='customer@example.com', name='Bob', plan='premium')
+cio.track(customer_id="5", name='purchased')
+cio.track(customer_id="5", name='purchased', price=23.45)
 ```
 
 ### Instantiating customer.io object
@@ -28,7 +28,7 @@ cio = CustomerIO(site_id, api_key)
 ### Create or update a Customer.io customer profile
 
 ```python
-cio.identify(id=5, email='customer@example.com', name='Bob', plan='premium')
+cio.identify(id="5", email='customer@example.com', name='Bob', plan='premium')
 ```
 
 Only the id field is used to identify the customer here.  Using an existing id with
@@ -42,13 +42,13 @@ See original REST documentation [here](http://customer.io/docs/api/rest.html#sec
 ### Track a custom event
 
 ```python
-cio.track(customer_id=5, name='purchased')
+cio.track(customer_id="5", name='purchased')
 ```
 
 ### Track a custom event with custom data values
 
 ```python
-cio.track(customer_id=5, name='purchased', price=23.45, product="widget")
+cio.track(customer_id="5", name='purchased', price=23.45, product="widget")
 ```
 
 You can pass any keyword arguments to the `identify` and `track` methods. These kwargs will be converted to custom attributes.
@@ -60,7 +60,7 @@ See original REST documentation [here](http://customer.io/docs/api/rest.html#sec
 ```python
 from datetime import datetime, timedelta
 
-customer_id = 5
+customer_id = "5"
 event_type = "purchase"
 
 # Backfill an event one hour in the past
@@ -82,7 +82,7 @@ See original REST documentation [here](http://customer.io/docs/api/rest.html#sec
 
 ### Delete a customer profile
 ```python
-cio.delete(customer_id=5)
+cio.delete(customer_id="5")
 ```
 
 Deletes the customer profile for a specified customer.
@@ -96,7 +96,7 @@ You can pass any keyword arguments to the `identify` and `track` methods. These 
 
 ### Add a device
 ```python
-cio.add_device(customer_id=1, device_id='device_hash', platform='ios')
+cio.add_device(customer_id="1", device_id='device_hash', platform='ios')
 ```
 
 Adds the device `device_hash` with the platform `ios` for a specified customer.
@@ -106,14 +106,14 @@ Supported platforms are `ios` and `android`.
 Optionally, `last_used` can be passed in to specify the last touch of the device. Otherwise, this attribute is set by the API.
 
 ```python
-cio.add_device(customer_id=1, device_id='device_hash', platform='ios', last_used=1514764800})
+cio.add_device(customer_id="1", device_id='device_hash', platform='ios', last_used=1514764800})
 ```
 
 This method returns nothing.
 
 ### Delete a device
 ```python
-cio.delete_device(customer_id=1, device_id='device_hash')
+cio.delete_device(customer_id="1", device_id='device_hash')
 ```
 
 Deletes the specified device for a specified customer.
@@ -122,7 +122,7 @@ This method returns nothing. Attempts to delete non-existent devices will not ra
 
 ### Suppress a customer
 ```python
-cio.suppress(customer_id=1)
+cio.suppress(customer_id="1")
 ```
 
 Suppresses the specified customer. They will be deleted from Customer.io, and we will ignore all further attempts to identify or track activity for the suppressed customer ID
@@ -131,7 +131,7 @@ See REST documentation [here](https://learn.customer.io/api/#apisuppress_add)
 
 ### Unsuppress a customer
 ```python
-cio.unsuppress(customer_id=1)
+cio.unsuppress(customer_id="1")
 ```
 
 Unsuppresses the specified customer. We will remove the supplied id from our suppression list and start accepting new identify and track calls for the customer as normal
@@ -147,7 +147,7 @@ To use the [Transactional API](https://customer.io/docs/transactional-api), inst
 * an `identifiers` object containing the `id` of your recipient. If the `id` does not exist, Customer.io will create it.
 * a `message_data` object containing properties that you want reference in your message using Liquid.
 
-You can also send base64-encoded attachments with your transactional message. Use `add_attachment` to both add and encode your attachments.
+You can also send base64-encoded attachments with your transactional message. Using the `SendEmailRequest` object provides an `attach` method to both add and encode your attachments.
 
 Use `send_email` referencing your request object to send a transactional message. [Learn more about transactional messages and `SendEmailRequest` properties](https://customer.io/docs/transactional-api).
 
@@ -173,7 +173,7 @@ request = SendEmailRequest({
   },
 })
 
-with open("path to file", "r") as f:
+with open("path to file", "rb") as f:
   request.attach('receipt.pdf', f.read())
 
 response = client.send_email(request)
