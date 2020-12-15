@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from functools import partial
 import json
 import sys
@@ -251,9 +251,9 @@ class TestCustomerIO(HTTPSTestCase):
 
     def test_sanitize(self):
         from datetime import timezone
-        data_in = dict(dt=datetime(2009, 2, 13, 23, 31, 30, 0, timezone.utc))
+        data_in = dict(dt=datetime(2009, 2, 13, 23, 31, 30, 0, timezone.utc), d=date(2009, 2, 14))
         data_out = self.cio._sanitize(data_in)
-        self.assertEqual(data_out, dict(dt=1234567890))
+        self.assertEqual(data_out, dict(dt=1234567890, d=1234569600))
 
     def test_ids_are_encoded_in_url(self):
         self.cio.http.hooks=dict(response=partial(self._check_request, rq={

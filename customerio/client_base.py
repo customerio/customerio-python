@@ -2,7 +2,7 @@
 Implements the base client that is used by other classes to make requests
 """
 from __future__ import division
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 import math
 
 from requests import Session
@@ -48,12 +48,18 @@ Last caught exception -- {klass}: {message}
         for k, v in data.items():
             if isinstance(v, datetime):
                 data[k] = self._datetime_to_timestamp(v)
+            if isinstance(v, date):
+                data[k] = self._date_to_timestamp(v)
             if isinstance(v, float) and math.isnan(v):
                 data[k] = None
         return data
 
     def _datetime_to_timestamp(self, dt):
         return int(dt.replace(tzinfo=timezone.utc).timestamp())
+
+    def _date_to_timestamp(self, d):
+        dt = datetime.combine(d, time=datetime.min.time())
+        return self._datetime_to_timestamp(dt)
 
     def _stringify_list(self, customer_ids):
         customer_string_ids = []
