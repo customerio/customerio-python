@@ -24,7 +24,6 @@ jobs:
       run: |
         python -m venv venv
         . venv/bin/activate
-        pwd && ls
         pip install -r requirements.txt
     - name: run tests
       run: |
