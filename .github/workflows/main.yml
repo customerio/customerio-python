@@ -1,0 +1,44 @@
+name: build
+
+on: [ push ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: [ '3.7', '3.6', '3.9','3.8' ]
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        path: customerio-python
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python }}
+    - uses: actions/cache@v2
+      with:
+        path: ./venv
+        key: customerio-python-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          customerio-python-${{ matrix.python }}-
+    - name: install dependencies for the minor version
+      run: |
+        python -m venv venv
+        . venv/bin/activate
+        export version=$(grep -v '^$' requirements.txt | grep requests | awk -F'=' '{print $2}' )
+        pip install requests==$(echo $version)
+    - name: run tests
+      run: |
+        . venv/bin/activate
+        make test
+        deactivate
+    - name: reinstall to the latest version
+      run: |
+        python -m venv venv
+        . venv/bin/activate
+        pip install --upgrade requests
+    - name: run tests again
+      run: |
+        . venv/bin/activate
+        make test
