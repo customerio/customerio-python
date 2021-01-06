@@ -156,9 +156,9 @@ from customerio import APIClient
 client = APIClient("your API key")
 
 request = SendEmailRequest({
-  "to": "person@example.com",
-  "transactional_message_id": "3",
-  "message_data": {
+  to="person@example.com",
+  transactional_message_id="3",
+  message_data={
     "name": "person",
     "items": [
       {
@@ -167,7 +167,7 @@ request = SendEmailRequest({
       },
     ]
   },
-  "identifiers": {
+  identifiers={
     "id": "2",
   },
 })
