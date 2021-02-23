@@ -9,7 +9,7 @@ from .regions import Regions
 
 class APIClient(ClientBase):
     def __init__(self, key, url=None, region=None, retries=3, timeout=10, backoff_factor=0.02):
-        self.url = url or 'https://{host}'.format(Regions.api_host_for(region or Regions.US))
+        self.url = url or 'https://{host}'.format(host=Regions.api_host_for(region or Regions.US))
         ClientBase.__init__(self, retries=retries,
                             timeout=timeout, backoff_factor=backoff_factor)
         self.http.headers = {
