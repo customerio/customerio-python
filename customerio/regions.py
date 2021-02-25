@@ -1,4 +1,3 @@
-from .client_base import ClientBase, CustomerIOException
 from collections import namedtuple
 
 Region = namedtuple('Region', ['name', 'track_host', 'api_host'])
