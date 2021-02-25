@@ -168,7 +168,7 @@ request = SendEmailRequest(
     ]
   },
   identifiers={
-    "id": "7575788858585222a",
+    "id": "2",
   }
 )
 
