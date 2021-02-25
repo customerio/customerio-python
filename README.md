@@ -151,14 +151,14 @@ To use the [Transactional API](https://customer.io/docs/transactional-api), inst
 Use `send_email` referencing your request to send a transactional message. [Learn more about transactional messages and `SendEmailRequest` properties](https://customer.io/docs/transactional-api).
 
 ```python
-from customerio import APIClient
+from customerio import APIClient, SendEmailRequest
 
 client = APIClient("your API key")
 
-request = SendEmailRequest({
-  "to": "person@example.com",
-  "transactional_message_id": "3",
-  "message_data": {
+request = SendEmailRequest(
+  to="person@example.com",
+  transactional_message_id="3",
+  message_data={
     "name": "person",
     "items": [
       {
@@ -167,10 +167,10 @@ request = SendEmailRequest({
       },
     ]
   },
-  "identifiers": {
+  identifiers={
     "id": "2",
-  },
-})
+  }
+)
 
 with open("path to file", "rb") as f:
   request.attach('receipt.pdf', f.read())
