@@ -4,7 +4,7 @@ import json
 import sys
 import unittest
 
-from customerio import CustomerIO, CustomerIOException, RegionEU, RegionUS
+from customerio import CustomerIO, CustomerIOException, Regions
 from tests.server import HTTPSTestCase
 
 import requests
@@ -47,13 +47,13 @@ class TestCustomerIO(HTTPSTestCase):
 
     def test_client_setup(self):
         client = CustomerIO(site_id='site_id', api_key='api_key')
-        self.assertEqual(client.host, RegionUS.track_host)
+        self.assertEqual(client.host, Regions['us'].track_host)
 
-        client = CustomerIO(site_id='site_id', api_key='api_key', region=RegionUS)
-        self.assertEqual(client.host, RegionUS.track_host)
+        client = CustomerIO(site_id='site_id', api_key='api_key', region='us')
+        self.assertEqual(client.host, Regions['us'].track_host)
 
-        client = CustomerIO(site_id='site_id', api_key='api_key', region=RegionEU)
-        self.assertEqual(client.host, RegionEU.track_host)
+        client = CustomerIO(site_id='site_id', api_key='api_key', region='eu')
+        self.assertEqual(client.host, Regions['eu'].track_host)
 
         # Raises an exception when an invalid region is passed in
         with self.assertRaises(CustomerIOException):
