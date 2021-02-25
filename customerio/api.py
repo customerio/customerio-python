@@ -10,7 +10,7 @@ from .regions import Regions, Region
 class APIClient(ClientBase):
     def __init__(self, key, url=None, region=Regions.US, retries=3, timeout=10, backoff_factor=0.02):
         if not isinstance(region, Region):
-            raise CustomerIOException('region must be of type {region}'.format(region=Region))
+            raise CustomerIOException('invalid region provided')
 
         self.url = url or 'https://{host}'.format(host=region.api_host)
         ClientBase.__init__(self, retries=retries,
