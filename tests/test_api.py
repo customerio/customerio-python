@@ -41,13 +41,13 @@ class TestAPIClient(HTTPSTestCase):
 
     def test_client_setup(self):
         client = APIClient(key='app_api_key')
-        self.assertEqual(client.url, 'https://{host}'.format(host=Regions['us'].api_host))
+        self.assertEqual(client.url, 'https://{host}'.format(host=Regions.US.api_host))
 
-        client = APIClient(key='app_api_key', region='us')
-        self.assertEqual(client.url, 'https://{host}'.format(host=Regions['us'].api_host))
+        client = APIClient(key='app_api_key', region=Regions.US)
+        self.assertEqual(client.url, 'https://{host}'.format(host=Regions.US.api_host))
 
-        client = APIClient(key='app_api_key', region='eu')
-        self.assertEqual(client.url, 'https://{host}'.format(host=Regions['eu'].api_host))
+        client = APIClient(key='app_api_key', region=Regions.EU)
+        self.assertEqual(client.url, 'https://{host}'.format(host=Regions.EU.api_host))
 
         # Raises an exception when an invalid region is passed in
         with self.assertRaises(CustomerIOException):

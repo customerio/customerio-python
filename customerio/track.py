@@ -5,14 +5,14 @@ from .client_base import ClientBase, CustomerIOException
 from datetime import datetime
 import warnings
 from urllib.parse import quote
-from .regions import Regions
+from .regions import Regions, Region
 
 class CustomerIO(ClientBase):
-    def __init__(self, site_id=None, api_key=None, host=None, region='us', port=None, url_prefix=None, json_encoder=None, retries=3, timeout=10, backoff_factor=0.02):
-        if region not in Regions.keys():
-            raise CustomerIOException('region must be one of {keys}'.format(keys=Regions.keys()))
+    def __init__(self, site_id=None, api_key=None, host=None, region=Regions.US, port=None, url_prefix=None, json_encoder=None, retries=3, timeout=10, backoff_factor=0.02):
+        if not isinstance(region, Region):
+            raise CustomerIOException('region must be an instance of {region}'.format(region=Region))
 
-        self.host = host or Regions[region].track_host
+        self.host = host or region.track_host
         self.port = port or 443
         self.url_prefix = url_prefix or '/api/v1'
 

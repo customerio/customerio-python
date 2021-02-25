@@ -47,13 +47,13 @@ class TestCustomerIO(HTTPSTestCase):
 
     def test_client_setup(self):
         client = CustomerIO(site_id='site_id', api_key='api_key')
-        self.assertEqual(client.host, Regions['us'].track_host)
+        self.assertEqual(client.host, Regions.US.track_host)
 
-        client = CustomerIO(site_id='site_id', api_key='api_key', region='us')
-        self.assertEqual(client.host, Regions['us'].track_host)
+        client = CustomerIO(site_id='site_id', api_key='api_key', region=Regions.US)
+        self.assertEqual(client.host, Regions.US.track_host)
 
-        client = CustomerIO(site_id='site_id', api_key='api_key', region='eu')
-        self.assertEqual(client.host, Regions['eu'].track_host)
+        client = CustomerIO(site_id='site_id', api_key='api_key', region=Regions.EU)
+        self.assertEqual(client.host, Regions.EU.track_host)
 
         # Raises an exception when an invalid region is passed in
         with self.assertRaises(CustomerIOException):
