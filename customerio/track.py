@@ -9,7 +9,7 @@ from .regions import Regions
 
 class CustomerIO(ClientBase):
     def __init__(self, site_id=None, api_key=None, host=None, region=None, port=None, url_prefix=None, json_encoder=None, retries=3, timeout=10, backoff_factor=0.02):
-        self.host = host or Regions.track_host_for(region or Regions.US)
+        self.host = host or region.api_host
         self.port = port or 443
         self.url_prefix = url_prefix or '/api/v1'
 
