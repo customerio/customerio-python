@@ -4,7 +4,7 @@ on: [ push ]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     strategy:
       matrix:
         python: [ '3.7', '3.6', '3.9','3.8' ]
@@ -14,12 +14,12 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python }}
-    - uses: actions/cache@v2
-      with:
-        path: ./venv
-        key: customerio-python-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}
-        restore-keys: |
-          customerio-python-${{ matrix.python }}-
+    # - uses: actions/cache@v2
+    #   with:
+    #     path: ./venv
+    #     key: customerio-python-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}
+    #     restore-keys: |
+    #       customerio-python-${{ matrix.python }}-
     - name: install dependencies for the minor version
       run: |
         python -m venv venv
