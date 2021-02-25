@@ -9,8 +9,8 @@ from .regions import Regions
 
 class APIClient(ClientBase):
     def __init__(self, key, url=None, region='us', retries=3, timeout=10, backoff_factor=0.02):
-        if region not in ['us', 'eu']:
-            raise CustomerIOException('region must be one of "us" or "eu"')
+        if region not in Regions.keys():
+            raise CustomerIOException('region must be one of {keys}'.format(keys=Regions.keys()))
 
         self.url = url or 'https://{host}'.format(host=Regions[region].api_host)
         ClientBase.__init__(self, retries=retries,

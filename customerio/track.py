@@ -9,8 +9,8 @@ from .regions import Regions
 
 class CustomerIO(ClientBase):
     def __init__(self, site_id=None, api_key=None, host=None, region='us', port=None, url_prefix=None, json_encoder=None, retries=3, timeout=10, backoff_factor=0.02):
-        if region not in ['us', 'eu']:
-            raise CustomerIOException('region must be one of "us" or "eu"')
+        if region not in Regions.keys():
+            raise CustomerIOException('region must be one of {keys}'.format(keys=Regions.keys()))
 
         self.host = host or Regions[region].track_host
         self.port = port or 443
