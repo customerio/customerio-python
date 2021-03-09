@@ -11,8 +11,8 @@ pip install customerio
 ## Usage
 
 ```python
-from customerio import CustomerIO
-cio = CustomerIO(site_id, api_key)
+from customerio import CustomerIO, Regions
+cio = CustomerIO(site_id, api_key, region=Regions.US)
 cio.identify(id="5", email='customer@example.com', name='Bob', plan='premium')
 cio.track(customer_id="5", name='purchased')
 cio.track(customer_id="5", name='purchased', price=23.45)
@@ -20,10 +20,13 @@ cio.track(customer_id="5", name='purchased', price=23.45)
 
 ### Instantiating customer.io object
 
+Create an instance of the client with your [Customer.io credentials](https://fly.customer.io/settings/api_credentials).
+
 ```python
-from customerio import CustomerIO
-cio = CustomerIO(site_id, api_key)
+from customerio import CustomerIO, Regions
+cio = CustomerIO(site_id, api_key, region=Regions.US)
 ```
+`region` is optional and takes one of two values—`Regions.US` or `Regions.EU`. If you do not specify your region, we assume that your account is based in the US (`Regions.US`). If your account is based in the EU and you do not provide the correct region (`Regions.EU`), we'll route requests to our EU data centers accordingly, however this may cause data to be logged in the US. 
 
 ### Create or update a Customer.io customer profile
 
@@ -151,14 +154,13 @@ To use the [Transactional API](https://customer.io/docs/transactional-api), inst
 Use `send_email` referencing your request to send a transactional message. [Learn more about transactional messages and `SendEmailRequest` properties](https://customer.io/docs/transactional-api).
 
 ```python
-from customerio import APIClient
+from customerio import APIClient, Regions, SendEmailRequest
+client = APIClient("your API key", region=Regions.US)
 
-client = APIClient("your API key")
-
-request = SendEmailRequest({
-  "to": "person@example.com",
-  "transactional_message_id": "3",
-  "message_data": {
+request = SendEmailRequest(
+  to="person@example.com",
+  transactional_message_id="3",
+  message_data={
     "name": "person",
     "items": [
       {
@@ -167,10 +169,10 @@ request = SendEmailRequest({
       },
     ]
   },
-  "identifiers": {
+  identifiers={
     "id": "2",
-  },
-})
+  }
+)
 
 with open("path to file", "rb") as f:
   request.attach('receipt.pdf', f.read())
