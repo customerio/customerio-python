@@ -1,4 +1,11 @@
 # Changelog
+## [1.1.0]  - March 25, 2021
+### Added
+- Support for EU region
+
+### Removed
+### Changed
+- `customerio.CustomerIO` and `customerio.APIClient`  have a new keyword parameter `region` that can be set to either `Regions.US` or `Regions.EU`
 
 ## [1.0.0] December 3, 2020
 ### Added

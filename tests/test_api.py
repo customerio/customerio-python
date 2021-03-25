@@ -5,7 +5,7 @@ import json
 import sys
 import unittest
 
-from customerio import APIClient, SendEmailRequest
+from customerio import APIClient, SendEmailRequest, Regions, CustomerIOException
 from tests.server import HTTPSTestCase
 
 import requests
@@ -38,6 +38,20 @@ class TestAPIClient(HTTPSTestCase):
             int(request.headers['Content-Length']), len(json.dumps(rq['body'])))
         self.assertTrue(request.url.endswith(rq['url_suffix']),
                         'url: {} expected suffix: {}'.format(request.url, rq['url_suffix']))
+
+    def test_client_setup(self):
+        client = APIClient(key='app_api_key')
+        self.assertEqual(client.url, 'https://{host}'.format(host=Regions.US.api_host))
+
+        client = APIClient(key='app_api_key', region=Regions.US)
+        self.assertEqual(client.url, 'https://{host}'.format(host=Regions.US.api_host))
+
+        client = APIClient(key='app_api_key', region=Regions.EU)
+        self.assertEqual(client.url, 'https://{host}'.format(host=Regions.EU.api_host))
+
+        # Raises an exception when an invalid region is passed in
+        with self.assertRaises(CustomerIOException):
+            APIClient(key='app_api_key', region='au')
 
     def test_send_email(self):
         data = "1,2,3"
