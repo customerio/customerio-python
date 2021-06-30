@@ -102,6 +102,17 @@ class TestCustomerIO(HTTPSTestCase):
             self.cio.track(random_attr="some_value")
 
 
+    def test_track_anonymous_call(self):
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'method': 'POST',
+            'authorization': _basic_auth_str('siteid', 'apikey'),
+            'content_type': 'application/json',
+            'url_suffix': '/events',
+            'body': {"data": {"email": "john@test.com"}, "name": "sign_up", "anonymous_id": 123},
+        }))
+
+        self.cio.track_anonymous(anonymous_id=123, name='sign_up', email='john@test.com')
+
     def test_pageview_call(self):
         self.cio.http.hooks=dict(response=partial(self._check_request, rq={
             'method': 'POST',

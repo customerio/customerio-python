@@ -49,6 +49,10 @@ class CustomerIO(ClientBase):
         '''Generates an event API path'''
         return '{base}/customers/{id}/events'.format(base=self.base_url, id=self._url_encode(customer_id))
 
+    def get_events_query_string(self):
+        '''Returns the events API path'''
+        return '{base}/events'.format(base=self.base_url)
+
     def get_device_query_string(self, customer_id):
         '''Generates a device API path'''
         return '{base}/customers/{id}/devices'.format(base=self.base_url, id=self._url_encode(customer_id))
@@ -66,6 +70,18 @@ class CustomerIO(ClientBase):
             raise CustomerIOException("customer_id cannot be blank in track")
         url = self.get_event_query_string(customer_id)
         post_data = {
+            'name': name,
+            'data': self._sanitize(data),
+        }
+        self.send_request('POST', url, post_data)
+
+    def track_anonymous(self, anonymous_id, name, **data):
+        '''Track an event for a given anonymous_id'''
+        if not anonymous_id:
+            raise CustomerIOException("anonymous_id cannot be blank in track")
+        url = self.get_events_query_string()
+        post_data = {
+            'anonymous_id': anonymous_id,
             'name': name,
             'data': self._sanitize(data),
         }
