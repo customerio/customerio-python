@@ -83,6 +83,14 @@ Keyword arguments to backfill work the same as a call to ```cio.track```.
 
 See original REST documentation [here](http://customer.io/docs/api/rest.html#section-Track_a_custom_event)
 
+### Track an anonymous event
+
+```python
+cio.track_anonymous(anonymous_id="anon-event", name="purchased", price=23.45, product="widget")
+```
+
+An anonymous event is an event associated with a person you haven't identified. The event requires an `anonymous_id` representing the unknown person and an event `name`. When you identify a person, you can set their `anonymous_id` attribute. If [event merging](https://customer.io/docs/anonymous-events/#turn-on-merging) is turned on in your workspace, and the attribute matches the `anonymous_id` in one or more events that were logged within the last 30 days, we associate those events with the person.
+
 ### Delete a customer profile
 ```python
 cio.delete(customer_id="5")
