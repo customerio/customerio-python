@@ -1,4 +1,9 @@
 # Changelog
+
+## [1.2.0]
+### Added
+- Support for anonymous events using `track_anonymous` function. 
+
 ## [1.1.0]  - March 25, 2021
 ### Added
 - Support for EU region
