@@ -23,7 +23,7 @@ class ClientBase(object):
         # Set the TCP keepalive settings to the values dicated by our server-side configuration.
         HTTPConnection.default_socket_options = ( HTTPConnection.default_socket_options + [
             (socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1),
-            (socket.SOL_TCP, socket.TCP_KEEPIDLE, 550),
+            (socket.SOL_TCP, socket.TCP_KEEPIDLE, 300),
             (socket.SOL_TCP, socket.TCP_KEEPINTVL, 60)
             ]
         )
