@@ -2,7 +2,7 @@
 
 ## [1.3.0]
 ### Added
-- Support for merge customers using `merge_customers` function. 
+- Support for merging duplicate customers using `merge_customers` function. 
 
 ## [1.2.0]
 ### Added
