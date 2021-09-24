@@ -321,27 +321,27 @@ class TestCustomerIO(HTTPSTestCase):
         self.cio.merge_customers("cio_id", "CIO456", "id", "MyCustomId")
 
         with self.assertRaises(CustomerIOException):
-            self.cio.merge_customers(primary_id_tye="email", 
+            self.cio.merge_customers(primary_id_type="email", 
                 primary_id="coolperson@cio.com", 
                 secondary_id_type="something", 
                 secondary_id="C123"
             )
 
         with self.assertRaises(CustomerIOException):
-            self.cio.merge_customers(primary_id_tye="not_valid", 
+            self.cio.merge_customers(primary_id_type="not_valid", 
                 primary_id="coolperson@cio.com", 
                 secondary_id_type="something", 
                 secondary_id="C123"
             )
 
         with self.assertRaises(CustomerIOException):
-            self.cio.merge_customers(primary_id_tye="email", 
+            self.cio.merge_customers(primary_id_type="email", 
                 primary_id="", 
                 secondary_id_type="something", 
                 secondary_id="C123"
             )
         with self.assertRaises(CustomerIOException):
-            self.cio.merge_customers(primary_id_tye="email", 
+            self.cio.merge_customers(primary_id_type="email", 
                 primary_id="coolperson@cio.com", 
                 secondary_id_type="something", 
                 secondary_id=""
