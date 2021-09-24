@@ -179,3 +179,31 @@ class CustomerIO(ClientBase):
 
         self.send_request(
             'POST', '{base}/customers/{id}/unsuppress'.format(base=self.base_url, id=self._url_encode(customer_id)), {})
+
+    def is_valid_id_type(self, input):
+        return ["id", "email", "cio_id"].__contains__(input)
+
+    def merge_customers(self, primary_id_tye, primary_id, secondary_id_type, secondary_id):
+        '''Merge seondary profile into primary profile'''
+        if  not self.is_valid_id_type(primary_id_tye):
+            raise CustomerIOException("invalid primary id type")
+
+        if  not self.is_valid_id_type(secondary_id_type):
+            raise CustomerIOException("invalid secondary id type")
+
+        if not primary_id:
+            raise CustomerIOException("primary customer_id cannot be blank")
+
+        if not secondary_id:
+            raise CustomerIOException("secondary customer_id cannot be blank")
+
+        url = '{base}/merge_customers'.format(base=self.base_url)
+        post_data = {
+            "primary": {
+                primary_id_tye: primary_id
+            },
+            "secondary": {
+                secondary_id_type: secondary_id
+            }
+        }
+        self.send_request('POST', url, post_data)

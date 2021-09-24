@@ -301,6 +301,51 @@ class TestCustomerIO(HTTPSTestCase):
         }))
         self.cio.delete_device(customer_id="1/", device_id="2 ")
 
+    def test_merge_customers_call(self):
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'method': 'POST',
+            'authorization': _basic_auth_str('siteid', 'apikey'),
+            'content_type': 'application/json',
+            'url_suffix': '/merge_customers',
+            'body': {'primary': {'id': 'CIO123'}, 'secondary': {'email': 'person1@company.com'}},
+        }))
+        self.cio.merge_customers("id", "CIO123", "email", "person1@company.com")
+
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'method': 'POST',
+            'authorization': _basic_auth_str('siteid', 'apikey'),
+            'content_type': 'application/json',
+            'url_suffix': '/merge_customers',
+            'body': {'primary': {'cio_id': 'CIO456'}, 'secondary': {'id': 'MyCustomId'}},
+        }))
+        self.cio.merge_customers("cio_id", "CIO456", "id", "MyCustomId")
+
+        with self.assertRaises(CustomerIOException):
+            self.cio.merge_customers(primary_id_tye="email", 
+                primary_id="coolperson@cio.com", 
+                secondary_id_type="something", 
+                secondary_id="C123"
+            )
+
+        with self.assertRaises(CustomerIOException):
+            self.cio.merge_customers(primary_id_tye="not_valid", 
+                primary_id="coolperson@cio.com", 
+                secondary_id_type="something", 
+                secondary_id="C123"
+            )
+
+        with self.assertRaises(CustomerIOException):
+            self.cio.merge_customers(primary_id_tye="email", 
+                primary_id="", 
+                secondary_id_type="something", 
+                secondary_id="C123"
+            )
+        with self.assertRaises(CustomerIOException):
+            self.cio.merge_customers(primary_id_tye="email", 
+                primary_id="coolperson@cio.com", 
+                secondary_id_type="something", 
+                secondary_id=""
+            )
 
 if __name__ == '__main__':
     unittest.main()
