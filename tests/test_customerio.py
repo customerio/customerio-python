@@ -2,7 +2,6 @@ from customerio.constants import CIOID, EMAIL, ID
 from datetime import datetime
 from functools import partial
 import json
-import sys
 import unittest
 
 from customerio import CustomerIO, CustomerIOException, Regions
