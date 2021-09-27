@@ -112,9 +112,10 @@ When you merge two people, you pick a primary person and merge a secondary, dupl
 For each person, you'll set the type of identifier you want to use to identify a person—one of `id`, `email`, or `cio_id`—and then you'll provide the corresponding identifier.
 
 ```python
-cio.merge_customers(primary_id_type="email", 
+## Please import identifier types
+cio.merge_customers(primary_id_type=ID,
   primary_id="cool.person@company.com", 
-  secondary_id_type="email", 
+  secondary_id_type=EMAIL, 
   secondary_id="cperson@gmail.com"
 )
 ```

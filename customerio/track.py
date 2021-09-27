@@ -6,6 +6,8 @@ from datetime import datetime
 import warnings
 from urllib.parse import quote
 from .regions import Regions, Region
+from enum import Enum    
+from customerio.constants import CIOID, EMAIL, ID
 
 class CustomerIO(ClientBase):
     def __init__(self, site_id=None, api_key=None, host=None, region=Regions.US, port=None, url_prefix=None, json_encoder=None, retries=3, timeout=10, backoff_factor=0.02):
@@ -181,7 +183,7 @@ class CustomerIO(ClientBase):
             'POST', '{base}/customers/{id}/unsuppress'.format(base=self.base_url, id=self._url_encode(customer_id)), {})
 
     def is_valid_id_type(self, input):
-        return ["id", "email", "cio_id"].__contains__(input)
+        return [ID, EMAIL, CIOID].__contains__(input)
 
     def merge_customers(self, primary_id_type, primary_id, secondary_id_type, secondary_id):
         '''Merge seondary profile into primary profile'''
