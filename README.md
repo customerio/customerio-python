@@ -105,6 +105,21 @@ See original REST documentation [here](http://customer.io/docs/api/rest.html#sec
 
 You can pass any keyword arguments to the `identify` and `track` methods. These kwargs will be converted to custom attributes.
 
+### Merge duplicate customer profiles
+
+When you merge two people, you pick a primary person and merge a secondary, duplicate person into it. The primary person remains after the merge and the secondary is deleted. This process is permanent: you cannot recover the secondary person.
+
+For each person, you'll set the type of identifier you want to use to identify a person—one of `id`, `email`, or `cio_id`—and then you'll provide the corresponding identifier.
+
+```python
+## Please import identifier types
+cio.merge_customers(primary_id_type=ID,
+  primary_id="cool.person@company.com", 
+  secondary_id_type=EMAIL, 
+  secondary_id="cperson@gmail.com"
+)
+```
+
 ### Add a device
 ```python
 cio.add_device(customer_id="1", device_id='device_hash', platform='ios')

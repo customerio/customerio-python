@@ -6,6 +6,8 @@ from datetime import datetime
 import warnings
 from urllib.parse import quote
 from .regions import Regions, Region
+from enum import Enum    
+from customerio.constants import CIOID, EMAIL, ID
 
 class CustomerIO(ClientBase):
     def __init__(self, site_id=None, api_key=None, host=None, region=Regions.US, port=None, url_prefix=None, json_encoder=None, retries=3, timeout=10, backoff_factor=0.02):
@@ -179,3 +181,31 @@ class CustomerIO(ClientBase):
 
         self.send_request(
             'POST', '{base}/customers/{id}/unsuppress'.format(base=self.base_url, id=self._url_encode(customer_id)), {})
+
+    def is_valid_id_type(self, input):
+        return [ID, EMAIL, CIOID].__contains__(input)
+
+    def merge_customers(self, primary_id_type, primary_id, secondary_id_type, secondary_id):
+        '''Merge seondary profile into primary profile'''
+        if  not self.is_valid_id_type(primary_id_type):
+            raise CustomerIOException("invalid primary id type")
+
+        if  not self.is_valid_id_type(secondary_id_type):
+            raise CustomerIOException("invalid secondary id type")
+
+        if not primary_id:
+            raise CustomerIOException("primary customer_id cannot be blank")
+
+        if not secondary_id:
+            raise CustomerIOException("secondary customer_id cannot be blank")
+
+        url = '{base}/merge_customers'.format(base=self.base_url)
+        post_data = {
+            "primary": {
+                primary_id_type: primary_id
+            },
+            "secondary": {
+                secondary_id_type: secondary_id
+            }
+        }
+        self.send_request('POST', url, post_data)

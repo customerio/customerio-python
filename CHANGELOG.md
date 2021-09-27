@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.3.0]
+### Added
+- Support for merging duplicate customers using `merge_customers` function. 
+
 ## [1.2.0]
 ### Added
 - Support for anonymous events using `track_anonymous` function. 
