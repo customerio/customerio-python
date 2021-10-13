@@ -4,6 +4,7 @@ from functools import partial
 import json
 import sys
 import unittest
+import pkg_resources
 
 from customerio import APIClient, SendEmailRequest, Regions, CustomerIOException
 from tests.server import HTTPSTestCase
@@ -48,6 +49,9 @@ class TestAPIClient(HTTPSTestCase):
 
         client = APIClient(key='app_api_key', region=Regions.EU)
         self.assertEqual(client.url, 'https://{host}'.format(host=Regions.EU.api_host))
+
+        version = pkg_resources.require("customerio")[0].version
+        self.assertEqual(self.client.http.headers['User-Agent'], 'Customer.io Python Client/{}'.format(version))
 
         # Raises an exception when an invalid region is passed in
         with self.assertRaises(CustomerIOException):
