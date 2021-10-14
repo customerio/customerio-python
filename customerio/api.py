@@ -6,7 +6,6 @@ import json
 from .client_base import ClientBase, CustomerIOException
 from .regions import Regions, Region
 
-
 class APIClient(ClientBase):
     def __init__(self, key, url=None, region=Regions.US, retries=3, timeout=10, backoff_factor=0.02):
         if not isinstance(region, Region):
@@ -15,8 +14,8 @@ class APIClient(ClientBase):
         self.url = url or 'https://{host}'.format(host=region.api_host)
         ClientBase.__init__(self, retries=retries,
                             timeout=timeout, backoff_factor=backoff_factor)
-        self.http.headers = {
-            "Authorization": "Bearer {key}".format(key=key)}
+
+        self.http.headers['Authorization'] = "Bearer {key}".format(key=key)
 
     def send_email(self, request):
         if isinstance(request, SendEmailRequest):

@@ -9,6 +9,7 @@ from requests import Session
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
+from .__version__ import __version__ as ClientVersion
 
 class CustomerIOException(Exception):
     pass
@@ -19,6 +20,8 @@ class ClientBase(object):
         self.retries = retries
 
         self.http = Session()
+        self.http.headers['User-Agent'] = "Customer.io Python Client/{version}".format(version=ClientVersion)
+
         # Retry request a number of times before raising an exception
         # also define backoff_factor to delay each retry
         self.http.mount('https://', HTTPAdapter(max_retries=Retry(
