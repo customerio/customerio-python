@@ -5,7 +5,6 @@ import base64
 import json
 from .client_base import ClientBase, CustomerIOException
 from .regions import Regions, Region
-import pkg_resources
 
 class APIClient(ClientBase):
     def __init__(self, key, url=None, region=Regions.US, retries=3, timeout=10, backoff_factor=0.02):
@@ -16,10 +15,7 @@ class APIClient(ClientBase):
         ClientBase.__init__(self, retries=retries,
                             timeout=timeout, backoff_factor=backoff_factor)
 
-        version = pkg_resources.require("customerio")[0].version
-        self.http.headers = {
-            "Authorization": "Bearer {key}".format(key=key),
-            "User-Agent": "Customer.io Python Client/{version}".format(version=version)}
+        self.http.headers['Authorization'] = "Bearer {key}".format(key=key)
 
     def send_email(self, request):
         if isinstance(request, SendEmailRequest):
