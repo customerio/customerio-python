@@ -1,4 +1,17 @@
-# Customer.io Python bindings [![CircleCI](https://circleci.com/gh/customerio/customerio-python.svg?style=svg)](https://circleci.com/gh/customerio/customerio-python)
+<p align="center">
+  <a href="https://customer.io">
+    <img src="https://user-images.githubusercontent.com/6409227/144680509-907ee093-d7ad-4a9c-b0a5-f640eeb060cd.png" height="60">
+  </a>
+  <p align="center">Power automated communication that people like to receive.</p>
+</p>
+
+![PyPI](https://img.shields.io/pypi/v/customerio)
+![Software License](https://img.shields.io/github/license/customerio/customerio-python)
+[![Build status](https://github.com/customerio/customerio-python/actions/workflows/main.yml/badge.svg)](https://github.com/customerio/customerio-python/actions/workflows/main.yml)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/customerio)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/customerio)
+
+# Customer.io Python 
 
 This module has been tested with Python 3.6, 3.7, 3.8 and 3.9.
 
