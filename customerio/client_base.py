@@ -4,6 +4,7 @@ Implements the base client that is used by other classes to make requests
 from __future__ import division
 from datetime import datetime, timezone
 import math
+import threading
 
 from requests import Session
 from requests.adapters import HTTPAdapter
@@ -18,14 +19,21 @@ class ClientBase(object):
     def __init__(self, retries=3, timeout=10, backoff_factor=0.02):
         self.timeout = timeout
         self.retries = retries
+        self.backoff_factor = backoff_factor
 
-        self.http = Session()
-        self.http.headers['User-Agent'] = "Customer.io Python Client/{version}".format(version=ClientVersion)
+        self.thread_local = threading.local()
 
-        # Retry request a number of times before raising an exception
-        # also define backoff_factor to delay each retry
-        self.http.mount('https://', HTTPAdapter(max_retries=Retry(
-            total=retries, backoff_factor=backoff_factor)))
+    @property
+    def http(self):
+        if getattr(self.thread_local, "http", None) is None:
+            self.thread_local.http = Session()
+            self.thread_local.http.headers['User-Agent'] = "Customer.io Python Client/{version}".format(version=ClientVersion)
+
+            # Retry request a number of times before raising an exception
+            # also define backoff_factor to delay each retry
+            self.thread_local.http.mount('https://', HTTPAdapter(max_retries=Retry(
+            total=self.retries, backoff_factor=self.backoff_factor)))
+        return self.thread_local.http
 
     def send_request(self, method, url, data):
         '''Dispatches the request and returns a response'''
