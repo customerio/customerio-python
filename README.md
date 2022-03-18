@@ -5,6 +5,7 @@
   <p align="center">Power automated communication that people like to receive.</p>
 </p>
 
+[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blueviolet?logo=gitpod)](https://gitpod.io/#https://github.com/customerio/customerio-python/)
 ![PyPI](https://img.shields.io/pypi/v/customerio)
 ![Software License](https://img.shields.io/github/license/customerio/customerio-python)
 [![Build status](https://github.com/customerio/customerio-python/actions/workflows/main.yml/badge.svg)](https://github.com/customerio/customerio-python/actions/workflows/main.yml)
