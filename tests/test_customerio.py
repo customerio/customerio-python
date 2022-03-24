@@ -347,5 +347,116 @@ class TestCustomerIO(HTTPSTestCase):
                 secondary_id=""
             )
 
+    def test_create_collection(self):
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'method': 'POST',
+            'authorization': _basic_auth_str('siteid', 'apikey'),
+            'content_type': 'application/json',
+            'url_suffix': '/collections',
+            'body': {"name": "events", "data": [{"eventName": "christmas"}]},
+        }))
+
+        data = [
+            {
+                "eventName": "christmas"
+            }
+        ]
+
+        self.cio.create_collection(name='events', data=data)
+
+        with self.assertRaises(TypeError):
+            self.cio.create_collection()
+
+    def test_list_collections(self):
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'method': 'GET',
+            'authorization': _basic_auth_str('siteid', 'apikey'),
+            'content_type': 'application/json',
+            'url_suffix': '/collections',
+            'body': {},
+        }))
+
+        collections = self.cio.list_collections()
+
+    def test_lookup_collection(self):
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'method': 'GET',
+            'authorization': _basic_auth_str('siteid', 'apikey'),
+            'content_type': 'application/json',
+            'url_suffix': '/collections/1',
+            'body': {},
+        }))
+
+        collection = self.cio.lookup_collection(id=1)
+
+        with self.assertRaises(TypeError):
+            self.cio.lookup_collection()
+
+    def test_delete_collection(self):
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'method': 'DELETE',
+            'authorization': _basic_auth_str('siteid', 'apikey'),
+            'content_type': 'application/json',
+            'url_suffix': '/collections/1',
+            'body': {},
+        }))
+
+        self.cio.delete_collection(id=1)
+
+        with self.assertRaises(TypeError):
+            self.cio.delete_collection()
+
+    def test_update_collection(self):
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'method': 'PUT',
+            'authorization': _basic_auth_str('siteid', 'apikey'),
+            'content_type': 'application/json',
+            'url_suffix': '/collections/1',
+            'body': {"name": "events", "data": [{"eventName": "christmas"}]},
+        }))
+
+        data = [
+            {
+                "eventName": "christmas"
+            }
+        ]
+
+        self.cio.update_collection(id=1, name='events', data=data)
+
+        with self.assertRaises(TypeError):
+            self.cio.update_collection()
+
+    def test_lookup_collection_contents(self):
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'method': 'GET',
+            'authorization': _basic_auth_str('siteid', 'apikey'),
+            'content_type': 'application/json',
+            'url_suffix': '/collections/1/content',
+            'body': {},
+        }))
+
+        self.cio.lookup_collection_contents(id=1)
+
+        with self.assertRaises(TypeError):
+            self.cio.lookup_collection_contents()
+
+    def test_update_collection_contents(self):
+        self.cio.http.hooks=dict(response=partial(self._check_request, rq={
+            'method': 'PUT',
+            'authorization': _basic_auth_str('siteid', 'apikey'),
+            'content_type': 'application/json',
+            'url_suffix': '/collections/1/content',
+            'body': {"eventName": "christmas"},
+        }))
+
+        data = {
+            "eventName": "christmas"
+        }
+
+        self.cio.update_collection_contents(id=1, data=data)
+
+        with self.assertRaises(TypeError):
+            self.cio.update_collection_contents()
+
 if __name__ == '__main__':
     unittest.main()

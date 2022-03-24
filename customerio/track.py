@@ -214,7 +214,7 @@ class CustomerIO(ClientBase):
         }
         self.send_request('POST', url, post_data)
 
-    def create_collection(self, name, **data):
+    def create_collection(self, name, data):
         '''
         Create a new collection and provide the data that you'll access
         from the collection or the url that you'll download CSV or JSON
@@ -224,20 +224,24 @@ class CustomerIO(ClientBase):
             raise CustomerIOException(
                 "name cannot be blank creating collection"
             )
+        if not data:
+            raise CustomerIOException(
+                "data cannot be blank creating collection"
+            )
         url = self.get_collections_query_string()
         post_data = {
             'name': name,
-            'data': self._sanitize(data),
+            'data': data,
         }
         self.send_request('POST', url, post_data)
 
-    def list_collections(self, id):
+    def list_collections(self):
         '''
         Returns a list of all of your collections, including the name
         and schema for each collection.
         '''
         url = self.get_collections_query_string()
-        return self.send_request('GET', url)
+        return self.send_request('GET', url, {})
 
     def lookup_collection(self, id):
         '''
@@ -246,7 +250,7 @@ class CustomerIO(ClientBase):
         (the values associated with keys in the schema).
         '''
         url = f'{self.get_collections_query_string()}/{id}'
-        return self.send_request('GET', url)
+        return self.send_request('GET', url, {})
 
     def delete_collection(self, id):
         '''
@@ -261,9 +265,9 @@ class CustomerIO(ClientBase):
                 "id cannot be blank editing collection"
             )
         url = f'{self.get_collections_query_string()}/{id}'
-        self.send_request('DELETE', url)
+        self.send_request('DELETE', url, {})
 
-    def update_collection(self, id, name, **data):
+    def update_collection(self, id, name, data):
         '''
         Update the name or replace the contents of a collection. Updating
         the data for your collection fully replaces the contents
@@ -280,7 +284,7 @@ class CustomerIO(ClientBase):
         url = f'{self.get_collections_query_string()}/{id}'
         post_data = {
             'name': name,
-            'data': self._sanitize(data),
+            'data': data,
         }
         self.send_request('PUT', url, post_data)
 
@@ -295,9 +299,9 @@ class CustomerIO(ClientBase):
                 "id cannot be blank retrieving collection content"
             )
         url = f'{self.get_collections_query_string()}/{id}/content'
-        return self.send_request('GET', url)
+        return self.send_request('GET', url, {})
 
-    def update_collection_contents(self, id, **data):
+    def update_collection_contents(self, id, data):
         '''
         Replace the contents of a collection (the data from when you created
         or updated a collection). The request is a free-form object containing
@@ -310,4 +314,4 @@ class CustomerIO(ClientBase):
                 "id cannot be blank updating collection content"
             )
         url = f'{self.get_collections_query_string()}/{id}/content'
-        self.send_request('PUT', url, self._sanitize(data))
+        self.send_request('PUT', url, data)

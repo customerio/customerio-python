@@ -28,6 +28,10 @@ class Handler(BaseHTTPRequestHandler):
     The handler reads the post body and fails for the `fail_count` specified.
     After sending specified number of bad responses will sent a valid response.
     '''
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        
     def do_DELETE(self):
         self.send_response(200)
         self.end_headers()
