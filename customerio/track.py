@@ -15,6 +15,7 @@ class CustomerIO(ClientBase):
             raise CustomerIOException('invalid region provided')
 
         self.host = host or region.track_host
+        self.api_host = host or region.api_host
         self.port = port or 443
         self.url_prefix = url_prefix or '/api/v1'
 
@@ -61,8 +62,8 @@ class CustomerIO(ClientBase):
 
     def get_collections_query_string(self):
         '''Generates a device API path'''
-        url = f'https://{region.api_host}/v1'
-        return '{region}/collections'.format(base=self.base_url)
+        url = f'https://{self.api_host}/v1'
+        return f'{url}/collections'
 
     def identify(self, id, **kwargs):
         '''Identify a single customer by their unique id, and optionally add attributes'''
