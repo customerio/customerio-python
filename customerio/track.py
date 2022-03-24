@@ -61,7 +61,8 @@ class CustomerIO(ClientBase):
 
     def get_collections_query_string(self):
         '''Generates a device API path'''
-        return '{base}/collections'.format(base=self.base_url)
+        url = f'https://{region.api_host}/v1'
+        return '{region}/collections'.format(base=self.base_url)
 
     def identify(self, id, **kwargs):
         '''Identify a single customer by their unique id, and optionally add attributes'''
