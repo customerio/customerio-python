@@ -218,6 +218,141 @@ response = client.send_email(request)
 print(response)
 ```
 
+### Create Collection
+```python
+data = [
+  {
+    "eventName": "christmas",
+    "eventDate": "2021-12-25T12:00:00.000Z",
+    "presents": {
+      "something_you_want": "toys",
+      "something_you_need": "socks",
+      "total": 2
+    }
+  },
+  {
+    "eventName": "birthday",
+    "eventDate": "2021-03-15T12:00:00.000Z",
+    "presents": {
+      "something_you_want": "video games",
+      "something_you_need": "books",
+      "total": 2
+    }
+  }
+]
+cio.create_collection(name="events", data)
+```
+
+Create a new collection and provide the data that you'll access from the collection or the url that you'll download CSV or JSON data from.
+
+**Note:** A collection cannot be more than 10 MB in size. No individual row in the collection can be more than 10 KB.
+
+See REST documentation [here](https://www.customer.io/docs/api/#operation/addCollection)
+
+### List Collections
+```python
+collections = cio.list_collections()
+```
+
+Returns a list of all of your collections, including the name and schema for each collection.
+
+See REST documentation [here](https://www.customer.io/docs/api/#operation/getCollections)
+
+### Lookup Collection
+```python
+collection = cio.lookup_collection(id=1)
+```
+
+Retrieves details about a collection, including the schema and name. This request does not include the content of the collection (the values associated with keys in the schema).
+
+See REST documentation [here](https://www.customer.io/docs/api/#operation/getCollection)
+
+### Delete Collection
+```python
+cio.delete_collection(id=1)
+```
+
+Remove a collection and associated contents. Before you delete a collection, make sure that you aren't referencing it in active campaign messages or broadcasts; references to a deleted collection will appear empty and may prevent your messages from making sense to your audience.
+
+See REST documentation [here](https://www.customer.io/docs/api/#operation/deleteCollection)
+
+### Update Collection
+```python
+data = [
+  {
+    "eventName": "christmas",
+    "eventDate": "2021-12-25T12:00:00.000Z",
+    "presents": {
+      "something_you_want": "toys",
+      "something_you_need": "socks",
+      "total": 2
+    }
+  },
+  {
+    "eventName": "birthday",
+    "eventDate": "2021-03-15T12:00:00.000Z",
+    "presents": {
+      "something_you_want": "video games",
+      "something_you_need": "books",
+      "total": 2
+    }
+  }
+]
+cio.update_collection(id=1, name='events', data)
+```
+
+Update the name or replace the contents of a collection. Updating the data for your collection fully replaces the contents of the collection.
+
+**Note:**
+
+- If you reference your collection by name in active campaign messages, changing the name of the collection will cause references to the previous name to return an empty data set.
+- A collection cannot be more than 10 MB in size. No individual row in the collection can be more than 10 KB.
+
+See REST documentation [here](https://www.customer.io/docs/api/#operation/updateCollection)
+
+### Lookup Collection Contents
+```python
+cio.lookup_collection_contents(id=1)
+```
+
+Retrieve the contents of a collection (the data from when you created or updated a collection). Each row in the collection is represented as a JSON blob in the response.
+
+
+See REST documentation [here](https://www.customer.io/docs/api/#operation/getCollectionContents)
+
+### Update Collection Contents
+```python
+data = [
+  {
+    "eventName": "christmas",
+    "eventDate": "2021-12-25T12:00:00.000Z",
+    "presents": {
+      "something_you_want": "toys",
+      "something_you_need": "socks",
+      "total": 2
+    }
+  },
+  {
+    "eventName": "birthday",
+    "eventDate": "2021-03-15T12:00:00.000Z",
+    "presents": {
+      "something_you_want": "video games",
+      "something_you_need": "books",
+      "total": 2
+    }
+  }
+]
+cio.update_collection_contents(id=1, name='events', data)
+```
+
+Replace the contents of a collection (the data from when you created or updated a collection). The request is a free-form object containing the keys you want to reference from the collection and the corresponding values. This request replaces the current contents of the collection entirely.
+
+If you don't want to update the contents directly—you want to change the name or data url for your collection, use the update a collection endpoint.
+
+**Note:** A collection cannot be more than 10 MB in size. No individual row in the collection can be more than 10 KB.
+
+See REST documentation [here](https://www.customer.io/docs/api/#operation/updateCollectionContents)
+
 ## Running tests
 
 Changes to the library can be tested by running `make test` from the parent directory.

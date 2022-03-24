@@ -7,3 +7,4 @@ customerio.egg-info
 MANIFEST
 build/
 setup.cfg
+env
