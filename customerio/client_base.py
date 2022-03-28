@@ -36,7 +36,7 @@ class ClientBase(object):
         except Exception as e:
             # Raise exception alerting user that the system might be
             # experiencing an outage and refer them to system status page.
-            message = '''Failed to receive valid reponse after {count} retries.
+            message = '''Failed to receive valid response after {count} retries.
 Check system status at http://status.customer.io.
 Last caught exception -- {klass}: {message}
             '''.format(klass=type(e), message=e, count=self.retries)
