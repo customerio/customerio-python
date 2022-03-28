@@ -220,6 +220,9 @@ print(response)
 
 ### Create Collection
 ```python
+from customerio import APIClient, Regions, SendEmailRequest
+client = APIClient("your API key", region=Regions.US)
+
 data = [
   {
     "eventName": "christmas",
@@ -240,7 +243,8 @@ data = [
     }
   }
 ]
-cio.create_collection(name="events", data)
+
+client.create_collection(name="events", data)
 ```
 
 Create a new collection and provide the data that you'll access from the collection or the url that you'll download CSV or JSON data from.
@@ -251,7 +255,10 @@ See REST documentation [here](https://www.customer.io/docs/api/#operation/addCol
 
 ### List Collections
 ```python
-collections = cio.list_collections()
+from customerio import APIClient, Regions, SendEmailRequest
+client = APIClient("your API key", region=Regions.US)
+
+collections = client.list_collections()
 ```
 
 Returns a list of all of your collections, including the name and schema for each collection.
@@ -260,7 +267,10 @@ See REST documentation [here](https://www.customer.io/docs/api/#operation/getCol
 
 ### Lookup Collection
 ```python
-collection = cio.lookup_collection(id=1)
+from customerio import APIClient, Regions, SendEmailRequest
+client = APIClient("your API key", region=Regions.US)
+
+collection = client.lookup_collection(id=1)
 ```
 
 Retrieves details about a collection, including the schema and name. This request does not include the content of the collection (the values associated with keys in the schema).
@@ -269,7 +279,10 @@ See REST documentation [here](https://www.customer.io/docs/api/#operation/getCol
 
 ### Delete Collection
 ```python
-cio.delete_collection(id=1)
+from customerio import APIClient, Regions, SendEmailRequest
+client = APIClient("your API key", region=Regions.US)
+
+client.delete_collection(id=1)
 ```
 
 Remove a collection and associated contents. Before you delete a collection, make sure that you aren't referencing it in active campaign messages or broadcasts; references to a deleted collection will appear empty and may prevent your messages from making sense to your audience.
@@ -278,6 +291,9 @@ See REST documentation [here](https://www.customer.io/docs/api/#operation/delete
 
 ### Update Collection
 ```python
+from customerio import APIClient, Regions, SendEmailRequest
+client = APIClient("your API key", region=Regions.US)
+
 data = [
   {
     "eventName": "christmas",
@@ -298,7 +314,8 @@ data = [
     }
   }
 ]
-cio.update_collection(id=1, name='events', data)
+
+client.update_collection(id=1, name='events', data)
 ```
 
 Update the name or replace the contents of a collection. Updating the data for your collection fully replaces the contents of the collection.
@@ -312,7 +329,10 @@ See REST documentation [here](https://www.customer.io/docs/api/#operation/update
 
 ### Lookup Collection Contents
 ```python
-cio.lookup_collection_contents(id=1)
+from customerio import APIClient, Regions, SendEmailRequest
+client = APIClient("your API key", region=Regions.US)
+
+client.lookup_collection_contents(id=1)
 ```
 
 Retrieve the contents of a collection (the data from when you created or updated a collection). Each row in the collection is represented as a JSON blob in the response.
@@ -322,6 +342,9 @@ See REST documentation [here](https://www.customer.io/docs/api/#operation/getCol
 
 ### Update Collection Contents
 ```python
+from customerio import APIClient, Regions, SendEmailRequest
+client = APIClient("your API key", region=Regions.US)
+
 data = [
   {
     "eventName": "christmas",
@@ -342,7 +365,8 @@ data = [
     }
   }
 ]
-cio.update_collection_contents(id=1, name='events', data)
+
+client.update_collection_contents(id=1, name='events', data)
 ```
 
 Replace the contents of a collection (the data from when you created or updated a collection). The request is a free-form object containing the keys you want to reference from the collection and the corresponding values. This request replaces the current contents of the collection entirely.
