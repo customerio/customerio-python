@@ -32,11 +32,12 @@ class TestAPIClient(HTTPSTestCase):
     def _check_request(self, resp, rq, *args, **kwargs):
         request = resp.request
         self.assertEqual(request.method, rq['method'])
-        self.assertEqual(json.loads(request.body.decode('utf-8')), rq['body'])
+        if (rq['method'] != 'GET'):
+            self.assertEqual(json.loads(request.body.decode('utf-8')), rq['body'])
+            self.assertEqual(request.headers['Content-Type'], rq['content_type'])
+            self.assertEqual(
+                int(request.headers['Content-Length']), len(json.dumps(rq['body'])))
         self.assertEqual(request.headers['Authorization'], rq['authorization'])
-        self.assertEqual(request.headers['Content-Type'], rq['content_type'])
-        self.assertEqual(
-            int(request.headers['Content-Length']), len(json.dumps(rq['body'])))
         self.assertTrue(request.url.endswith(rq['url_suffix']),
                         'url: {} expected suffix: {}'.format(request.url, rq['url_suffix']))
 
@@ -76,6 +77,114 @@ class TestAPIClient(HTTPSTestCase):
         email.attach('sample.csv', data)
 
         self.client.send_email(email)
+
+    def test_create_collection(self):
+        self.client.http.hooks=dict(response=partial(self._check_request, rq={
+            'method': 'POST',
+            'authorization': "Bearer app_api_key",
+            'content_type': 'application/json',
+            'url_suffix': '/collections',
+            'body': {"name": "events", "data": [{"eventName": "christmas"}]},
+        }))
+
+        data = [
+            {
+                "eventName": "christmas"
+            }
+        ]
+
+        self.client.create_collection(name='events', data=data)
+
+        with self.assertRaises(TypeError):
+            self.client.create_collection()
+
+    def test_list_collections(self):
+        self.client.http.hooks=dict(response=partial(self._check_request, rq={
+            'method': 'GET',
+            'authorization': "Bearer app_api_key",
+            'content_type': 'application/json',
+            'url_suffix': '/collections',
+        }))
+
+        collections = self.client.list_collections()
+
+    def test_lookup_collection(self):
+        self.client.http.hooks=dict(response=partial(self._check_request, rq={
+            'method': 'GET',
+            'authorization': "Bearer app_api_key",
+            'content_type': 'application/json',
+            'url_suffix': '/collections/1',
+        }))
+
+        collection = self.client.lookup_collection(id=1)
+
+        with self.assertRaises(TypeError):
+            self.client.lookup_collection()
+
+    def test_delete_collection(self):
+        self.client.http.hooks=dict(response=partial(self._check_request, rq={
+            'method': 'DELETE',
+            'authorization': "Bearer app_api_key",
+            'content_type': 'application/json',
+            'url_suffix': '/collections/1',
+            'body': {},
+        }))
+
+        self.client.delete_collection(id=1)
+
+        with self.assertRaises(TypeError):
+            self.client.delete_collection()
+
+    def test_update_collection(self):
+        self.client.http.hooks=dict(response=partial(self._check_request, rq={
+            'method': 'PUT',
+            'authorization': "Bearer app_api_key",
+            'content_type': 'application/json',
+            'url_suffix': '/collections/1',
+            'body': {"name": "events", "data": [{"eventName": "christmas"}]},
+        }))
+
+        data = [
+            {
+                "eventName": "christmas"
+            }
+        ]
+
+        self.client.update_collection(id=1, name='events', data=data)
+
+        with self.assertRaises(TypeError):
+            self.client.update_collection()
+
+    def test_lookup_collection_contents(self):
+        self.client.http.hooks=dict(response=partial(self._check_request, rq={
+            'method': 'GET',
+            'authorization': "Bearer app_api_key",
+            'content_type': 'application/json',
+            'url_suffix': '/collections/1/content',
+        }))
+
+        self.client.lookup_collection_contents(id=1)
+
+        with self.assertRaises(TypeError):
+            self.client.lookup_collection_contents()
+
+    def test_update_collection_contents(self):
+        self.client.http.hooks=dict(response=partial(self._check_request, rq={
+            'method': 'PUT',
+            'authorization': "Bearer app_api_key",
+            'content_type': 'application/json',
+            'url_suffix': '/collections/1/content',
+            'body': {"eventName": "christmas"},
+        }))
+
+        data = {
+            "eventName": "christmas"
+        }
+
+        self.client.update_collection_contents(id=1, data=data)
+
+        with self.assertRaises(TypeError):
+            self.client.update_collection_contents()
 
 if __name__ == '__main__':
     unittest.main()

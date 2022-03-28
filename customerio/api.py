@@ -3,6 +3,7 @@ Implements the client that interacts with Customer.io's App API using app keys.
 """
 import base64
 import json
+from urllib.request import urlopen
 from .client_base import ClientBase, CustomerIOException
 from .regions import Regions, Region
 
@@ -17,11 +18,118 @@ class APIClient(ClientBase):
 
         self.http.headers['Authorization'] = "Bearer {key}".format(key=key)
 
+    def get_collections_query_string(self):
+        '''Generates a Collections API path'''
+        return f'{self.url}/v1/collections'
+
     def send_email(self, request):
         if isinstance(request, SendEmailRequest):
             request = request._to_dict()
         resp = self.send_request('POST', self.url + "/v1/send/email", request)
-        return json.loads(resp)
+        return resp
+
+    def create_collection(self, name, data):
+        '''
+        Create a new collection and provide the data that you'll access
+        from the collection or the url that you'll download CSV or JSON
+        data from.
+        '''
+        if not name:
+            raise CustomerIOException(
+                "name cannot be blank creating collection"
+            )
+        if not data:
+            raise CustomerIOException(
+                "data cannot be blank creating collection"
+            )
+        url = self.get_collections_query_string()
+        post_data = {
+            'name': name,
+            'data': data,
+        }
+        self.send_request('POST', url, post_data)
+
+    def list_collections(self):
+        '''
+        Returns a list of all of your collections, including the name
+        and schema for each collection.
+        '''
+        url = self.get_collections_query_string()
+        return self.send_request('GET', url)
+
+    def lookup_collection(self, id):
+        '''
+        Retrieves details about a collection, including the schema and name.
+        This request does not include the content of the collection
+        (the values associated with keys in the schema).
+        '''
+        url = f'{self.get_collections_query_string()}/{id}'
+        return self.send_request('GET', url)
+
+    def delete_collection(self, id):
+        '''
+        Remove a collection and associated contents. Before you delete a
+        collection, make sure that you aren't referencing it in active
+        campaign messages or broadcasts; references to a deleted collection
+        will appear empty and may prevent your messages from making sense
+        to your audience.
+        '''
+        if not id:
+            raise CustomerIOException(
+                "id cannot be blank editing collection"
+            )
+        url = f'{self.get_collections_query_string()}/{id}'
+        self.send_request('DELETE', url, {})
+
+    def update_collection(self, id, name, data):
+        '''
+        Update the name or replace the contents of a collection. Updating
+        the data for your collection fully replaces the contents
+        of the collection.
+        '''
+        if not id:
+            raise CustomerIOException(
+                "id cannot be blank updating collection"
+            )
+        if not name:
+            raise CustomerIOException(
+                "name cannot be blank updating collection"
+            )
+        url = f'{self.get_collections_query_string()}/{id}'
+        post_data = {
+            'name': name,
+            'data': data,
+        }
+        self.send_request('PUT', url, post_data)
+
+    def lookup_collection_contents(self, id):
+        '''
+        Retrieve the contents of a collection (the data from when you created
+        or updated a collection). Each row in the collection is represented
+        as a JSON blob in the response.
+        '''
+        if not id:
+            raise CustomerIOException(
+                "id cannot be blank retrieving collection content"
+            )
+        url = f'{self.get_collections_query_string()}/{id}/content'
+        return self.send_request('GET', url)
+
+    def update_collection_contents(self, id, data):
+        '''
+        Replace the contents of a collection (the data from when you created
+        or updated a collection). The request is a free-form object containing
+        the keys you want to reference from the collection and the
+        corresponding values. This request replaces the current contents
+        of the collection entirely.
+        '''
+        if not id:
+            raise CustomerIOException(
+                "id cannot be blank updating collection content"
+            )
+        url = f'{self.get_collections_query_string()}/{id}/content'
+        self.send_request('PUT', url, data)
+
 
 
 

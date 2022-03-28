@@ -27,12 +27,16 @@ class ClientBase(object):
         self.http.mount('https://', HTTPAdapter(max_retries=Retry(
             total=retries, backoff_factor=backoff_factor)))
 
-    def send_request(self, method, url, data):
+    def send_request(self, method, url, data=None):
         '''Dispatches the request and returns a response'''
 
         try:
-            response = self.http.request(
-                method, url=url, json=self._sanitize(data), timeout=self.timeout)
+            if method == 'GET':
+                response = self.http.request(
+                    method, url=url, timeout=self.timeout)
+            else:
+                response = self.http.request(
+                    method, url=url, json=self._sanitize(data), timeout=self.timeout)
         except Exception as e:
             # Raise exception alerting user that the system might be
             # experiencing an outage and refer them to system status page.
@@ -47,12 +51,19 @@ Last caught exception -- {klass}: {message}
             raise CustomerIOException('%s: %s %s %s' % (result_status, url, data, response.text))
         return response.text
 
+    def _sanitize_array(self, data):
+        for d in data:
+            self._sanitize(d)
+
     def _sanitize(self, data):
-        for k, v in data.items():
-            if isinstance(v, datetime):
-                data[k] = self._datetime_to_timestamp(v)
-            if isinstance(v, float) and math.isnan(v):
-                data[k] = None
+        if isinstance(data, list):
+            self._sanitize_array(data)
+        else:
+            for k, v in data.items():
+                if isinstance(v, datetime):
+                    data[k] = self._datetime_to_timestamp(v)
+                if isinstance(v, float) and math.isnan(v):
+                    data[k] = None
         return data
 
     def _datetime_to_timestamp(self, dt):
