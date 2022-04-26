@@ -79,14 +79,14 @@ class CustomerIO(ClientBase):
 
     def track_anonymous(self, anonymous_id, name, **data):
         '''Track an event for a given anonymous_id'''
-        if not anonymous_id:
-            raise CustomerIOException("anonymous_id cannot be blank in track")
         url = self.get_events_query_string()
         post_data = {
-            'anonymous_id': anonymous_id,
             'name': name,
             'data': self._sanitize(data),
         }
+        if anonymous_id:
+            post_data['anonymous_id'] = anonymous_id
+        
         self.send_request('POST', url, post_data)
 
     def pageview(self, customer_id, page, **data):
