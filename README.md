@@ -107,10 +107,10 @@ An anonymous event is an event associated with a person you haven't identified. 
 
 #### Anonymous invite events
 
-If you previously sent [invite events](https://customer.io/docs/anonymous-invite-emails/), you can achieve the same functionality by sending an anonymous event with an empty string for the anonymous identifier. To send anonymous invites, your event *must* include a `recipient` attribute. 
+If you previously sent [invite events](https://customer.io/docs/anonymous-invite-emails/), you can achieve the same functionality by sending an anonymous event with the anonymous identifier set to `None`. To send anonymous invites, your event *must* include a `recipient` attribute. 
 
 ```python
-cio.track_anonymous(anonymous_id="", name="invite", first_name="alex", recipient="alex.person@example.com")
+cio.track_anonymous(anonymous_id=None, name="invite", first_name="alex", recipient="alex.person@example.com")
 ```
 
 ### Delete a customer profile
