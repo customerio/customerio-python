@@ -105,6 +105,14 @@ cio.track_anonymous(anonymous_id="anon-event", name="purchased", price=23.45, pr
 
 An anonymous event is an event associated with a person you haven't identified. The event requires an `anonymous_id` representing the unknown person and an event `name`. When you identify a person, you can set their `anonymous_id` attribute. If [event merging](https://customer.io/docs/anonymous-events/#turn-on-merging) is turned on in your workspace, and the attribute matches the `anonymous_id` in one or more events that were logged within the last 30 days, we associate those events with the person.
 
+#### Anonymous invite events
+
+If you previously sent [invite events](https://customer.io/docs/anonymous-invite-emails/), you can achieve the same functionality by sending an anonymous event with an empty string for the anonymous identifier. To send anonymous invites, your event *must* include a `recipient` attribute. 
+
+```python
+cio.track_anonymous(anonymous_id="", name="invite", first_name="alex", recipient="alex.person@example.com")
+```
+
 ### Delete a customer profile
 ```python
 cio.delete(customer_id="5")
