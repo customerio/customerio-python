@@ -66,7 +66,7 @@ class CustomerIO(ClientBase):
         url = self.get_customer_query_string(id)
         self.send_request('PUT', url, kwargs)
 
-    def track(self, customer_id, name, **data):
+    def track(self, customer_id, name, event_id=None, event_type=None, timestamp=None, **data):
         '''Track an event for a given customer_id'''
         if not customer_id:
             raise CustomerIOException("customer_id cannot be blank in track")
@@ -75,6 +75,13 @@ class CustomerIO(ClientBase):
             'name': name,
             'data': self._sanitize(data),
         }
+        if event_id:
+            post_data.update({"id": event_id})
+        if event_type:
+            post_data.update({"type": event_type})
+        if timestamp:
+            post_data.update({"timestamp": timestamp})
+
         self.send_request('POST', url, post_data)
 
     def track_anonymous(self, anonymous_id, name, **data):
