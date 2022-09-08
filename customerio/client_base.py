@@ -4,10 +4,12 @@ Implements the base client that is used by other classes to make requests
 from __future__ import division
 from datetime import datetime, timezone
 import math
+import socket
 
 from requests import Session
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
+from urllib3.connection import HTTPConnection
 
 from .__version__ import __version__ as ClientVersion
 
@@ -18,6 +20,14 @@ class ClientBase(object):
     def __init__(self, retries=3, timeout=10, backoff_factor=0.02):
         self.timeout = timeout
         self.retries = retries
+
+        # Set the TCP keepalive settings to the values dicated by our server-side configuration.
+        HTTPConnection.default_socket_options = ( HTTPConnection.default_socket_options + [
+            (socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1),
+            (socket.SOL_TCP, socket.TCP_KEEPIDLE, 300),
+            (socket.SOL_TCP, socket.TCP_KEEPINTVL, 60)
+            ]
+        )
 
         self.http = Session()
         self.http.headers['User-Agent'] = "Customer.io Python Client/{version}".format(version=ClientVersion)
