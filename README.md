@@ -5,6 +5,7 @@
   <p align="center">Power automated communication that people like to receive.</p>
 </p>
 
+[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blueviolet?logo=gitpod)](https://gitpod.io/#https://github.com/customerio/customerio-python/)
 ![PyPI](https://img.shields.io/pypi/v/customerio)
 ![Software License](https://img.shields.io/github/license/customerio/customerio-python)
 [![Build status](https://github.com/customerio/customerio-python/actions/workflows/main.yml/badge.svg)](https://github.com/customerio/customerio-python/actions/workflows/main.yml)
@@ -103,6 +104,14 @@ cio.track_anonymous(anonymous_id="anon-event", name="purchased", price=23.45, pr
 ```
 
 An anonymous event is an event associated with a person you haven't identified. The event requires an `anonymous_id` representing the unknown person and an event `name`. When you identify a person, you can set their `anonymous_id` attribute. If [event merging](https://customer.io/docs/anonymous-events/#turn-on-merging) is turned on in your workspace, and the attribute matches the `anonymous_id` in one or more events that were logged within the last 30 days, we associate those events with the person.
+
+#### Anonymous invite events
+
+If you previously sent [invite events](https://customer.io/docs/anonymous-invite-emails/), you can achieve the same functionality by sending an anonymous event with the anonymous identifier set to `None`. To send anonymous invites, your event *must* include a `recipient` attribute. 
+
+```python
+cio.track_anonymous(anonymous_id=None, name="invite", first_name="alex", recipient="alex.person@example.com")
+```
 
 ### Delete a customer profile
 ```python
