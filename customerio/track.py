@@ -10,22 +10,27 @@ from enum import Enum
 from customerio.constants import CIOID, EMAIL, ID
 
 class CustomerIO(ClientBase):
-    def __init__(self, site_id=None, api_key=None, host=None, region=Regions.US, port=None, url_prefix=None, json_encoder=None, retries=3, timeout=10, backoff_factor=0.02):
+    def __init__(self, site_id=None, api_key=None, host=None, region=Regions.US, port=None, url_prefix=None, json_encoder=None, retries=3, timeout=10, backoff_factor=0.02, use_connection_pooling=True):
         if not isinstance(region, Region):
             raise CustomerIOException('invalid region provided')
 
         self.host = host or region.track_host
         self.port = port or 443
         self.url_prefix = url_prefix or '/api/v1'
+        self.api_key = api_key
+        self.site_id = site_id
 
         if json_encoder is not None:
             warnings.warn(
                 "With the switch to using requests library the `json_encoder` param is no longer used.", DeprecationWarning)
 
         self.setup_base_url()
-        ClientBase.__init__(self, retries=retries,
-                            timeout=timeout, backoff_factor=backoff_factor)
-        self.http.auth = (site_id, api_key)
+        ClientBase.__init__(
+            self,
+            retries=retries,
+            timeout=timeout,
+            backoff_factor=backoff_factor,
+            use_connection_pooling=use_connection_pooling)
 
     def _url_encode(self, id):
         return quote(str(id), safe='')
@@ -209,3 +214,10 @@ class CustomerIO(ClientBase):
             }
         }
         self.send_request('POST', url, post_data)
+
+    # builds the session.
+    def _build_session(self):
+        session = super()._build_session()
+        session.auth = (self.site_id, self.api_key)
+
+        return session
