@@ -226,6 +226,17 @@ response = client.send_email(request)
 print(response)
 ```
 
+## Notes
+- The Customer.io Python SDK depends on the [`Requests`](https://pypi.org/project/requests/) library which includes [`urllib3`](https://pypi.org/project/urllib3/) as a transitive dependency.  The [`Requests`](https://pypi.org/project/requests/) library leverages connection pooling defined in [`urllib3`](https://pypi.org/project/urllib3/).  [`urllib3`](https://pypi.org/project/urllib3/) only attempts to retry invocations of `HTTP` methods which are understood to be idempotent (See: [`Retry.DEFAULT_ALLOWED_METHODS`](https://github.com/urllib3/urllib3/blob/main/src/urllib3/util/retry.py#L184)).  Since the `POST` method is not considered to be idempotent, any invocations which require `POST` are not retried.
+
+- It is possible to have the Customer.io Python SDK effectively *disable* connection pooling by passing a named initialization parameter `use_connection_pooling` to either the `APIClient` class or `CustomerIO` class.  Setting this parameter to `False` (default: `True`) causes the [`Session`](https://github.com/psf/requests/blob/main/requests/sessions.py#L355) to be initialized and discarded after each request.  If you are experiencing integration issues where the cause is reported as `Connection Reset by Peer`, this may correct the problem.  It will, however, impose a slight performance penalty as the TCP connection set-up and tear-down will now occur for each request.
+
+### Usage Example Disabling Connection Pooling
+```python
+from customerio import CustomerIO, Regions
+cio = CustomerIO(site_id, api_key, region=Regions.US, use_connection_pooling=False)
+```
+
 ## Running tests
 
 Changes to the library can be tested by running `make test` from the parent directory.

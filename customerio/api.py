@@ -7,15 +7,14 @@ from .client_base import ClientBase, CustomerIOException
 from .regions import Regions, Region
 
 class APIClient(ClientBase):
-    def __init__(self, key, url=None, region=Regions.US, retries=3, timeout=10, backoff_factor=0.02):
+    def __init__(self, key, url=None, region=Regions.US, retries=3, timeout=10, backoff_factor=0.02, use_connection_pooling=True):
         if not isinstance(region, Region):
             raise CustomerIOException('invalid region provided')
 
+        self.key = key
         self.url = url or 'https://{host}'.format(host=region.api_host)
         ClientBase.__init__(self, retries=retries,
-                            timeout=timeout, backoff_factor=backoff_factor)
-
-        self.http.headers['Authorization'] = "Bearer {key}".format(key=key)
+                            timeout=timeout, backoff_factor=backoff_factor, use_connection_pooling=use_connection_pooling)
 
     def send_email(self, request):
         if isinstance(request, SendEmailRequest):
@@ -23,7 +22,12 @@ class APIClient(ClientBase):
         resp = self.send_request('POST', self.url + "/v1/send/email", request)
         return json.loads(resp)
 
+    # builds the session.
+    def _build_session(self):
+        session = super()._build_session()
+        session.headers['Authorization'] = "Bearer {key}".format(key=self.key)
 
+        return session
 
 class SendEmailRequest(object):
     '''An object with all the options avaiable for triggering a transactional message'''
