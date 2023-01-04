@@ -2,7 +2,7 @@
 
 ## [1.6.1]
 ### Added
-- dded the `disable_css_preprocessing` and `language` optional fields to send request
+- Added the `disable_css_preprocessing` and `language` optional fields to send request
 
 ## [1.3.0]
 ### Added
