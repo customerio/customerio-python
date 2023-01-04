@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.6.1]
+### Added
+- Added the `disable_css_preprocessing` and `language` optional fields to send request
+
 ## [1.3.0]
 ### Added
 - Support for merging duplicate customers using `merge_customers` function. 
