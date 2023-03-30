@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.0]
+### Changed
+- Updated transactional email request optional argument `amp_body` to `body_amp` for consistency across APIs ([#93](https://github.com/customerio/customerio-python/pull/93))
+
 ## [1.6.1]
 ### Added
 - Added the `disable_css_preprocessing` and `language` optional fields to send request
@@ -16,7 +20,6 @@
 ### Added
 - Support for EU region
 
-### Removed
 ### Changed
 - `customerio.CustomerIO` and `customerio.APIClient`  have a new keyword parameter `region` that can be set to either `Regions.US` or `Regions.EU`
 
