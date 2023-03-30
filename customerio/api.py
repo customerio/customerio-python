@@ -42,7 +42,7 @@ class SendEmailRequest(object):
             subject=None,
             preheader=None,
             body=None,
-            body_plaintext=None,
+            body_plain=None,
             body_amp=None,
             fake_bcc=None,
             disable_message_retention=None,
@@ -66,7 +66,7 @@ class SendEmailRequest(object):
         self.subject = subject
         self.preheader = preheader
         self.body = body
-        self.body_plaintext = body_plaintext
+        self.body_plain = body_plain
         self.body_amp = body_amp
         self.fake_bcc = fake_bcc
         self.disable_message_retention = disable_message_retention
@@ -111,7 +111,7 @@ class SendEmailRequest(object):
             subject="subject",
             preheader="preheader",
             body="body",
-            body_plaintext="body_plaintext",
+            body_plain="body_plain",
             body_amp="body_amp",
             fake_bcc="fake_bcc",
             disable_message_retention="disable_message_retention",
