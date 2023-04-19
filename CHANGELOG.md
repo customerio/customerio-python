@@ -1,6 +1,10 @@
 # Changelog
 
-## [2.0]
+## [2.0.1]
+### Changed
+- Updated `use_connection_pooling` option to address session overwriting.
+
+## [2.0.0]
 ### Changed
 - Updated transactional email request optional argument `amp_body` to `body_amp` for consistency across APIs ([#93](https://github.com/customerio/customerio-python/pull/93))
 
