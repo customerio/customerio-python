@@ -26,22 +26,20 @@ class ClientBase(object):
     @property
     def http(self):
         if self._current_session is None:
-            self._current_session = self._get_session()
+            self._current_session = self._build_session()
 
         return self._current_session
 
     def send_request(self, method, url, data):
         '''Dispatches the request and returns a response'''
-
         try:
-            response = self.http.request(
-                method, url=url, json=self._sanitize(data), timeout=self.timeout)
-
-            result_status = response.status_code
-            if result_status != 200:
-                raise CustomerIOException('%s: %s %s %s' % (result_status, url, data, response.text))
-            return response.text
-
+            if self.use_connection_pooling:
+                response = self.http.request(
+                    method, url=url, json=self._sanitize(data), timeout=self.timeout)
+            else:
+                with self._build_session() as http:
+                    response = http.request(
+                        method, url=url, json=self._sanitize(data), timeout=self.timeout)
         except Exception as e:
             # Raise exception alerting user that the system might be
             # experiencing an outage and refer them to system status page.
@@ -51,8 +49,10 @@ Last caught exception -- {klass}: {message}
             '''.format(klass=type(e), message=e, count=self.retries)
             raise CustomerIOException(message)
 
-        finally:
-            self._close()
+        result_status = response.status_code
+        if result_status != 200:
+            raise CustomerIOException('%s: %s %s %s' % (result_status, url, data, response.text))
+        return response.text
 
     def _sanitize(self, data):
         for k, v in data.items():
@@ -77,21 +77,6 @@ Last caught exception -- {klass}: {message}
                     'customer_ids cannot be {type}'.format(type=type(v)))
         return customer_string_ids
 
-    # gets a session based on whether we want pooling or not.  If no pooling is desired, we create a new session each time.
-    def _get_session(self):
-        if (self.use_connection_pooling):
-            if (self._current_session is None):
-                self._current_session = self._build_session()
-
-            # if we're using pooling, return the existing session.
-            logging.debug("Using existing session...")
-            return self._current_session
-        else:
-            # if we're not using pooling, build a new session.
-            logging.debug("Creating new session...")
-            self._current_session = self._build_session()
-        return self._current_session
-
     # builds the session.
     def _build_session(self):
         session = Session()
@@ -104,10 +89,3 @@ Last caught exception -- {klass}: {message}
             HTTPAdapter(max_retries=Retry(total=self.retries, backoff_factor=self.backoff_factor)))
 
         return session
-
-    # closes the session if we're not using connection pooling.
-    def _close(self):
-        # if we're not using pooling; clean up the resources.
-        if (not self.use_connection_pooling):
-            self._current_session.close()
-            self._current_session = None
