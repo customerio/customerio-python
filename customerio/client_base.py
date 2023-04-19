@@ -31,13 +31,15 @@ class ClientBase(object):
         return self._current_session
 
     def send_request(self, method, url, data):
-        """ Dispatches the request and returns a response """
+        '''Dispatches the request and returns a response'''
         try:
             if self.use_connection_pooling:
-                response = self.http.request(method, url=url, json=self._sanitize(data), timeout=self.timeout)
+                response = self.http.request(
+                    method, url=url, json=self._sanitize(data), timeout=self.timeout)
             else:
                 with self._build_session() as http:
-                    response = http.request(method, url=url, json=self._sanitize(data), timeout=self.timeout)
+                    response = http.request(
+                        method, url=url, json=self._sanitize(data), timeout=self.timeout)
         except Exception as e:
             # Raise exception alerting user that the system might be
             # experiencing an outage and refer them to system status page.
