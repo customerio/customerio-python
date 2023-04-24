@@ -232,8 +232,8 @@ print(response)
 ## Push
 
 SendPushRequest requires:
-* `transactional_message_id`: the ID of the transactional message you want to send, or the `body`, `from`, and `subject` of a new message.
-* an `identifiers` object containing the `id` of your recipient. If the `id` does not exist, Customer.io will create it.
+* `transactional_message_id`: the ID of the transactional push message you want to send.
+* an `identifiers` object containing the `id` or `email` of your recipient. If the profile does not exist, Customer.io will create it.
 
 Use `send_push` referencing your request to send a transactional message. [Learn more about transactional messages and `SendPushRequest` properties](https://customer.io/docs/transactional-api).
 
