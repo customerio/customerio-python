@@ -157,7 +157,8 @@ class SendPushRequest(object):
             link=None,
             custom_data=None,
             custom_payload=None,
-            device=None
+            device=None,
+            sound=None
         ):
 
         self.transactional_message_id = transactional_message_id
@@ -177,6 +178,7 @@ class SendPushRequest(object):
         self.custom_data = custom_data
         self.custom_payload = custom_payload
         self.device = device
+        self.sound = sound
 
     def _to_dict(self):
         '''Build a request payload from the object'''
@@ -198,7 +200,8 @@ class SendPushRequest(object):
             link="link",
             custom_data="custom_data",
             custom_payload="custom_payload",
-            device="custom_device"
+            device="custom_device",
+            sound="sound"
         )
 
         data = {}
