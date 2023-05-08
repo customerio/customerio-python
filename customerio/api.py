@@ -22,6 +22,12 @@ class APIClient(ClientBase):
         resp = self.send_request('POST', self.url + "/v1/send/email", request)
         return json.loads(resp)
 
+    def send_push(self, request):
+        if isinstance(request, SendPushRequest):
+            request = request._to_dict()
+        resp = self.send_request('POST', self.url + "/v1/send/push", request)
+        return json.loads(resp)
+
     # builds the session.
     def _build_session(self):
         session = super()._build_session()
@@ -30,7 +36,7 @@ class APIClient(ClientBase):
         return session
 
 class SendEmailRequest(object):
-    '''An object with all the options avaiable for triggering a transactional message'''
+    '''An object with all the options avaiable for triggering a transactional email message'''
     def __init__(self,
             transactional_message_id=None,
             to=None,
@@ -96,7 +102,7 @@ class SendEmailRequest(object):
         self.attachments[name] = content
 
     def _to_dict(self):
-        '''Build a request payload fromt the object'''
+        '''Build a request payload from the object'''
         field_map = dict(
             # from is reservered keyword hence the object has the field
             # `_from` but in the request payload we map it to `from`
@@ -123,6 +129,79 @@ class SendEmailRequest(object):
             disable_css_preproceessing="disable_css_preproceessing",
             send_at="send_at",
             language="language",
+        )
+
+        data = {}
+        for field, name in field_map.items():
+            value = getattr(self, field, None)
+            if value is not None:
+                data[name] = value
+
+        return data
+
+class SendPushRequest(object):
+    '''An object with all the options avaiable for triggering a transactional push message'''
+    def __init__(self,
+            transactional_message_id=None,
+            to=None,
+            identifiers=None,
+            title=None,
+            message=None,
+            disable_message_retention=None,
+            send_to_unsubscribed=None,
+            queue_draft=None,
+            message_data=None,
+            send_at=None,
+            language=None,
+            image_url=None,
+            link=None,
+            custom_data=None,
+            custom_payload=None,
+            device=None,
+            sound=None
+        ):
+
+        self.transactional_message_id = transactional_message_id
+        self.to = to
+        self.identifiers = identifiers
+        self.disable_message_retention = disable_message_retention
+        self.send_to_unsubscribed = send_to_unsubscribed
+        self.queue_draft = queue_draft
+        self.message_data = message_data
+        self.send_at = send_at
+        self.language = language
+
+        self.title = title
+        self.message = message
+        self.image_url = image_url
+        self.link = link
+        self.custom_data = custom_data
+        self.custom_payload = custom_payload
+        self.device = device
+        self.sound = sound
+
+    def _to_dict(self):
+        '''Build a request payload from the object'''
+        field_map = dict(
+            # field name is the same as the payload field name
+            transactional_message_id="transactional_message_id",
+            to="to",
+            identifiers="identifiers",
+            disable_message_retention="disable_message_retention",
+            send_to_unsubscribed="send_to_unsubscribed",
+            queue_draft="queue_draft",
+            message_data="message_data",
+            send_at="send_at",
+            language="language",
+
+            title="title",
+            message="message",
+            image_url="image_url",
+            link="link",
+            custom_data="custom_data",
+            custom_payload="custom_payload",
+            device="custom_device",
+            sound="sound"
         )
 
         data = {}

@@ -188,8 +188,11 @@ See REST documentation [here](https://learn.customer.io/api/#apisuppress_delete)
 
 ### Send Transactional Messages
 
-To use the [Transactional API](https://customer.io/docs/transactional-api), instantiate the Customer.io object using an [app key](https://customer.io/docs/managing-credentials#app-api-keys) and create a request object containing:
+To use the [Transactional API](https://customer.io/docs/transactional-api), instantiate the Customer.io object using an [app key](https://customer.io/docs/managing-credentials#app-api-keys) and create a request object for your message type.
 
+## Email
+
+SendEmailRequest requires:
 * `transactional_message_id`: the ID of the transactional message you want to send, or the `body`, `from`, and `subject` of a new message.
 * `to`: the email address of your recipients 
 * an `identifiers` object containing the `id` of your recipient. If the `id` does not exist, Customer.io will create it.
@@ -223,6 +226,38 @@ with open("path to file", "rb") as f:
   request.attach('receipt.pdf', f.read())
 
 response = client.send_email(request)
+print(response)
+```
+
+## Push
+
+SendPushRequest requires:
+* `transactional_message_id`: the ID of the transactional push message you want to send.
+* an `identifiers` object containing the `id` or `email` of your recipient. If the profile does not exist, Customer.io will create it.
+
+Use `send_push` referencing your request to send a transactional message. [Learn more about transactional messages and `SendPushRequest` properties](https://customer.io/docs/transactional-api).
+
+```python
+from customerio import APIClient, Regions, SendPushRequest
+client = APIClient("your API key", region=Regions.US)
+
+request = SendPushRequest(
+  transactional_message_id="3",
+  message_data={
+    "name": "person",
+    "items": [
+      {
+        "name": "shoes",
+        "price": "59.99",
+      },
+    ]
+  },
+  identifiers={
+    "id": "2",
+  }
+)
+
+response = client.send_push(request)
 print(response)
 ```
 

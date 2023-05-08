@@ -4,22 +4,16 @@ on: [ push ]
 
 jobs:
   build:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python: [ '3.7', '3.6', '3.9','3.8' ]
+        python: [ '3.6', '3.7', '3.8','3.9' ]
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python }}
-    # - uses: actions/cache@v2
-    #   with:
-    #     path: ./venv
-    #     key: customerio-python-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}
-    #     restore-keys: |
-    #       customerio-python-${{ matrix.python }}-
     - name: install dependencies for the minor version
       run: |
         python -m venv venv
