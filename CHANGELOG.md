@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.1]
+### Added
+- Add support for sending [transactional push messages](https://customer.io/docs/transactional-api/#transactional-push-notifications) ([#95](https://github.com/customerio/customerio-python/pull/95))
+
 ## [2.0]
 ### Changed
 - Updated transactional email request optional argument `amp_body` to `body_amp` for consistency across APIs ([#93](https://github.com/customerio/customerio-python/pull/93))
