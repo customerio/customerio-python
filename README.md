@@ -223,7 +223,7 @@ request = SendEmailRequest(
   }
 )
 
-with open("path to file", "rb") as f:
+with open("receipt.pdf", "rb") as f:
   request.attach('receipt.pdf', f.read())
 
 response = client.send_email(request)
