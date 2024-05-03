@@ -192,7 +192,7 @@ To use the [Transactional API](https://customer.io/docs/transactional-api), inst
 ## Email
 
 SendEmailRequest requires:
-* `transactional_message_id`: the ID of the transactional message you want to send, or the `body`, `from`, and `subject` of a new message.
+* `transactional_message_id`: the ID of the transactional message you want to send, or the `body`, `_from`, and `subject` of a new message.
 * `to`: the email address of your recipients 
 * an `identifiers` object containing the `id` of your recipient. If the `id` does not exist, Customer.io will create it.
 * a `message_data` object containing properties that you want reference in your message using Liquid.
@@ -206,6 +206,7 @@ client = APIClient("your API key", region=Regions.US)
 
 request = SendEmailRequest(
   to="person@example.com",
+  _from="override.sender@example.com",
   transactional_message_id="3",
   message_data={
     "name": "person",
@@ -221,7 +222,7 @@ request = SendEmailRequest(
   }
 )
 
-with open("path to file", "rb") as f:
+with open("receipt.pdf", "rb") as f:
   request.attach('receipt.pdf', f.read())
 
 response = client.send_email(request)
