@@ -1,8 +1,7 @@
-<p align="center">
+<p align=center>
   <a href="https://customer.io">
-    <img src="https://user-images.githubusercontent.com/6409227/144680509-907ee093-d7ad-4a9c-b0a5-f640eeb060cd.png" height="60">
+    <img src="https://avatars.githubusercontent.com/u/1152079?s=200&v=4" height="60">
   </a>
-  <p align="center">Power automated communication that people like to receive.</p>
 </p>
 
 [![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blueviolet?logo=gitpod)](https://gitpod.io/#https://github.com/customerio/customerio-python/)
@@ -14,7 +13,7 @@
 
 # Customer.io Python 
 
-This module has been tested with Python 3.6, 3.7, 3.8 and 3.9.
+This module has been tested with Python 3.6, 3.7, 3.8 and 3.9. If you're new to Customer.io, we recommend that you integrate with our [Data Pipelines Python library](https://github.com/customerio/cdp-analytics-python) instead.
 
 ## Installing
 
