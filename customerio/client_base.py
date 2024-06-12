@@ -101,7 +101,15 @@ Last caught exception -- {klass}: {message}
         # also define backoff_factor to delay each retry
         session.mount(
             'https://',
-            HTTPAdapter(max_retries=Retry(total=self.retries, backoff_factor=self.backoff_factor)))
+            HTTPAdapter(
+                max_retries=Retry(
+                    total=self.retries, 
+                    backoff_factor=self.backoff_factor,
+                    # Ensure POST methods get retries as well.
+                    allowed_methods=None
+                )
+            )
+        )
 
         return session
 
