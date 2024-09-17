@@ -174,7 +174,7 @@ cio.suppress(customer_id="1")
 
 Suppresses the specified customer. They will be deleted from Customer.io, and we will ignore all further attempts to identify or track activity for the suppressed customer ID
 
-See REST documentation [here](https://learn.customer.io/api/#apisuppress_add)
+See REST documentation [here](https://customer.io/docs/api/track/#operation/suppress)
 
 ### Unsuppress a customer
 ```python
@@ -183,11 +183,11 @@ cio.unsuppress(customer_id="1")
 
 Unsuppresses the specified customer. We will remove the supplied id from our suppression list and start accepting new identify and track calls for the customer as normal
 
-See REST documentation [here](https://learn.customer.io/api/#apisuppress_delete)
+See REST documentation [here](https://customer.io/docs/api/track/#operation/unsuppress)
 
 ### Send Transactional Messages
 
-To use the [Transactional API](https://customer.io/docs/transactional-api), instantiate the Customer.io object using an [app key](https://customer.io/docs/managing-credentials#app-api-keys) and create a request object for your message type.
+To use the [Transactional API](https://customer.io/docs/journeys/transactional-api), instantiate the Customer.io object using an [app key](https://customer.io/docs/managing-credentials#app-api-keys) and create a request object for your message type.
 
 ## Email
 
