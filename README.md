@@ -53,7 +53,7 @@ values for that field.
 
 You can pass any keyword arguments to the `identify` and `track` methods. These kwargs will be converted to custom attributes.
 
-See original REST documentation [here](http://customer.io/docs/api/rest.html#section-Creating_or_updating_customers)
+See original REST documentation [here](http://customer.io/docs/api/track/#operation/identify)
 
 ### Track a custom event
 
@@ -69,7 +69,7 @@ cio.track(customer_id="5", name='purchased', price=23.45, product="widget")
 
 You can pass any keyword arguments to the `identify` and `track` methods. These kwargs will be converted to custom attributes.
 
-See original REST documentation [here](http://customer.io/docs/api/rest.html#section-Track_a_custom_event)
+See original REST documentation [here](http://customer.io/docs/api/track/#operation/track)
 
 ### Backfill a custom event
 
@@ -94,7 +94,7 @@ Event timestamp may be passed as a ```datetime.datetime``` object, an integer or
 
 Keyword arguments to backfill work the same as a call to ```cio.track```.
 
-See original REST documentation [here](http://customer.io/docs/api/rest.html#section-Track_a_custom_event)
+See original REST documentation [here](http://customer.io/docs/api/track/#operation/track)
 
 ### Track an anonymous event
 
@@ -106,7 +106,7 @@ An anonymous event is an event associated with a person you haven't identified. 
 
 #### Anonymous invite events
 
-If you previously sent [invite events](https://customer.io/docs/anonymous-invite-emails/), you can achieve the same functionality by sending an anonymous event with the anonymous identifier set to `None`. To send anonymous invites, your event *must* include a `recipient` attribute. 
+If you previously sent [invite events](https://customer.io/docs/journeys/anonymous-invite-emails/), you can achieve the same functionality by sending an anonymous event with the anonymous identifier set to `None`. To send anonymous invites, your event *must* include a `recipient` attribute. 
 
 ```python
 cio.track_anonymous(anonymous_id=None, name="invite", first_name="alex", recipient="alex.person@example.com")
@@ -121,7 +121,7 @@ Deletes the customer profile for a specified customer.
 
 This method returns nothing.  Attempts to delete non-existent customers will not raise any errors.
 
-See original REST documentation [here](http://customer.io/docs/api/rest.html#section-Deleting_customers)
+See original REST documentation [here](https://customer.io/docs/api/track/#operation/delete)
 
 
 You can pass any keyword arguments to the `identify` and `track` methods. These kwargs will be converted to custom attributes.
@@ -198,7 +198,7 @@ SendEmailRequest requires:
 * a `message_data` object containing properties that you want reference in your message using Liquid.
 * You can also send attachments with your message. Use `attach` to encode attachments.
 
-Use `send_email` referencing your request to send a transactional message. [Learn more about transactional messages and `SendEmailRequest` properties](https://customer.io/docs/transactional-api).
+Use `send_email` referencing your request to send a transactional message. [Learn more about transactional messages and `SendEmailRequest` properties](https://customer.io/docs/journeys/transactional-api).
 
 ```python
 from customerio import APIClient, Regions, SendEmailRequest
@@ -235,7 +235,7 @@ SendPushRequest requires:
 * `transactional_message_id`: the ID of the transactional push message you want to send.
 * an `identifiers` object containing the `id` or `email` of your recipient. If the profile does not exist, Customer.io will create it.
 
-Use `send_push` referencing your request to send a transactional message. [Learn more about transactional messages and `SendPushRequest` properties](https://customer.io/docs/transactional-api).
+Use `send_push` referencing your request to send a transactional message. [Learn more about transactional messages and `SendPushRequest` properties](https://customer.io/docs/journeys/transactional-api).
 
 ```python
 from customerio import APIClient, Regions, SendPushRequest
