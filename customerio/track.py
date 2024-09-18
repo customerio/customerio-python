@@ -71,13 +71,14 @@ class CustomerIO(ClientBase):
         url = self.get_customer_query_string(id)
         self.send_request('PUT', url, kwargs)
 
-    def track(self, customer_id, name, **data):
+    def track(self, customer_id, name, id=None, **data):
         '''Track an event for a given customer_id'''
         if not customer_id:
             raise CustomerIOException("customer_id cannot be blank in track")
         url = self.get_event_query_string(customer_id)
         post_data = {
             'name': name,
+            'id': id,
             'data': self._sanitize(data),
         }
         self.send_request('POST', url, post_data)
