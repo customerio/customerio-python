@@ -11,7 +11,7 @@
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/customerio)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/customerio)
 
-# Customer.io Python 
+# Customer.io Journeys Python 
 
 This module has been tested with Python 3.6, 3.7, 3.8 and 3.9. If you're new to Customer.io, we recommend that you integrate with our [Data Pipelines Python library](https://github.com/customerio/cdp-analytics-python) instead.
 
@@ -50,6 +50,8 @@ cio.identify(id="5", email='customer@example.com', name='Bob', plan='premium')
 Only the id field is used to identify the customer here.  Using an existing id with
 a different email (or any other attribute) will update/overwrite any pre-existing
 values for that field.
+
+Note: If you use a different id but an email string that already exists for another Person, then no new Person will be created.
 
 You can pass any keyword arguments to the `identify` and `track` methods. These kwargs will be converted to custom attributes.
 
