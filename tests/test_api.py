@@ -5,7 +5,7 @@ import json
 import sys
 import unittest
 
-from customerio import APIClient, SendEmailRequest, SendPushRequest, Regions, CustomerIOException
+from customerio import APIClient, SendEmailRequest, SendPushRequest, SendSMSRequest, Regions, CustomerIOException
 from customerio.__version__ import __version__ as ClientVersion
 from tests.server import HTTPSTestCase
 
@@ -94,6 +94,22 @@ class TestAPIClient(HTTPSTestCase):
         )
 
         self.client.send_push(push)
+
+    def test_send_sms(self):
+        self.client.http.hooks = dict(response=partial(self._check_request, rq={
+            'method': 'POST',
+            'authorization': "Bearer app_api_key",
+            'content_type': 'application/json',
+            'url_suffix': '/v1/send/sms',
+            'body': {"identifiers": {"id":"customer_1"}, "transactional_message_id": 100}
+        }))
+
+        push = SendSMSRequest(
+            identifiers={"id":"customer_1"},
+            transactional_message_id=100,
+        )
+
+        self.client.send_sms(push)
 
 if __name__ == '__main__':
     unittest.main()
