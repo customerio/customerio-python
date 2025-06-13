@@ -27,6 +27,12 @@ class APIClient(ClientBase):
             request = request._to_dict()
         resp = self.send_request('POST', self.url + "/v1/send/push", request)
         return json.loads(resp)
+    
+    def send_sms(self, request):
+        if isinstance(request, SendSMSRequest):
+            request = request._to_dict()
+        resp = self.send_request('POST', self.url + "/v1/send/sms", request)
+        return json.loads(resp)
 
     # builds the session.
     def _build_session(self):
@@ -202,6 +208,53 @@ class SendPushRequest(object):
             custom_payload="custom_payload",
             device="custom_device",
             sound="sound"
+        )
+
+        data = {}
+        for field, name in field_map.items():
+            value = getattr(self, field, None)
+            if value is not None:
+                data[name] = value
+
+        return data
+
+class SendSMSRequest(object):
+    '''An object with all the options avaiable for triggering a transactional push message'''
+    def __init__(self,
+            transactional_message_id=None,
+            to=None,
+            identifiers=None,
+            disable_message_retention=None,
+            send_to_unsubscribed=None,
+            queue_draft=None,
+            message_data=None,
+            send_at=None,
+            language=None,
+        ):
+
+        self.transactional_message_id = transactional_message_id
+        self.to = to
+        self.identifiers = identifiers
+        self.disable_message_retention = disable_message_retention
+        self.send_to_unsubscribed = send_to_unsubscribed
+        self.queue_draft = queue_draft
+        self.message_data = message_data
+        self.send_at = send_at
+        self.language = language
+
+    def _to_dict(self):
+        '''Build a request payload from the object'''
+        field_map = dict(
+            # field name is the same as the payload field name
+            transactional_message_id="transactional_message_id",
+            to="to",
+            identifiers="identifiers",
+            disable_message_retention="disable_message_retention",
+            send_to_unsubscribed="send_to_unsubscribed",
+            queue_draft="queue_draft",
+            message_data="message_data",
+            send_at="send_at",
+            language="language",
         )
 
         data = {}

@@ -3,7 +3,6 @@ try:
 except ImportError:
     from http.server import BaseHTTPRequestHandler, HTTPServer
 
-from functools import wraps
 from random import randint
 import json
 import ssl
@@ -11,12 +10,11 @@ import time
 import threading
 import unittest
 
-def sslwrap(func):
-    @wraps(func)
-    def bar(*args, **kw):
-        kw['ssl_version'] = ssl.PROTOCOL_SSLv23
-        return func(*args, **kw)
-    return bar
+def create_ssl_context():
+    """Create SSL context for Python 3.12+ compatibility"""
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    context.minimum_version = ssl.TLSVersion.TLSv1_2
+    return context
 
 request_counts = dict()
 
@@ -75,12 +73,11 @@ class HTTPSTestCase(unittest.TestCase):
     def setUpClass(cls):
         # create a server
         cls.server = HTTPServer(("localhost", 0), Handler)
-        # hack needed to setup ssl server
-        ssl.wrap_socket = sslwrap(ssl.wrap_socket)
+        # create SSL context for Python 3.12+ compatibility
+        context = create_ssl_context()
+        context.load_cert_chain('./tests/server.pem')
         # upgrade to https
-        cls.server.socket = ssl.wrap_socket(cls.server.socket,
-            certfile='./tests/server.pem',
-            server_side=True)
+        cls.server.socket = context.wrap_socket(cls.server.socket, server_side=True)
         # start server instance in new thread
         cls.server_thread = threading.Thread(target=cls.server.serve_forever)
         cls.server_thread.start()

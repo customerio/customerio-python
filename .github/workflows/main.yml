@@ -4,22 +4,22 @@ on: [ push ]
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        python: [ '3.6', '3.7', '3.8','3.9' ]
+        python: [ '3.9', '3.10', '3.11', '3.12', '3.13' ]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5.6.0
       with:
         python-version: ${{ matrix.python }}
     - name: install dependencies for the minor version
       run: |
         python -m venv venv
         . venv/bin/activate
-        export version=$(grep -v '^$' ${GITHUB_WORKSPACE}/requirements.txt | grep requests | awk -F'=' '{print $2}' )
-        pip install requests==$(echo $version)
+        pip install -r requirements.txt
     - name: run tests
       run: |
         . venv/bin/activate
