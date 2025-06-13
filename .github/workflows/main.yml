@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python: [ '3.11.*', '3.12.*','3.13.*','3.14.*', 'latest' ]
+        python: [ '3.11.x', '3.12.x','3.13.x','3.14.x', 'latest' ]
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python
