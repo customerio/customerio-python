@@ -19,8 +19,7 @@ jobs:
       run: |
         python -m venv venv
         . venv/bin/activate
-        export version=$(grep -v '^$' ${GITHUB_WORKSPACE}/requirements.txt | grep requests | awk -F'>=' '{print $2}' )
-        pip install requests==$(echo $version)
+        pip install -r requirements.txt
     - name: run tests
       run: |
         . venv/bin/activate
