@@ -104,12 +104,12 @@ class TestAPIClient(HTTPSTestCase):
             'body': {"identifiers": {"id":"customer_1"}, "transactional_message_id": 100}
         }))
 
-        push = SendSMSRequest(
+        sms = SendSMSRequest(
             identifiers={"id":"customer_1"},
             transactional_message_id=100,
         )
 
-        self.client.send_sms(push)
+        self.client.send_sms(sms)
 
 if __name__ == '__main__':
     unittest.main()
