@@ -34,6 +34,12 @@ class APIClient(ClientBase):
         resp = self.send_request('POST', self.url + "/v1/send/sms", request)
         return json.loads(resp)
 
+    def send_inbox_message(self, request):
+        if isinstance(request, SendInboxMessageRequest):
+            request = request._to_dict()
+        resp = self.send_request('POST', self.url + "/v1/send/inbox_message", request)
+        return json.loads(resp)
+
     # builds the session.
     def _build_session(self):
         session = super()._build_session()
@@ -219,7 +225,7 @@ class SendPushRequest(object):
         return data
 
 class SendSMSRequest(object):
-    '''An object with all the options avaiable for triggering a transactional push message'''
+    '''An object with all the options avaiable for triggering a transactional SMS message'''
     def __init__(self,
             transactional_message_id=None,
             to=None,
@@ -251,6 +257,47 @@ class SendSMSRequest(object):
             identifiers="identifiers",
             disable_message_retention="disable_message_retention",
             send_to_unsubscribed="send_to_unsubscribed",
+            queue_draft="queue_draft",
+            message_data="message_data",
+            send_at="send_at",
+            language="language",
+        )
+
+        data = {}
+        for field, name in field_map.items():
+            value = getattr(self, field, None)
+            if value is not None:
+                data[name] = value
+
+        return data
+
+class SendInboxMessageRequest(object):
+    '''An object with all the options avaiable for triggering a transactional inbox message'''
+    def __init__(self,
+            transactional_message_id=None,
+            identifiers=None,
+            disable_message_retention=None,
+            queue_draft=None,
+            message_data=None,
+            send_at=None,
+            language=None,
+        ):
+
+        self.transactional_message_id = transactional_message_id
+        self.identifiers = identifiers
+        self.disable_message_retention = disable_message_retention
+        self.queue_draft = queue_draft
+        self.message_data = message_data
+        self.send_at = send_at
+        self.language = language
+
+    def _to_dict(self):
+        '''Build a request payload from the object'''
+        field_map = dict(
+            # field name is the same as the payload field name
+            transactional_message_id="transactional_message_id",
+            identifiers="identifiers",
+            disable_message_retention="disable_message_retention",
             queue_draft="queue_draft",
             message_data="message_data",
             send_at="send_at",
