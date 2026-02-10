@@ -14,6 +14,15 @@ def create_ssl_context():
     """Create SSL context for Python 3.12+ compatibility"""
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     context.minimum_version = ssl.TLSVersion.TLSv1_2
+    # Disable hostname and certificate verification for self-signed certs
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
+    # Allow weaker ciphers for test compatibility
+    try:
+        context.set_ciphers('DEFAULT@SECLEVEL=1')
+    except ssl.SSLError:
+        # Fall back if the cipher string is not supported
+        pass
     return context
 
 request_counts = dict()
@@ -28,12 +37,16 @@ class Handler(BaseHTTPRequestHandler):
     '''
     def do_DELETE(self):
         self.send_response(200)
+        self.send_header('Content-Length', '0')
         self.end_headers()
 
     def do_POST(self):
+        response_body = bytes("{}", "utf-8")
         self.send_response(200)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Content-Length', str(len(response_body)))
         self.end_headers()
-        self.wfile.write(bytes("{}", "utf-8"))
+        self.wfile.write(response_body)
 
     def do_PUT(self):
         global request_counts
@@ -49,6 +62,7 @@ class Handler(BaseHTTPRequestHandler):
         if processed > fail_count:
             # return a valid response
             self.send_response(200)
+            self.send_header('Content-Length', '0')
             self.end_headers()
             return
 
