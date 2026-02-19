@@ -14,7 +14,7 @@ setup(
     license="BSD",
     description="Customer.io Python bindings.",
     url="https://github.com/customerio/customerio-python",
-    packages=find_packages(),
+    packages=find_packages(exclude=("tests",)),
     classifiers=[
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
