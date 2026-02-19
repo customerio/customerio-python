@@ -108,6 +108,6 @@ Last caught exception -- {klass}: {message}
     # closes the session if we're not using connection pooling.
     def _close(self):
         # if we're not using pooling; clean up the resources.
-        if (not self.use_connection_pooling):
+        if (not self.use_connection_pooling and self._current_session is not None):
             self._current_session.close()
             self._current_session = None
