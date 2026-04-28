@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.4]
+### Added
+- Add support for sending transactional in-app messages [#113](https://github.com/customerio/customerio-python/pull/113)
+
 ## [2.3]
 ### Added
 - Add support for sending transactional inbox messages [#110](https://github.com/customerio/customerio-python/pull/110)
