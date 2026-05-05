@@ -1,5 +1,9 @@
 *.pyc
 *.pyo
+.venv/
+.coverage
+.ruff_cache/
+.pytest_cache/
 tests/server.pem
 dist
 customerio.egg-info

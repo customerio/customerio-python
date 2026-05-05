@@ -1,29 +1,35 @@
 import base64
-from datetime import datetime
-from functools import partial
 import json
-import sys
 import unittest
+from functools import partial
 
-from customerio import APIClient, SendEmailRequest, SendPushRequest, SendSMSRequest, SendInboxMessageRequest, SendInAppRequest, Regions, CustomerIOException
+import urllib3
+
+from customerio import (
+    APIClient,
+    CustomerIOException,
+    Regions,
+    SendEmailRequest,
+    SendInAppRequest,
+    SendInboxMessageRequest,
+    SendPushRequest,
+    SendSMSRequest,
+)
 from customerio.__version__ import __version__ as ClientVersion
 from tests.server import HTTPSTestCase
 
-import requests
-from requests.auth import _basic_auth_str
-
 # test uses a self signed certificate so disable the warning messages
-requests.packages.urllib3.disable_warnings()
+urllib3.disable_warnings()
 
 
 class TestAPIClient(HTTPSTestCase):
-    '''Starts server which the client connects to in the following tests'''
+    """Starts server which the client connects to in the following tests"""
 
     def setUp(self):
         self.client = APIClient(
-            key='app_api_key',
-            url="https://{addr}:{port}".format(
-                addr=self.server.server_address[0], port=self.server.server_port))
+            key="app_api_key",
+            url=f"https://{self.server.server_address[0]}:{self.server.server_port}",
+        )
 
         # do not verify the ssl certificate as it is self signed
         # should only be done for tests
@@ -31,117 +37,156 @@ class TestAPIClient(HTTPSTestCase):
 
     def _check_request(self, resp, rq, *args, **kwargs):
         request = resp.request
-        self.assertEqual(request.method, rq['method'])
-        self.assertEqual(json.loads(request.body.decode('utf-8')), rq['body'])
-        self.assertEqual(request.headers['Authorization'], rq['authorization'])
-        self.assertEqual(request.headers['Content-Type'], rq['content_type'])
-        self.assertEqual(
-            int(request.headers['Content-Length']), len(json.dumps(rq['body'])))
-        self.assertTrue(request.url.endswith(rq['url_suffix']),
-                        'url: {} expected suffix: {}'.format(request.url, rq['url_suffix']))
+        self.assertEqual(request.method, rq["method"])
+        self.assertEqual(json.loads(request.body.decode("utf-8")), rq["body"])
+        self.assertEqual(request.headers["Authorization"], rq["authorization"])
+        self.assertEqual(request.headers["Content-Type"], rq["content_type"])
+        self.assertEqual(int(request.headers["Content-Length"]), len(json.dumps(rq["body"])))
+        self.assertTrue(
+            request.url.endswith(rq["url_suffix"]),
+            "url: {} expected suffix: {}".format(request.url, rq["url_suffix"]),
+        )
 
     def test_client_setup(self):
-        client = APIClient(key='app_api_key')
-        self.assertEqual(client.url, 'https://{host}'.format(host=Regions.US.api_host))
+        client = APIClient(key="app_api_key")
+        self.assertEqual(client.url, f"https://{Regions.US.api_host}")
 
-        client = APIClient(key='app_api_key', region=Regions.US)
-        self.assertEqual(client.url, 'https://{host}'.format(host=Regions.US.api_host))
+        client = APIClient(key="app_api_key", region=Regions.US)
+        self.assertEqual(client.url, f"https://{Regions.US.api_host}")
 
-        client = APIClient(key='app_api_key', region=Regions.EU)
-        self.assertEqual(client.url, 'https://{host}'.format(host=Regions.EU.api_host))
+        client = APIClient(key="app_api_key", region=Regions.EU)
+        self.assertEqual(client.url, f"https://{Regions.EU.api_host}")
 
-        self.assertEqual(self.client.http.headers['User-Agent'], 'Customer.io Python Client/{}'.format(ClientVersion))
+        self.assertEqual(
+            self.client.http.headers["User-Agent"], f"Customer.io Python Client/{ClientVersion}"
+        )
 
         # Raises an exception when an invalid region is passed in
         with self.assertRaises(CustomerIOException):
-            APIClient(key='app_api_key', region='au')
+            APIClient(key="app_api_key", region="au")
 
     def test_send_email(self):
         data = "1,2,3"
-        expected = base64.b64encode(bytes(data,"utf-8")).decode()
+        expected = base64.b64encode(bytes(data, "utf-8")).decode()
 
-        self.client.http.hooks = dict(response=partial(self._check_request, rq={
-            'method': 'POST',
-            'authorization': "Bearer app_api_key",
-            'content_type': 'application/json',
-            'url_suffix': '/v1/send/email',
-            'body': {"identifiers": {"id":"customer_1"}, "transactional_message_id": 100, "subject": "transactional message", "attachments":{"sample.csv": expected}},
-        }))
+        self.client.http.hooks = dict(
+            response=partial(
+                self._check_request,
+                rq={
+                    "method": "POST",
+                    "authorization": "Bearer app_api_key",
+                    "content_type": "application/json",
+                    "url_suffix": "/v1/send/email",
+                    "body": {
+                        "identifiers": {"id": "customer_1"},
+                        "transactional_message_id": 100,
+                        "subject": "transactional message",
+                        "attachments": {"sample.csv": expected},
+                    },
+                },
+            )
+        )
 
         email = SendEmailRequest(
-            identifiers={"id":"customer_1"},
+            identifiers={"id": "customer_1"},
             transactional_message_id=100,
-            subject="transactional message"
+            subject="transactional message",
         )
-        email.attach('sample.csv', data)
+        email.attach("sample.csv", data)
 
         self.client.send_email(email)
 
     def test_send_push(self):
-        self.client.http.hooks = dict(response=partial(self._check_request, rq={
-            'method': 'POST',
-            'authorization': "Bearer app_api_key",
-            'content_type': 'application/json',
-            'url_suffix': '/v1/send/push',
-            'body': {"identifiers": {"id":"customer_1"}, "transactional_message_id": 100, "title": "transactional push message", "message": "push message content"}
-        }))
+        self.client.http.hooks = dict(
+            response=partial(
+                self._check_request,
+                rq={
+                    "method": "POST",
+                    "authorization": "Bearer app_api_key",
+                    "content_type": "application/json",
+                    "url_suffix": "/v1/send/push",
+                    "body": {
+                        "identifiers": {"id": "customer_1"},
+                        "transactional_message_id": 100,
+                        "title": "transactional push message",
+                        "message": "push message content",
+                    },
+                },
+            )
+        )
 
         push = SendPushRequest(
-            identifiers={"id":"customer_1"},
+            identifiers={"id": "customer_1"},
             transactional_message_id=100,
             title="transactional push message",
-            message="push message content"
+            message="push message content",
         )
 
         self.client.send_push(push)
 
     def test_send_sms(self):
-        self.client.http.hooks = dict(response=partial(self._check_request, rq={
-            'method': 'POST',
-            'authorization': "Bearer app_api_key",
-            'content_type': 'application/json',
-            'url_suffix': '/v1/send/sms',
-            'body': {"identifiers": {"id":"customer_1"}, "transactional_message_id": 100}
-        }))
+        self.client.http.hooks = dict(
+            response=partial(
+                self._check_request,
+                rq={
+                    "method": "POST",
+                    "authorization": "Bearer app_api_key",
+                    "content_type": "application/json",
+                    "url_suffix": "/v1/send/sms",
+                    "body": {"identifiers": {"id": "customer_1"}, "transactional_message_id": 100},
+                },
+            )
+        )
 
         sms = SendSMSRequest(
-            identifiers={"id":"customer_1"},
+            identifiers={"id": "customer_1"},
             transactional_message_id=100,
         )
 
         self.client.send_sms(sms)
 
     def test_send_inbox_message(self):
-        self.client.http.hooks = dict(response=partial(self._check_request, rq={
-            'method': 'POST',
-            'authorization': "Bearer app_api_key",
-            'content_type': 'application/json',
-            'url_suffix': '/v1/send/inbox_message',
-            'body': {"identifiers": {"id":"customer_1"}, "transactional_message_id": 100}
-        }))
+        self.client.http.hooks = dict(
+            response=partial(
+                self._check_request,
+                rq={
+                    "method": "POST",
+                    "authorization": "Bearer app_api_key",
+                    "content_type": "application/json",
+                    "url_suffix": "/v1/send/inbox_message",
+                    "body": {"identifiers": {"id": "customer_1"}, "transactional_message_id": 100},
+                },
+            )
+        )
 
         inbox_message = SendInboxMessageRequest(
-            identifiers={"id":"customer_1"},
+            identifiers={"id": "customer_1"},
             transactional_message_id=100,
         )
 
         self.client.send_inbox_message(inbox_message)
 
     def test_send_in_app(self):
-        self.client.http.hooks = dict(response=partial(self._check_request, rq={
-            'method': 'POST',
-            'authorization': "Bearer app_api_key",
-            'content_type': 'application/json',
-            'url_suffix': '/v1/send/in_app',
-            'body': {"identifiers": {"id":"customer_1"}, "transactional_message_id": 100}
-        }))
+        self.client.http.hooks = dict(
+            response=partial(
+                self._check_request,
+                rq={
+                    "method": "POST",
+                    "authorization": "Bearer app_api_key",
+                    "content_type": "application/json",
+                    "url_suffix": "/v1/send/in_app",
+                    "body": {"identifiers": {"id": "customer_1"}, "transactional_message_id": 100},
+                },
+            )
+        )
 
         in_app = SendInAppRequest(
-            identifiers={"id":"customer_1"},
+            identifiers={"id": "customer_1"},
             transactional_message_id=100,
         )
 
         self.client.send_in_app(in_app)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

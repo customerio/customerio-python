@@ -1,14 +1,11 @@
-try:
-    from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-except ImportError:
-    from http.server import BaseHTTPRequestHandler, HTTPServer
-
-from random import randint
 import json
 import ssl
-import time
 import threading
+import time
 import unittest
+from contextlib import suppress
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
 
 def create_ssl_context():
     """Create SSL context for Python 3.12+ compatibility"""
@@ -18,33 +15,33 @@ def create_ssl_context():
     context.check_hostname = False
     context.verify_mode = ssl.CERT_NONE
     # Allow weaker ciphers for test compatibility
-    try:
-        context.set_ciphers('DEFAULT@SECLEVEL=1')
-    except ssl.SSLError:
-        # Fall back if the cipher string is not supported
-        pass
+    with suppress(ssl.SSLError):
+        context.set_ciphers("DEFAULT@SECLEVEL=1")
     return context
 
-request_counts = dict()
+
+request_counts = {}
+
 
 class Handler(BaseHTTPRequestHandler):
-    '''Handler definition for the testing server instance.
+    """Handler definition for the testing server instance.
 
     This handler returns without setting response status code which causes
     httplib to raise BadStatusLine exception.
     The handler reads the post body and fails for the `fail_count` specified.
     After sending specified number of bad responses will sent a valid response.
-    '''
+    """
+
     def do_DELETE(self):
         self.send_response(200)
-        self.send_header('Content-Length', '0')
+        self.send_header("Content-Length", "0")
         self.end_headers()
 
     def do_POST(self):
         response_body = bytes("{}", "utf-8")
         self.send_response(200)
-        self.send_header('Content-Type', 'application/json')
-        self.send_header('Content-Length', str(len(response_body)))
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(response_body)))
         self.end_headers()
         self.wfile.write(response_body)
 
@@ -53,16 +50,16 @@ class Handler(BaseHTTPRequestHandler):
 
         # extract params
         _id = self.path.split("/")[-1]
-        content_len = int(self.headers.get('content-length', 0))
-        params = json.loads(self.rfile.read(content_len).decode('utf-8'))
-        fail_count = params.get('fail_count', 0)
+        content_len = int(self.headers.get("content-length", 0))
+        params = json.loads(self.rfile.read(content_len).decode("utf-8"))
+        fail_count = params.get("fail_count", 0)
 
         # retrieve number of requests already served
         processed = request_counts.get(_id, 0)
         if processed > fail_count:
             # return a valid response
             self.send_response(200)
-            self.send_header('Content-Length', '0')
+            self.send_header("Content-Length", "0")
             self.end_headers()
             return
 
@@ -76,12 +73,12 @@ class Handler(BaseHTTPRequestHandler):
 
 
 class HTTPSTestCase(unittest.TestCase):
-    '''Test case class that starts up a https server and exposes it via the `server` attribute.
+    """Test case class that starts up a https server and exposes it via the `server` attribute.
 
     The testing server is only created in the setUpClass method so that multiple
     tests can use the same server instance. The server is started in a separate
     thread and once the tests are completed the server is shutdown and cleaned up.
-    '''
+    """
 
     @classmethod
     def setUpClass(cls):
@@ -89,7 +86,7 @@ class HTTPSTestCase(unittest.TestCase):
         cls.server = HTTPServer(("localhost", 0), Handler)
         # create SSL context for Python 3.12+ compatibility
         context = create_ssl_context()
-        context.load_cert_chain('./tests/server.pem')
+        context.load_cert_chain("./tests/server.pem")
         # upgrade to https
         cls.server.socket = context.wrap_socket(cls.server.socket, server_side=True)
         # start server instance in new thread

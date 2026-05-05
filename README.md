@@ -11,9 +11,9 @@
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/customerio)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/customerio)
 
-# Customer.io Python 
+# Customer.io Python
 
-This module has been tested with Python 3.6, 3.7, 3.8 and 3.9. If you're new to Customer.io, we recommend that you integrate with our [Data Pipelines Python library](https://github.com/customerio/cdp-analytics-python) instead.
+This module is tested with Python 3.10 through 3.14. If you're new to Customer.io, we recommend that you integrate with our [Data Pipelines Python library](https://github.com/customerio/cdp-analytics-python) instead.
 
 ## Installing
 
