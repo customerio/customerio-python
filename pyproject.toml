@@ -35,7 +35,7 @@ classifiers = [
 [project.optional-dependencies]
 dev = [
     "build>=1.2.2",
-    "ruff>=0.14.0",
+    "ruff>=0.15.12",
     "twine>=6.1.0",
 ]
 
