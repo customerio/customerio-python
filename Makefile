@@ -17,7 +17,7 @@ dev: clean all
 	$(PYTHON) -i -c "from customerio import *"
 
 upload:
-	python setup.py register
+	$(PYTHON) setup.py register
 	echo "*** Now upload the binary to PyPi *** (one second)" && sleep 3 && open dist & open "http://pypi.python.org/pypi?%3Aaction=pkg_edit&name=customerio" # python setup.py upload
 
 test:
