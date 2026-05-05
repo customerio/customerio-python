@@ -108,6 +108,11 @@ Last caught exception -- {type(e)}: {e}
         return session
 
     def _close(self):
+<<<<<<< ci-fixes
         if not self.use_connection_pooling and self._current_session is not None:
+=======
+        # if we're not using pooling; clean up the resources.
+        if (not self.use_connection_pooling and self._current_session is not None):
+>>>>>>> main
             self._current_session.close()
             self._current_session = None
