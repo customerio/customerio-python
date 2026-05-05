@@ -24,6 +24,21 @@
 ### Added
 - Added the `disable_css_preprocessing` and `language` optional fields to send request
 
+## [1.6.0] - November 10, 2022
+### Added
+- Added a `use_connection_pooling` option to `CustomerIO` and `APIClient` to allow disabling persistent session connection pooling.
+
+## [1.5.0] - April 26, 2022
+### Added
+- Added support for anonymous invite events by allowing `track_anonymous` to omit `anonymous_id` when sending invite events with a `recipient` attribute ([#83](https://github.com/customerio/customerio-python/pull/83)).
+
+## [1.4.0] - October 14, 2021
+### Added
+- Added a default `User-Agent` header to Customer.io API requests ([#72](https://github.com/customerio/customerio-python/pull/72)).
+
+### Fixed
+- Fixed release metadata generation after moving version handling into `customerio.__version__` ([#73](https://github.com/customerio/customerio-python/pull/73)).
+
 ## [1.3.0]
 ### Added
 - Support for merging duplicate customers using `merge_customers` function. 

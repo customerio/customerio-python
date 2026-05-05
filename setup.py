@@ -1,10 +1,22 @@
 import os
 from setuptools import find_packages, setup
 
-version = {}
 here = os.path.abspath(os.path.dirname(__file__))
-with open(os.path.join(here, 'customerio', '__version__.py')) as f:
-        exec(f.read(), version)
+
+
+def read_project_file(filename):
+    with open(os.path.join(here, filename), encoding="utf-8") as f:
+        return f.read()
+
+
+version = {}
+with open(os.path.join(here, 'customerio', '__version__.py'), encoding="utf-8") as f:
+    exec(f.read(), version)
+
+long_description = "\n\n".join([
+    read_project_file("README.md"),
+    read_project_file("CHANGELOG.md"),
+])
 
 setup(
     name="customerio",
@@ -13,6 +25,8 @@ setup(
     author_email="support@customerio.com",
     license="BSD",
     description="Customer.io Python bindings.",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     url="https://github.com/customerio/customerio-python",
     packages=find_packages(),
     classifiers=[
