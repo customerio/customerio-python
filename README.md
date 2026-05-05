@@ -1,8 +1,7 @@
-<p align="center">
+<p align=center>
   <a href="https://customer.io">
-    <img src="https://user-images.githubusercontent.com/6409227/144680509-907ee093-d7ad-4a9c-b0a5-f640eeb060cd.png" height="60">
+    <img src="https://avatars.githubusercontent.com/u/1152079?s=200&v=4" height="60">
   </a>
-  <p align="center">Power automated communication that people like to receive.</p>
 </p>
 
 [![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blueviolet?logo=gitpod)](https://gitpod.io/#https://github.com/customerio/customerio-python/)
@@ -14,7 +13,7 @@
 
 # Customer.io Python 
 
-This module has been tested with Python 3.6, 3.7, 3.8 and 3.9.
+This module has been tested with Python 3.6, 3.7, 3.8 and 3.9. If you're new to Customer.io, we recommend that you integrate with our [Data Pipelines Python library](https://github.com/customerio/cdp-analytics-python) instead.
 
 ## Installing
 
@@ -54,7 +53,7 @@ values for that field.
 
 You can pass any keyword arguments to the `identify` and `track` methods. These kwargs will be converted to custom attributes.
 
-See original REST documentation [here](http://customer.io/docs/api/rest.html#section-Creating_or_updating_customers)
+See original REST documentation [here](http://customer.io/docs/api/track/#operation/identify)
 
 ### Track a custom event
 
@@ -70,7 +69,7 @@ cio.track(customer_id="5", name='purchased', price=23.45, product="widget")
 
 You can pass any keyword arguments to the `identify` and `track` methods. These kwargs will be converted to custom attributes.
 
-See original REST documentation [here](http://customer.io/docs/api/rest.html#section-Track_a_custom_event)
+See original REST documentation [here](http://customer.io/docs/api/track/#operation/track)
 
 ### Backfill a custom event
 
@@ -95,7 +94,7 @@ Event timestamp may be passed as a ```datetime.datetime``` object, an integer or
 
 Keyword arguments to backfill work the same as a call to ```cio.track```.
 
-See original REST documentation [here](http://customer.io/docs/api/rest.html#section-Track_a_custom_event)
+See original REST documentation [here](http://customer.io/docs/api/track/#operation/track)
 
 ### Track an anonymous event
 
@@ -107,7 +106,7 @@ An anonymous event is an event associated with a person you haven't identified. 
 
 #### Anonymous invite events
 
-If you previously sent [invite events](https://customer.io/docs/anonymous-invite-emails/), you can achieve the same functionality by sending an anonymous event with the anonymous identifier set to `None`. To send anonymous invites, your event *must* include a `recipient` attribute. 
+If you previously sent [invite events](https://customer.io/docs/journeys/anonymous-invite-emails/), you can achieve the same functionality by sending an anonymous event with the anonymous identifier set to `None`. To send anonymous invites, your event *must* include a `recipient` attribute. 
 
 ```python
 cio.track_anonymous(anonymous_id=None, name="invite", first_name="alex", recipient="alex.person@example.com")
@@ -122,7 +121,7 @@ Deletes the customer profile for a specified customer.
 
 This method returns nothing.  Attempts to delete non-existent customers will not raise any errors.
 
-See original REST documentation [here](http://customer.io/docs/api/rest.html#section-Deleting_customers)
+See original REST documentation [here](https://customer.io/docs/api/track/#operation/delete)
 
 
 You can pass any keyword arguments to the `identify` and `track` methods. These kwargs will be converted to custom attributes.
@@ -175,7 +174,7 @@ cio.suppress(customer_id="1")
 
 Suppresses the specified customer. They will be deleted from Customer.io, and we will ignore all further attempts to identify or track activity for the suppressed customer ID
 
-See REST documentation [here](https://learn.customer.io/api/#apisuppress_add)
+See REST documentation [here](https://customer.io/docs/api/track/#operation/suppress)
 
 ### Unsuppress a customer
 ```python
@@ -184,22 +183,22 @@ cio.unsuppress(customer_id="1")
 
 Unsuppresses the specified customer. We will remove the supplied id from our suppression list and start accepting new identify and track calls for the customer as normal
 
-See REST documentation [here](https://learn.customer.io/api/#apisuppress_delete)
+See REST documentation [here](https://customer.io/docs/api/track/#operation/unsuppress)
 
 ### Send Transactional Messages
 
-To use the [Transactional API](https://customer.io/docs/transactional-api), instantiate the Customer.io object using an [app key](https://customer.io/docs/managing-credentials#app-api-keys) and create a request object for your message type.
+To use the [Transactional API](https://customer.io/docs/journeys/transactional-api), instantiate the Customer.io object using an [app key](https://customer.io/docs/managing-credentials#app-api-keys) and create a request object for your message type.
 
 ## Email
 
 SendEmailRequest requires:
-* `transactional_message_id`: the ID of the transactional message you want to send, or the `body`, `from`, and `subject` of a new message.
+* `transactional_message_id`: the ID of the transactional message you want to send, or the `body`, `_from`, and `subject` of a new message.
 * `to`: the email address of your recipients 
 * an `identifiers` object containing the `id` of your recipient. If the `id` does not exist, Customer.io will create it.
 * a `message_data` object containing properties that you want reference in your message using Liquid.
 * You can also send attachments with your message. Use `attach` to encode attachments.
 
-Use `send_email` referencing your request to send a transactional message. [Learn more about transactional messages and `SendEmailRequest` properties](https://customer.io/docs/transactional-api).
+Use `send_email` referencing your request to send a transactional message. [Learn more about transactional messages and `SendEmailRequest` properties](https://customer.io/docs/journeys/transactional-api).
 
 ```python
 from customerio import APIClient, Regions, SendEmailRequest
@@ -207,6 +206,7 @@ client = APIClient("your API key", region=Regions.US)
 
 request = SendEmailRequest(
   to="person@example.com",
+  _from="override.sender@example.com",
   transactional_message_id="3",
   message_data={
     "name": "person",
@@ -222,7 +222,7 @@ request = SendEmailRequest(
   }
 )
 
-with open("path to file", "rb") as f:
+with open("receipt.pdf", "rb") as f:
   request.attach('receipt.pdf', f.read())
 
 response = client.send_email(request)
@@ -235,7 +235,7 @@ SendPushRequest requires:
 * `transactional_message_id`: the ID of the transactional push message you want to send.
 * an `identifiers` object containing the `id` or `email` of your recipient. If the profile does not exist, Customer.io will create it.
 
-Use `send_push` referencing your request to send a transactional message. [Learn more about transactional messages and `SendPushRequest` properties](https://customer.io/docs/transactional-api).
+Use `send_push` referencing your request to send a transactional message. [Learn more about transactional messages and `SendPushRequest` properties](https://customer.io/docs/journeys/transactional-api).
 
 ```python
 from customerio import APIClient, Regions, SendPushRequest
