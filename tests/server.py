@@ -3,7 +3,6 @@ try:
 except ImportError:
     from http.server import BaseHTTPRequestHandler, HTTPServer
 
-from functools import wraps
 from random import randint
 import json
 import ssl
@@ -11,12 +10,20 @@ import time
 import threading
 import unittest
 
-def sslwrap(func):
-    @wraps(func)
-    def bar(*args, **kw):
-        kw['ssl_version'] = ssl.PROTOCOL_SSLv23
-        return func(*args, **kw)
-    return bar
+def create_ssl_context():
+    """Create SSL context for Python 3.12+ compatibility"""
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    context.minimum_version = ssl.TLSVersion.TLSv1_2
+    # Disable hostname and certificate verification for self-signed certs
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
+    # Allow weaker ciphers for test compatibility
+    try:
+        context.set_ciphers('DEFAULT@SECLEVEL=1')
+    except ssl.SSLError:
+        # Fall back if the cipher string is not supported
+        pass
+    return context
 
 request_counts = dict()
 
@@ -30,12 +37,16 @@ class Handler(BaseHTTPRequestHandler):
     '''
     def do_DELETE(self):
         self.send_response(200)
+        self.send_header('Content-Length', '0')
         self.end_headers()
 
     def do_POST(self):
+        response_body = bytes("{}", "utf-8")
         self.send_response(200)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Content-Length', str(len(response_body)))
         self.end_headers()
-        self.wfile.write(bytes("{}", "utf-8"))
+        self.wfile.write(response_body)
 
     def do_PUT(self):
         global request_counts
@@ -51,6 +62,7 @@ class Handler(BaseHTTPRequestHandler):
         if processed > fail_count:
             # return a valid response
             self.send_response(200)
+            self.send_header('Content-Length', '0')
             self.end_headers()
             return
 
@@ -75,12 +87,11 @@ class HTTPSTestCase(unittest.TestCase):
     def setUpClass(cls):
         # create a server
         cls.server = HTTPServer(("localhost", 0), Handler)
-        # hack needed to setup ssl server
-        ssl.wrap_socket = sslwrap(ssl.wrap_socket)
+        # create SSL context for Python 3.12+ compatibility
+        context = create_ssl_context()
+        context.load_cert_chain('./tests/server.pem')
         # upgrade to https
-        cls.server.socket = ssl.wrap_socket(cls.server.socket,
-            certfile='./tests/server.pem',
-            server_side=True)
+        cls.server.socket = context.wrap_socket(cls.server.socket, server_side=True)
         # start server instance in new thread
         cls.server_thread = threading.Thread(target=cls.server.serve_forever)
         cls.server_thread.start()
