@@ -2,7 +2,6 @@
 Implements the base client that is used by other classes to make requests.
 """
 
-import logging
 import math
 from datetime import datetime, timezone
 
@@ -28,7 +27,7 @@ class ClientBase:
     @property
     def http(self):
         if self._current_session is None:
-            self._current_session = self._get_session()
+            self._current_session = self._build_session()
 
         return self._current_session
 
@@ -36,12 +35,21 @@ class ClientBase:
         """Dispatches the request and returns a response."""
 
         try:
-            response = self.http.request(
-                method,
-                url=url,
-                json=self._sanitize(data),
-                timeout=self.timeout,
-            )
+            if self.use_connection_pooling:
+                response = self.http.request(
+                    method,
+                    url=url,
+                    json=self._sanitize(data),
+                    timeout=self.timeout,
+                )
+            else:
+                with self._build_session() as http:
+                    response = http.request(
+                        method,
+                        url=url,
+                        json=self._sanitize(data),
+                        timeout=self.timeout,
+                    )
 
             result_status = response.status_code
             if result_status != 200:
@@ -56,9 +64,6 @@ Check system status at http://status.customer.io.
 Last caught exception -- {type(e)}: {e}
             """
             raise CustomerIOException(message) from e
-
-        finally:
-            self._close()
 
     def _sanitize(self, data):
         return {key: self._sanitize_value(value) for key, value in data.items()}
@@ -84,18 +89,6 @@ Last caught exception -- {type(e)}: {e}
                 raise CustomerIOException(f"customer_ids cannot be {type(v)}")
         return customer_string_ids
 
-    def _get_session(self):
-        if self.use_connection_pooling:
-            if self._current_session is None:
-                self._current_session = self._build_session()
-
-            logging.debug("Using existing session...")
-            return self._current_session
-
-        logging.debug("Creating new session...")
-        self._current_session = self._build_session()
-        return self._current_session
-
     def _build_session(self):
         session = Session()
         session.headers["User-Agent"] = f"Customer.io Python Client/{ClientVersion}"
@@ -106,8 +99,3 @@ Last caught exception -- {type(e)}: {e}
         )
 
         return session
-
-    def _close(self):
-        if not self.use_connection_pooling and self._current_session is not None:
-            self._current_session.close()
-            self._current_session = None
