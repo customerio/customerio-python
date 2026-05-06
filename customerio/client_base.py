@@ -8,7 +8,7 @@ import socket
 from datetime import datetime, timezone
 
 from requests import Session
-from requests.adapters import HTTPAdapter
+from requests.adapters import DEFAULT_POOLBLOCK, HTTPAdapter
 from urllib3.connection import HTTPConnection
 from urllib3.util.retry import Retry
 
@@ -26,22 +26,28 @@ def _tcp_keepalive_socket_options():
     tcp_protocol = getattr(socket, "SOL_TCP", socket.IPPROTO_TCP)
     tcp_keepidle = getattr(socket, "TCP_KEEPIDLE", getattr(socket, "TCP_KEEPALIVE", None))
 
-    options = [(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)]
+    options = list(HTTPConnection.default_socket_options)
+    keepalive_options = [(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)]
     if tcp_keepidle is not None:
-        options.append((tcp_protocol, tcp_keepidle, TCP_KEEPALIVE_IDLE_TIMEOUT))
+        keepalive_options.append((tcp_protocol, tcp_keepidle, TCP_KEEPALIVE_IDLE_TIMEOUT))
     if hasattr(socket, "TCP_KEEPINTVL"):
-        options.append((tcp_protocol, socket.TCP_KEEPINTVL, TCP_KEEPALIVE_INTERVAL))
+        keepalive_options.append((tcp_protocol, socket.TCP_KEEPINTVL, TCP_KEEPALIVE_INTERVAL))
+
+    for option in keepalive_options:
+        if option not in options:
+            options.append(option)
 
     return options
 
 
-def _set_tcp_keepalive_socket_options():
-    socket_options = list(HTTPConnection.default_socket_options)
-    for option in _tcp_keepalive_socket_options():
-        if option not in socket_options:
-            socket_options.append(option)
+class TCPKeepAliveHTTPAdapter(HTTPAdapter):
+    def init_poolmanager(self, connections, maxsize, block=DEFAULT_POOLBLOCK, **pool_kwargs):
+        pool_kwargs.setdefault("socket_options", _tcp_keepalive_socket_options())
+        super().init_poolmanager(connections, maxsize, block=block, **pool_kwargs)
 
-    HTTPConnection.default_socket_options = socket_options
+    def proxy_manager_for(self, proxy, **proxy_kwargs):
+        proxy_kwargs.setdefault("socket_options", _tcp_keepalive_socket_options())
+        return super().proxy_manager_for(proxy, **proxy_kwargs)
 
 
 class ClientBase:
@@ -51,8 +57,6 @@ class ClientBase:
         self.backoff_factor = backoff_factor
         self.use_connection_pooling = use_connection_pooling
         self._current_session = None
-
-        _set_tcp_keepalive_socket_options()
 
     @property
     def http(self):
@@ -131,7 +135,9 @@ Last caught exception -- {type(e)}: {e}
 
         session.mount(
             "https://",
-            HTTPAdapter(max_retries=Retry(total=self.retries, backoff_factor=self.backoff_factor)),
+            TCPKeepAliveHTTPAdapter(
+                max_retries=Retry(total=self.retries, backoff_factor=self.backoff_factor)
+            ),
         )
 
         return session
