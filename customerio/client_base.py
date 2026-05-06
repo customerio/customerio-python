@@ -1,21 +1,23 @@
 """
-Implements the base client that is used by other classes to make requests
+Implements the base client that is used by other classes to make requests.
 """
-from __future__ import division
-from datetime import datetime, timezone
+
 import logging
 import math
+from datetime import datetime, timezone
 
 from requests import Session
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
+from urllib3.util.retry import Retry
 
 from .__version__ import __version__ as ClientVersion
+
 
 class CustomerIOException(Exception):
     pass
 
-class ClientBase(object):
+
+class ClientBase:
     def __init__(self, retries=3, timeout=10, backoff_factor=0.02, use_connection_pooling=True):
         self.timeout = timeout
         self.retries = retries
@@ -31,36 +33,42 @@ class ClientBase(object):
         return self._current_session
 
     def send_request(self, method, url, data):
-        '''Dispatches the request and returns a response'''
+        """Dispatches the request and returns a response."""
 
         try:
             response = self.http.request(
-                method, url=url, json=self._sanitize(data), timeout=self.timeout)
+                method,
+                url=url,
+                json=self._sanitize(data),
+                timeout=self.timeout,
+            )
 
             result_status = response.status_code
             if result_status != 200:
-                raise CustomerIOException('%s: %s %s %s' % (result_status, url, data, response.text))
+                raise CustomerIOException(f"{result_status}: {url} {data} {response.text}")
             return response.text
 
         except Exception as e:
             # Raise exception alerting user that the system might be
             # experiencing an outage and refer them to system status page.
-            message = '''Failed to receive valid response after {count} retries.
+            message = f"""Failed to receive valid response after {self.retries} retries.
 Check system status at http://status.customer.io.
-Last caught exception -- {klass}: {message}
-            '''.format(klass=type(e), message=e, count=self.retries)
-            raise CustomerIOException(message)
+Last caught exception -- {type(e)}: {e}
+            """
+            raise CustomerIOException(message) from e
 
         finally:
             self._close()
 
     def _sanitize(self, data):
-        for k, v in data.items():
-            if isinstance(v, datetime):
-                data[k] = self._datetime_to_timestamp(v)
-            if isinstance(v, float) and math.isnan(v):
-                data[k] = None
-        return data
+        return {key: self._sanitize_value(value) for key, value in data.items()}
+
+    def _sanitize_value(self, value):
+        if isinstance(value, datetime):
+            return self._datetime_to_timestamp(value)
+        if isinstance(value, float) and math.isnan(value):
+            return None
+        return value
 
     def _datetime_to_timestamp(self, dt):
         return int(dt.replace(tzinfo=timezone.utc).timestamp())
@@ -73,41 +81,33 @@ Last caught exception -- {klass}: {message}
             elif isinstance(v, int):
                 customer_string_ids.append(str(v))
             else:
-                raise CustomerIOException(
-                    'customer_ids cannot be {type}'.format(type=type(v)))
+                raise CustomerIOException(f"customer_ids cannot be {type(v)}")
         return customer_string_ids
 
-    # gets a session based on whether we want pooling or not.  If no pooling is desired, we create a new session each time.
     def _get_session(self):
-        if (self.use_connection_pooling):
-            if (self._current_session is None):
+        if self.use_connection_pooling:
+            if self._current_session is None:
                 self._current_session = self._build_session()
 
-            # if we're using pooling, return the existing session.
             logging.debug("Using existing session...")
             return self._current_session
-        else:
-            # if we're not using pooling, build a new session.
-            logging.debug("Creating new session...")
-            self._current_session = self._build_session()
+
+        logging.debug("Creating new session...")
+        self._current_session = self._build_session()
         return self._current_session
 
-    # builds the session.
     def _build_session(self):
         session = Session()
-        session.headers['User-Agent'] = "Customer.io Python Client/{version}".format(version=ClientVersion)
+        session.headers["User-Agent"] = f"Customer.io Python Client/{ClientVersion}"
 
-        # Retry request a number of times before raising an exception
-        # also define backoff_factor to delay each retry
         session.mount(
-            'https://',
-            HTTPAdapter(max_retries=Retry(total=self.retries, backoff_factor=self.backoff_factor)))
+            "https://",
+            HTTPAdapter(max_retries=Retry(total=self.retries, backoff_factor=self.backoff_factor)),
+        )
 
         return session
 
-    # closes the session if we're not using connection pooling.
     def _close(self):
-        # if we're not using pooling; clean up the resources.
-        if (not self.use_connection_pooling and self._current_session is not None):
+        if not self.use_connection_pooling and self._current_session is not None:
             self._current_session.close()
             self._current_session = None

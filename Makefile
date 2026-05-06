@@ -1,15 +1,15 @@
 PYTHON ?= python3
+OPENSSL ?= openssl
+SERVER_CERT := tests/server.pem
 
-all:
-	$(PYTHON) setup.py sdist
+all: build
 	$(PYTHON) -m doctest ./customerio/__init__.py
 
 install:
-	$(PYTHON) setup.py install
+	$(PYTHON) -m pip install .
 
 clean:
-	$(PYTHON) setup.py clean
-	rm -rf MANIFEST build dist
+	rm -rf MANIFEST build dist customerio.egg-info .ruff_cache
 
 dev: clean all
 	if ! pip uninstall customerio; then echo "customerio not installed, installing it for the first time" ; fi
@@ -17,9 +17,21 @@ dev: clean all
 	$(PYTHON) -i -c "from customerio import *"
 
 upload:
-	$(PYTHON) setup.py register
-	echo "*** Now upload the binary to PyPi *** (one second)" && sleep 3 && open dist & open "http://pypi.python.org/pypi?%3Aaction=pkg_edit&name=customerio" # python setup.py upload
+	$(PYTHON) -m twine upload dist/*
 
-test:
-	openssl req -new -newkey rsa:2048 -days 10 -nodes -x509 -subj "/C=CA/ST=Ontario/L=Toronto/O=Test/CN=127.0.0.1" -keyout ./tests/server.pem -out ./tests/server.pem
+build:
+	$(PYTHON) -m build
+
+lint:
+	$(PYTHON) -m ruff check .
+	$(PYTHON) -m ruff format --check .
+
+format:
+	$(PYTHON) -m ruff check --fix .
+	$(PYTHON) -m ruff format .
+
+test: $(SERVER_CERT)
 	$(PYTHON) -m unittest discover -v
+
+$(SERVER_CERT):
+	$(OPENSSL) req -new -newkey rsa:2048 -days 10 -nodes -x509 -subj "/C=CA/ST=Ontario/L=Toronto/O=Test/CN=127.0.0.1" -keyout $(SERVER_CERT) -out $(SERVER_CERT)

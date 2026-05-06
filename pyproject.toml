@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "customerio"
+dynamic = ["version"]
+description = "Customer.io Python bindings."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Peaberry Software Inc.", email = "support@customerio.com" },
+]
+dependencies = [
+    "requests>=2.31.0",
+    "urllib3>=2.0.0",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+
+[project.optional-dependencies]
+dev = [
+    "build>=1.2.2",
+    "ruff>=0.15.12",
+    "twine>=6.1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/customerio/customerio-python"
+Changelog = "https://github.com/customerio/customerio-python/blob/main/CHANGELOG.md"
+Issues = "https://github.com/customerio/customerio-python/issues"
+
+[tool.setuptools.dynamic]
+version = { attr = "customerio.__version__.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["customerio*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["B", "E4", "E7", "E9", "F", "I", "SIM", "UP"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["customerio", "tests"]
