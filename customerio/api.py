@@ -43,7 +43,7 @@ EMAIL_FIELD_MAP = COMMON_MESSAGE_FIELD_MAP | {
     "send_to_unsubscribed": "send_to_unsubscribed",
     "tracked": "tracked",
     "attachments": "attachments",
-    "disable_css_preproceessing": "disable_css_preproceessing",
+    "disable_css_preprocessing": "disable_css_preprocessing",
 }
 
 PUSH_FIELD_MAP = COMMON_MESSAGE_FIELD_MAP | {
@@ -152,10 +152,14 @@ class SendEmailRequest:
         queue_draft=None,
         message_data=None,
         attachments=None,
-        disable_css_preproceessing=None,
+        disable_css_preprocessing=None,
         send_at=None,
         language=None,
+        disable_css_preproceessing=None,
     ):
+        if disable_css_preprocessing is None:
+            disable_css_preprocessing = disable_css_preproceessing
+
         self.transactional_message_id = transactional_message_id
         self.to = to
         self.identifiers = identifiers
@@ -175,9 +179,17 @@ class SendEmailRequest:
         self.queue_draft = queue_draft
         self.message_data = message_data
         self.attachments = attachments
-        self.disable_css_preproceessing = disable_css_preproceessing
+        self.disable_css_preprocessing = disable_css_preprocessing
         self.send_at = send_at
         self.language = language
+
+    @property
+    def disable_css_preproceessing(self):
+        return self.disable_css_preprocessing
+
+    @disable_css_preproceessing.setter
+    def disable_css_preproceessing(self, value):
+        self.disable_css_preprocessing = value
 
     def attach(self, name, content, encode=True):
         """Helper method to add base64-encoded attachments."""
