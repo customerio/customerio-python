@@ -103,14 +103,9 @@ class TestAPIClient(HTTPSTestCase):
         self.assertEqual(payload["disable_css_preprocessing"], True)
         self.assertNotIn("disable_css_preproceessing", payload)
 
-    def test_send_email_disable_css_preprocessing_legacy_alias(self):
-        email = SendEmailRequest(disable_css_preproceessing=True)
-        email.disable_css_preproceessing = False
-        payload = email._to_dict()
-
-        self.assertEqual(email.disable_css_preprocessing, False)
-        self.assertEqual(payload["disable_css_preprocessing"], False)
-        self.assertNotIn("disable_css_preproceessing", payload)
+    def test_send_email_disable_css_preprocessing_rejects_typo(self):
+        with self.assertRaises(TypeError):
+            SendEmailRequest(disable_css_preproceessing=True)
 
     def test_send_push(self):
         self.client.http.hooks = dict(

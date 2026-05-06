@@ -155,11 +155,7 @@ class SendEmailRequest:
         disable_css_preprocessing=None,
         send_at=None,
         language=None,
-        disable_css_preproceessing=None,
     ):
-        if disable_css_preprocessing is None:
-            disable_css_preprocessing = disable_css_preproceessing
-
         self.transactional_message_id = transactional_message_id
         self.to = to
         self.identifiers = identifiers
@@ -182,14 +178,6 @@ class SendEmailRequest:
         self.disable_css_preprocessing = disable_css_preprocessing
         self.send_at = send_at
         self.language = language
-
-    @property
-    def disable_css_preproceessing(self):
-        return self.disable_css_preprocessing
-
-    @disable_css_preproceessing.setter
-    def disable_css_preproceessing(self, value):
-        self.disable_css_preprocessing = value
 
     def attach(self, name, content, encode=True):
         """Helper method to add base64-encoded attachments."""
