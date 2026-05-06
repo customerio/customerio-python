@@ -1,6 +1,19 @@
-# Customer.io Python bindings [![CircleCI](https://circleci.com/gh/customerio/customerio-python.svg?style=svg)](https://circleci.com/gh/customerio/customerio-python)
+<p align=center>
+  <a href="https://customer.io">
+    <img src="https://avatars.githubusercontent.com/u/1152079?s=200&v=4" height="60">
+  </a>
+</p>
 
-This module has been tested with Python 3.6, 3.7, 3.8 and 3.9.
+[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blueviolet?logo=gitpod)](https://gitpod.io/#https://github.com/customerio/customerio-python/)
+![PyPI](https://img.shields.io/pypi/v/customerio)
+![Software License](https://img.shields.io/github/license/customerio/customerio-python)
+[![Build status](https://github.com/customerio/customerio-python/actions/workflows/main.yml/badge.svg)](https://github.com/customerio/customerio-python/actions/workflows/main.yml)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/customerio)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/customerio)
+
+# Customer.io Python
+
+This module is tested with Python 3.10 through 3.14. If you're new to Customer.io, we recommend that you integrate with our [Data Pipelines Python library](https://github.com/customerio/cdp-analytics-python) instead.
 
 ## Installing
 
@@ -40,7 +53,7 @@ values for that field.
 
 You can pass any keyword arguments to the `identify` and `track` methods. These kwargs will be converted to custom attributes.
 
-See original REST documentation [here](http://customer.io/docs/api/rest.html#section-Creating_or_updating_customers)
+See original REST documentation [here](http://customer.io/docs/api/track/#operation/identify)
 
 ### Track a custom event
 
@@ -56,7 +69,7 @@ cio.track(customer_id="5", name='purchased', price=23.45, product="widget")
 
 You can pass any keyword arguments to the `identify` and `track` methods. These kwargs will be converted to custom attributes.
 
-See original REST documentation [here](http://customer.io/docs/api/rest.html#section-Track_a_custom_event)
+See original REST documentation [here](http://customer.io/docs/api/track/#operation/track)
 
 ### Backfill a custom event
 
@@ -81,7 +94,7 @@ Event timestamp may be passed as a ```datetime.datetime``` object, an integer or
 
 Keyword arguments to backfill work the same as a call to ```cio.track```.
 
-See original REST documentation [here](http://customer.io/docs/api/rest.html#section-Track_a_custom_event)
+See original REST documentation [here](http://customer.io/docs/api/track/#operation/track)
 
 ### Track an anonymous event
 
@@ -90,6 +103,14 @@ cio.track_anonymous(anonymous_id="anon-event", name="purchased", price=23.45, pr
 ```
 
 An anonymous event is an event associated with a person you haven't identified. The event requires an `anonymous_id` representing the unknown person and an event `name`. When you identify a person, you can set their `anonymous_id` attribute. If [event merging](https://customer.io/docs/anonymous-events/#turn-on-merging) is turned on in your workspace, and the attribute matches the `anonymous_id` in one or more events that were logged within the last 30 days, we associate those events with the person.
+
+#### Anonymous invite events
+
+If you previously sent [invite events](https://customer.io/docs/journeys/anonymous-invite-emails/), you can achieve the same functionality by sending an anonymous event with the anonymous identifier set to `None`. To send anonymous invites, your event *must* include a `recipient` attribute. 
+
+```python
+cio.track_anonymous(anonymous_id=None, name="invite", first_name="alex", recipient="alex.person@example.com")
+```
 
 ### Delete a customer profile
 ```python
@@ -100,10 +121,25 @@ Deletes the customer profile for a specified customer.
 
 This method returns nothing.  Attempts to delete non-existent customers will not raise any errors.
 
-See original REST documentation [here](http://customer.io/docs/api/rest.html#section-Deleting_customers)
+See original REST documentation [here](https://customer.io/docs/api/track/#operation/delete)
 
 
 You can pass any keyword arguments to the `identify` and `track` methods. These kwargs will be converted to custom attributes.
+
+### Merge duplicate customer profiles
+
+When you merge two people, you pick a primary person and merge a secondary, duplicate person into it. The primary person remains after the merge and the secondary is deleted. This process is permanent: you cannot recover the secondary person.
+
+For each person, you'll set the type of identifier you want to use to identify a person—one of `id`, `email`, or `cio_id`—and then you'll provide the corresponding identifier.
+
+```python
+## Please import identifier types
+cio.merge_customers(primary_id_type=ID,
+  primary_id="cool.person@company.com", 
+  secondary_id_type=EMAIL, 
+  secondary_id="cperson@gmail.com"
+)
+```
 
 ### Add a device
 ```python
@@ -138,7 +174,7 @@ cio.suppress(customer_id="1")
 
 Suppresses the specified customer. They will be deleted from Customer.io, and we will ignore all further attempts to identify or track activity for the suppressed customer ID
 
-See REST documentation [here](https://learn.customer.io/api/#apisuppress_add)
+See REST documentation [here](https://customer.io/docs/api/track/#operation/suppress)
 
 ### Unsuppress a customer
 ```python
@@ -147,19 +183,22 @@ cio.unsuppress(customer_id="1")
 
 Unsuppresses the specified customer. We will remove the supplied id from our suppression list and start accepting new identify and track calls for the customer as normal
 
-See REST documentation [here](https://learn.customer.io/api/#apisuppress_delete)
+See REST documentation [here](https://customer.io/docs/api/track/#operation/unsuppress)
 
 ### Send Transactional Messages
 
-To use the [Transactional API](https://customer.io/docs/transactional-api), instantiate the Customer.io object using an [app key](https://customer.io/docs/managing-credentials#app-api-keys) and create a request object containing:
+To use the [Transactional API](https://customer.io/docs/journeys/transactional-api), instantiate the Customer.io object using an [app key](https://customer.io/docs/managing-credentials#app-api-keys) and create a request object for your message type.
 
-* `transactional_message_id`: the ID of the transactional message you want to send, or the `body`, `from`, and `subject` of a new message.
+## Email
+
+SendEmailRequest requires:
+* `transactional_message_id`: the ID of the transactional message you want to send, or the `body`, `_from`, and `subject` of a new message.
 * `to`: the email address of your recipients 
-* an `identifiers` object containing the `id` of your recipient. If the `id` does not exist, Customer.io will create it.
+* an `identifiers` object containing the `email` and/or `id` of your recipient. If the person you reference by email or ID does not exist, Customer.io creates them.
 * a `message_data` object containing properties that you want reference in your message using Liquid.
 * You can also send attachments with your message. Use `attach` to encode attachments.
 
-Use `send_email` referencing your request to send a transactional message. [Learn more about transactional messages and `SendEmailRequest` properties](https://customer.io/docs/transactional-api).
+Use `send_email` referencing your request to send a transactional message. [Learn more about transactional messages and `SendEmailRequest` properties](https://customer.io/docs/journeys/transactional-api).
 
 ```python
 from customerio import APIClient, Regions, SendEmailRequest
@@ -167,6 +206,42 @@ client = APIClient("your API key", region=Regions.US)
 
 request = SendEmailRequest(
   to="person@example.com",
+  _from="override.sender@example.com",
+  transactional_message_id="3",
+  message_data={
+    "name": "person",
+    "items": [
+      {
+        "name": "shoes",
+        "price": "59.99",
+      },
+    ]
+  },
+  identifiers={
+    "email": "person@example.com",
+  }
+)
+
+with open("receipt.pdf", "rb") as f:
+  request.attach('receipt.pdf', f.read())
+
+response = client.send_email(request)
+print(response)
+```
+
+## Push
+
+SendPushRequest requires:
+* `transactional_message_id`: the ID of the transactional push message you want to send.
+* an `identifiers` object containing the `id` or `email` of your recipient. If the profile does not exist, Customer.io will create it.
+
+Use `send_push` referencing your request to send a transactional message. [Learn more about transactional messages and `SendPushRequest` properties](https://customer.io/docs/journeys/transactional-api).
+
+```python
+from customerio import APIClient, Regions, SendPushRequest
+client = APIClient("your API key", region=Regions.US)
+
+request = SendPushRequest(
   transactional_message_id="3",
   message_data={
     "name": "person",
@@ -182,11 +257,19 @@ request = SendEmailRequest(
   }
 )
 
-with open("path to file", "rb") as f:
-  request.attach('receipt.pdf', f.read())
-
-response = client.send_email(request)
+response = client.send_push(request)
 print(response)
+```
+
+## Notes
+- The Customer.io Python SDK depends on the [`Requests`](https://pypi.org/project/requests/) library which includes [`urllib3`](https://pypi.org/project/urllib3/) as a transitive dependency.  The [`Requests`](https://pypi.org/project/requests/) library leverages connection pooling defined in [`urllib3`](https://pypi.org/project/urllib3/).  [`urllib3`](https://pypi.org/project/urllib3/) only attempts to retry invocations of `HTTP` methods which are understood to be idempotent (See: [`Retry.DEFAULT_ALLOWED_METHODS`](https://github.com/urllib3/urllib3/blob/main/src/urllib3/util/retry.py#L184)).  Since the `POST` method is not considered to be idempotent, any invocations which require `POST` are not retried.
+
+- It is possible to have the Customer.io Python SDK effectively *disable* connection pooling by passing a named initialization parameter `use_connection_pooling` to either the `APIClient` class or `CustomerIO` class.  Setting this parameter to `False` (default: `True`) causes the [`Session`](https://github.com/psf/requests/blob/main/requests/sessions.py#L355) to be initialized and discarded after each request.  If you are experiencing integration issues where the cause is reported as `Connection Reset by Peer`, this may correct the problem.  It will, however, impose a slight performance penalty as the TCP connection set-up and tear-down will now occur for each request.
+
+### Usage Example Disabling Connection Pooling
+```python
+from customerio import CustomerIO, Regions
+cio = CustomerIO(site_id, api_key, region=Regions.US, use_connection_pooling=False)
 ```
 
 ## Running tests
