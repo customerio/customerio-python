@@ -24,6 +24,17 @@ class ClientBase:
         self.use_connection_pooling = use_connection_pooling
         self._current_session = None
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+
+    def close(self):
+        if self._current_session is not None:
+            self._current_session.close()
+            self._current_session = None
+
     @property
     def http(self):
         if self._current_session is None:
