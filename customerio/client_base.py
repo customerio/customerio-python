@@ -99,7 +99,6 @@ class ClientBase:
             backoff_factor=self.backoff_factor,
             allowed_methods=None,
             status_forcelist=[500, 502, 503, 504],
-            raise_on_status=False,
         )
         session.mount("https://", HTTPAdapter(max_retries=retry))
 
