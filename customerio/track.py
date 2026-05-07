@@ -243,7 +243,10 @@ class CustomerIO(ClientBase):
         if not operations:
             raise CustomerIOException("operations cannot be empty in batch")
 
-        url = self.base_url.replace("/api/v1", "/api/v2/batch")
+        if self.port == 443:
+            url = f"https://{self.host}/api/v2/batch"
+        else:
+            url = f"https://{self.host}:{self.port}/api/v2/batch"
         self.send_request("POST", url, {"batch": operations})
 
     def _build_session(self):
