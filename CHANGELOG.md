@@ -24,6 +24,22 @@
 ### Added
 - Added the `disable_css_preprocessing` and `language` optional fields to send request
 
+## [1.6.0]
+### Added
+- Add `use_connection_pooling` parameter to `CustomerIO` and `APIClient` initializers, defaulting to `True`. Set to `False` to create a new session per request instead of reusing connections ([#88](https://github.com/customerio/customerio-python/pull/88))
+
+## [1.5.0]
+### Added
+- Support for invite-type anonymous event tracking ([#83](https://github.com/customerio/customerio-python/pull/83))
+
+### Fixed
+- Fix missing `os` import ([#73](https://github.com/customerio/customerio-python/pull/73))
+- Fix spelling of "response" in error message ([#82](https://github.com/customerio/customerio-python/pull/82))
+
+## [1.4.0]
+### Added
+- Add default `User-Agent` header to HTTP client ([#72](https://github.com/customerio/customerio-python/pull/72))
+
 ## [1.3.0]
 ### Added
 - Support for merging duplicate customers using `merge_customers` function. 

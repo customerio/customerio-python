@@ -234,6 +234,21 @@ class CustomerIO(ClientBase):
         }
         self.send_request("POST", url, post_data)
 
+    def batch(self, operations):
+        """Send multiple operations in a single request.
+
+        Each operation is a dict with at minimum 'type' and 'action' keys.
+        See https://customer.io/docs/api/track/#operation/batch
+        """
+        if not operations:
+            raise CustomerIOException("operations cannot be empty in batch")
+
+        if self.port == 443:
+            url = f"https://{self.host}/api/v2/batch"
+        else:
+            url = f"https://{self.host}:{self.port}/api/v2/batch"
+        self.send_request("POST", url, {"batch": operations})
+
     def _build_session(self):
         session = super()._build_session()
         session.auth = (self.site_id, self.api_key)
