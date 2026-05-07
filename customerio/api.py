@@ -3,7 +3,6 @@ Implements the client that interacts with Customer.io's App API using app keys.
 """
 
 import base64
-import json
 
 from .client_base import ClientBase, CustomerIOException
 from .regions import Region, Regions
@@ -95,31 +94,31 @@ class APIClient(ClientBase):
         if isinstance(request, SendEmailRequest):
             request = request._to_dict()
         resp = self.send_request("POST", self.url + "/v1/send/email", request)
-        return json.loads(resp)
+        return resp.json()
 
     def send_push(self, request):
         if isinstance(request, SendPushRequest):
             request = request._to_dict()
         resp = self.send_request("POST", self.url + "/v1/send/push", request)
-        return json.loads(resp)
+        return resp.json()
 
     def send_sms(self, request):
         if isinstance(request, SendSMSRequest):
             request = request._to_dict()
         resp = self.send_request("POST", self.url + "/v1/send/sms", request)
-        return json.loads(resp)
+        return resp.json()
 
     def send_inbox_message(self, request):
         if isinstance(request, SendInboxMessageRequest):
             request = request._to_dict()
         resp = self.send_request("POST", self.url + "/v1/send/inbox_message", request)
-        return json.loads(resp)
+        return resp.json()
 
     def send_in_app(self, request):
         if isinstance(request, SendInAppRequest):
             request = request._to_dict()
         resp = self.send_request("POST", self.url + "/v1/send/in_app", request)
-        return json.loads(resp)
+        return resp.json()
 
     def _build_session(self):
         session = super()._build_session()
