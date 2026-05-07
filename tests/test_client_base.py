@@ -1,7 +1,7 @@
 import threading
 import unittest
 
-from customerio.client_base import ClientBase
+from customerio.client_base import ClientBase, CustomerIOException
 
 
 class FakeResponse:
@@ -81,6 +81,55 @@ class TestClientBase(unittest.TestCase):
         self.assertTrue(all(session.closed for session in sessions))
         self.assertTrue(all(session.request_count == 1 for session in sessions))
         self.assertIsNone(client._current_session)
+
+    def test_retry_config_allows_post(self):
+        client = ClientBase(retries=5, backoff_factor=0.1)
+        session = client._build_session()
+        adapter = session.get_adapter("https://example.com")
+        retry = adapter.max_retries
+
+        self.assertEqual(retry.total, 5)
+        self.assertEqual(retry.backoff_factor, 0.1)
+        self.assertIsNone(retry.allowed_methods)
+        self.assertEqual(set(retry.status_forcelist), {500, 502, 503, 504})
+
+    def test_non_200_raises_without_retry_wrapper(self):
+        client = ClientBase()
+
+        error_response = FakeResponse()
+        error_response.status_code = 400
+        error_response.text = "bad request"
+
+        def build_session():
+            session = FakeSession()
+            session.request = lambda *a, **kw: error_response
+            return session
+
+        client._build_session = build_session
+
+        with self.assertRaises(CustomerIOException) as ctx:
+            client.send_request("POST", "https://example.com", {})
+
+        self.assertIn("400", str(ctx.exception))
+        self.assertNotIn("retries", str(ctx.exception))
+
+    def test_2xx_status_codes_accepted(self):
+        client = ClientBase()
+
+        for status in [200, 201, 202, 204]:
+            response = FakeResponse()
+            response.status_code = status
+            response.text = "ok"
+
+            def build_session(resp=response):
+                session = FakeSession()
+                session.request = lambda *a, **kw: resp
+                return session
+
+            client._build_session = build_session
+            client._current_session = None
+            result = client.send_request("POST", "https://example.com", {})
+            self.assertEqual(result, "ok")
 
 
 if __name__ == "__main__":

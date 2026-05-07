@@ -52,17 +52,18 @@ class ClientBase:
                     )
 
             result_status = response.status_code
-            if result_status != 200:
+            if result_status < 200 or result_status >= 300:
                 raise CustomerIOException(f"{result_status}: {url} {data} {response.text}")
             return response.text
 
+        except CustomerIOException:
+            raise
         except Exception as e:
-            # Raise exception alerting user that the system might be
-            # experiencing an outage and refer them to system status page.
-            message = f"""Failed to receive valid response after {self.retries} retries.
-Check system status at http://status.customer.io.
-Last caught exception -- {type(e)}: {e}
-            """
+            message = (
+                f"Failed to receive valid response after {self.retries} retries.\n"
+                f"Check system status at http://status.customer.io.\n"
+                f"Last caught exception -- {type(e)}: {e}"
+            )
             raise CustomerIOException(message) from e
 
     def _sanitize(self, data):
@@ -93,9 +94,12 @@ Last caught exception -- {type(e)}: {e}
         session = Session()
         session.headers["User-Agent"] = f"Customer.io Python Client/{ClientVersion}"
 
-        session.mount(
-            "https://",
-            HTTPAdapter(max_retries=Retry(total=self.retries, backoff_factor=self.backoff_factor)),
+        retry = Retry(
+            total=self.retries,
+            backoff_factor=self.backoff_factor,
+            allowed_methods=None,
+            status_forcelist=[500, 502, 503, 504],
         )
+        session.mount("https://", HTTPAdapter(max_retries=retry))
 
         return session
