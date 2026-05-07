@@ -469,6 +469,58 @@ class TestCustomerIO(HTTPSTestCase):
                 secondary_id="",
             )
 
+    def test_batch_call(self):
+        self.cio.http.hooks = dict(
+            response=partial(
+                self._check_request,
+                rq={
+                    "method": "POST",
+                    "authorization": _basic_auth_str("siteid", "apikey"),
+                    "content_type": "application/json",
+                    "url_suffix": "/api/v2/batch",
+                    "body": {
+                        "batch": [
+                            {
+                                "type": "person",
+                                "action": "identify",
+                                "identifiers": {"id": "1"},
+                                "attributes": {"name": "Alice"},
+                            },
+                            {
+                                "type": "person",
+                                "action": "event",
+                                "identifiers": {"id": "1"},
+                                "name": "purchase",
+                            },
+                        ]
+                    },
+                },
+            )
+        )
+
+        self.cio.batch(
+            [
+                {
+                    "type": "person",
+                    "action": "identify",
+                    "identifiers": {"id": "1"},
+                    "attributes": {"name": "Alice"},
+                },
+                {
+                    "type": "person",
+                    "action": "event",
+                    "identifiers": {"id": "1"},
+                    "name": "purchase",
+                },
+            ]
+        )
+
+        with self.assertRaises(CustomerIOException):
+            self.cio.batch([])
+
+        with self.assertRaises(CustomerIOException):
+            self.cio.batch(None)
+
 
 if __name__ == "__main__":
     unittest.main()
