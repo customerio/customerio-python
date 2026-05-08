@@ -268,9 +268,7 @@ class TestCustomerIO(HTTPSTestCase):
             )
         )
 
-        self.cio.track_anonymous(
-            "anon-123", "purchase", {"type": "socks"}, timestamp=1561231234
-        )
+        self.cio.track_anonymous("anon-123", "purchase", {"type": "socks"}, timestamp=1561231234)
 
     def test_pageview_call(self):
         self.cio.http.hooks = dict(
