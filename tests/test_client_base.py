@@ -134,6 +134,46 @@ class TestClientBase(unittest.TestCase):
             result = client.send_request("POST", "https://example.com", {})
             self.assertEqual(result.status_code, status)
 
+    def test_context_manager_closes_session(self):
+        client = ClientBase(use_connection_pooling=True)
+        session = FakeSession()
+        client._build_session = lambda: session
+
+        with client:
+            client.send_request("POST", "https://example.com", {})
+            self.assertFalse(session.closed)
+
+        self.assertTrue(session.closed)
+        self.assertIsNone(client._current_session)
+
+    def test_close_without_session(self):
+        client = ClientBase()
+        client.close()
+        self.assertIsNone(client._current_session)
+
+    def test_close_resets_session(self):
+        client = ClientBase(use_connection_pooling=True)
+        session = FakeSession()
+        client._build_session = lambda: session
+
+        client.send_request("POST", "https://example.com", {})
+        self.assertIsNotNone(client._current_session)
+
+        client.close()
+        self.assertTrue(session.closed)
+        self.assertIsNone(client._current_session)
+
+    def test_close_resets_session_even_on_error(self):
+        client = ClientBase(use_connection_pooling=True)
+        session = FakeSession()
+        session.close = lambda: (_ for _ in ()).throw(RuntimeError("close failed"))
+        client._current_session = session
+
+        with self.assertRaises(RuntimeError):
+            client.close()
+
+        self.assertIsNone(client._current_session)
+
 
 if __name__ == "__main__":
     unittest.main()
