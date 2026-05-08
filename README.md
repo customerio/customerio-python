@@ -28,7 +28,7 @@ from customerio import CustomerIO, Regions
 cio = CustomerIO(site_id, api_key, region=Regions.US)
 cio.identify(id="5", email='customer@example.com', name='Bob', plan='premium')
 cio.track(customer_id="5", name='purchased')
-cio.track(customer_id="5", name='purchased', price=23.45)
+cio.track(customer_id="5", name='purchased', data={"price": 23.45})
 ```
 
 ### Instantiating customer.io object
@@ -51,7 +51,7 @@ Only the id field is used to identify the customer here.  Using an existing id w
 a different email (or any other attribute) will update/overwrite any pre-existing
 values for that field.
 
-You can pass any keyword arguments to the `identify` and `track` methods. These kwargs will be converted to custom attributes.
+You can pass any keyword arguments to the `identify` method. These kwargs will be converted to custom attributes.
 
 See original REST documentation [here](http://customer.io/docs/api/track/#operation/identify)
 
@@ -64,12 +64,26 @@ cio.track(customer_id="5", name='purchased')
 ### Track a custom event with custom data values
 
 ```python
-cio.track(customer_id="5", name='purchased', price=23.45, product="widget")
+cio.track(customer_id="5", name='purchased', data={"price": 23.45, "product": "widget"})
 ```
 
-You can pass any keyword arguments to the `identify` and `track` methods. These kwargs will be converted to custom attributes.
+Pass custom event attributes to `track` in the `data` dict.
 
 See original REST documentation [here](http://customer.io/docs/api/track/#operation/track)
+
+### Track a custom event with an event id or timestamp
+
+```python
+cio.track(
+  customer_id="5",
+  name='purchased',
+  data={"price": 23.45, "product": "widget"},
+  id="01HB4HBDKTFWYZCK01DMRSWRFD",
+  timestamp=1561231234
+)
+```
+
+Pass `id` to provide a unique event identifier for deduplication. Pass `timestamp` to set the event time. These fields are sent as top-level event fields, not as custom attributes in `data`.
 
 ### Backfill a custom event
 
@@ -92,24 +106,34 @@ cio.backfill(customer_id, event_type, event_timestamp, price=45.67)
 
 Event timestamp may be passed as a ```datetime.datetime``` object, an integer or a string UNIX timestamp
 
-Keyword arguments to backfill work the same as a call to ```cio.track```.
+Keyword arguments to backfill are converted to custom event attributes.
 
 See original REST documentation [here](http://customer.io/docs/api/track/#operation/track)
 
 ### Track an anonymous event
 
 ```python
-cio.track_anonymous(anonymous_id="anon-event", name="purchased", price=23.45, product="widget")
+cio.track_anonymous(
+  anonymous_id="anon-event",
+  name="purchased",
+  data={"price": 23.45, "product": "widget"}
+)
 ```
 
 An anonymous event is an event associated with a person you haven't identified. The event requires an `anonymous_id` representing the unknown person and an event `name`. When you identify a person, you can set their `anonymous_id` attribute. If [event merging](https://customer.io/docs/anonymous-events/#turn-on-merging) is turned on in your workspace, and the attribute matches the `anonymous_id` in one or more events that were logged within the last 30 days, we associate those events with the person.
+
+Like `track`, `track_anonymous` accepts custom event attributes in `data` and optional top-level `id` and `timestamp` fields.
 
 #### Anonymous invite events
 
 If you previously sent [invite events](https://customer.io/docs/journeys/anonymous-invite-emails/), you can achieve the same functionality by sending an anonymous event with the anonymous identifier set to `None`. To send anonymous invites, your event *must* include a `recipient` attribute. 
 
 ```python
-cio.track_anonymous(anonymous_id=None, name="invite", first_name="alex", recipient="alex.person@example.com")
+cio.track_anonymous(
+  anonymous_id=None,
+  name="invite",
+  data={"first_name": "alex", "recipient": "alex.person@example.com"}
+)
 ```
 
 ### Delete a customer profile
@@ -124,7 +148,7 @@ This method returns nothing.  Attempts to delete non-existent customers will not
 See original REST documentation [here](https://customer.io/docs/api/track/#operation/delete)
 
 
-You can pass any keyword arguments to the `identify` and `track` methods. These kwargs will be converted to custom attributes.
+You can pass any keyword arguments to the `identify` method. These kwargs will be converted to custom attributes.
 
 ### Merge duplicate customer profiles
 

@@ -14,6 +14,23 @@ from tests.server import HTTPSTestCase
 urllib3.disable_warnings()
 
 
+class TestCustomerIOTrackSignatures(unittest.TestCase):
+    def setUp(self):
+        self.cio = CustomerIO(site_id="siteid", api_key="apikey")
+
+    def test_track_rejects_event_data_keyword_arguments(self):
+        with self.assertRaises(TypeError):
+            self.cio.track(customer_id="5", name="purchased", price=23.45)
+
+    def test_track_anonymous_rejects_event_data_keyword_arguments(self):
+        with self.assertRaises(TypeError):
+            self.cio.track_anonymous(
+                anonymous_id=None,
+                name="invite",
+                recipient="alex.person@example.com",
+            )
+
+
 class TestCustomerIO(HTTPSTestCase):
     """Starts server which the client connects to in the following tests"""
 
@@ -231,6 +248,32 @@ class TestCustomerIO(HTTPSTestCase):
         )
 
         self.cio.track_anonymous(anonymous_id=123, name="sign_up", data={"email": "john@test.com"})
+
+    def test_track_anonymous_invite_with_data_dict(self):
+        self.cio.http.hooks = dict(
+            response=partial(
+                self._check_request,
+                rq={
+                    "method": "POST",
+                    "authorization": _basic_auth_str("siteid", "apikey"),
+                    "content_type": "application/json",
+                    "url_suffix": "/events",
+                    "body": {
+                        "data": {
+                            "first_name": "alex",
+                            "recipient": "alex.person@example.com",
+                        },
+                        "name": "invite",
+                    },
+                },
+            )
+        )
+
+        self.cio.track_anonymous(
+            anonymous_id=None,
+            name="invite",
+            data={"first_name": "alex", "recipient": "alex.person@example.com"},
+        )
 
     def test_track_anonymous_with_id(self):
         self.cio.http.hooks = dict(
