@@ -163,6 +163,17 @@ class TestClientBase(unittest.TestCase):
         self.assertTrue(session.closed)
         self.assertIsNone(client._current_session)
 
+    def test_close_resets_session_even_on_error(self):
+        client = ClientBase(use_connection_pooling=True)
+        session = FakeSession()
+        session.close = lambda: (_ for _ in ()).throw(RuntimeError("close failed"))
+        client._current_session = session
+
+        with self.assertRaises(RuntimeError):
+            client.close()
+
+        self.assertIsNone(client._current_session)
+
 
 if __name__ == "__main__":
     unittest.main()

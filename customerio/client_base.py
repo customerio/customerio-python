@@ -32,8 +32,10 @@ class ClientBase:
 
     def close(self):
         if self._current_session is not None:
-            self._current_session.close()
-            self._current_session = None
+            try:
+                self._current_session.close()
+            finally:
+                self._current_session = None
 
     @property
     def http(self):
