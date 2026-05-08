@@ -89,7 +89,7 @@ class CustomerIO(ClientBase):
         if not id:
             raise CustomerIOException("id cannot be blank in identify")
         url = self.get_customer_query_string(id)
-        self.send_request("PUT", url, kwargs)
+        return self.send_request("PUT", url, kwargs)
 
     def track(self, customer_id, name, **data):
         """Track an event for a given customer_id."""
@@ -100,7 +100,7 @@ class CustomerIO(ClientBase):
             "name": name,
             "data": self._sanitize(data),
         }
-        self.send_request("POST", url, post_data)
+        return self.send_request("POST", url, post_data)
 
     def track_anonymous(self, anonymous_id, name, **data):
         """Track an event for a given anonymous_id."""
@@ -112,7 +112,7 @@ class CustomerIO(ClientBase):
         if anonymous_id:
             post_data["anonymous_id"] = anonymous_id
 
-        self.send_request("POST", url, post_data)
+        return self.send_request("POST", url, post_data)
 
     def pageview(self, customer_id, page, **data):
         """Track a pageview for a given customer_id."""
@@ -124,7 +124,7 @@ class CustomerIO(ClientBase):
             "name": page,
             "data": self._sanitize(data),
         }
-        self.send_request("POST", url, post_data)
+        return self.send_request("POST", url, post_data)
 
     def backfill(self, customer_id, name, timestamp, **data):
         """Backfill an event (track with timestamp) for a given customer_id."""
@@ -147,7 +147,7 @@ class CustomerIO(ClientBase):
             "timestamp": timestamp,
         }
 
-        self.send_request("POST", url, post_data)
+        return self.send_request("POST", url, post_data)
 
     def delete(self, customer_id):
         """Delete a customer profile."""
@@ -155,7 +155,7 @@ class CustomerIO(ClientBase):
             raise CustomerIOException("customer_id cannot be blank in delete")
 
         url = self.get_customer_query_string(customer_id)
-        self.send_request("DELETE", url, {})
+        return self.send_request("DELETE", url, {})
 
     def add_device(self, customer_id, device_id, platform, **data):
         """Add a device to a customer profile."""
@@ -176,7 +176,7 @@ class CustomerIO(ClientBase):
         )
         payload = {"device": data}
         url = self.get_device_query_string(customer_id)
-        self.send_request("PUT", url, payload)
+        return self.send_request("PUT", url, payload)
 
     def delete_device(self, customer_id, device_id):
         """Delete a device from a customer profile."""
@@ -188,13 +188,13 @@ class CustomerIO(ClientBase):
 
         url = self.get_device_query_string(customer_id)
         delete_url = f"{url}/{self._url_encode(device_id)}"
-        self.send_request("DELETE", delete_url, {})
+        return self.send_request("DELETE", delete_url, {})
 
     def suppress(self, customer_id):
         if not customer_id:
             raise CustomerIOException("customer_id cannot be blank in suppress")
 
-        self.send_request(
+        return self.send_request(
             "POST",
             f"{self.base_url}/customers/{self._url_encode(customer_id)}/suppress",
             {},
@@ -204,7 +204,7 @@ class CustomerIO(ClientBase):
         if not customer_id:
             raise CustomerIOException("customer_id cannot be blank in unsuppress")
 
-        self.send_request(
+        return self.send_request(
             "POST",
             f"{self.base_url}/customers/{self._url_encode(customer_id)}/unsuppress",
             {},
@@ -232,7 +232,7 @@ class CustomerIO(ClientBase):
             "primary": {primary_id_type: primary_id},
             "secondary": {secondary_id_type: secondary_id},
         }
-        self.send_request("POST", url, post_data)
+        return self.send_request("POST", url, post_data)
 
     def batch(self, operations):
         """Send multiple operations in a single request.
@@ -247,7 +247,7 @@ class CustomerIO(ClientBase):
             url = f"https://{self.host}/api/v2/batch"
         else:
             url = f"https://{self.host}:{self.port}/api/v2/batch"
-        self.send_request("POST", url, {"batch": operations})
+        return self.send_request("POST", url, {"batch": operations})
 
     def _build_session(self):
         session = super()._build_session()

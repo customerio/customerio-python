@@ -43,8 +43,10 @@ class TestClientBase(unittest.TestCase):
 
         client._build_session = build_session
 
-        self.assertEqual(client.send_request("POST", "https://example.com", {}), "ok")
-        self.assertEqual(client.send_request("POST", "https://example.com", {}), "ok")
+        resp1 = client.send_request("POST", "https://example.com", {})
+        resp2 = client.send_request("POST", "https://example.com", {})
+        self.assertEqual(resp1.status_code, 200)
+        self.assertEqual(resp2.status_code, 200)
 
         self.assertEqual(len(sessions), 1)
         self.assertFalse(sessions[0].closed)
@@ -76,7 +78,8 @@ class TestClientBase(unittest.TestCase):
             thread.join()
 
         self.assertEqual(errors, [])
-        self.assertEqual(sorted(responses), ["ok", "ok"])
+        self.assertEqual(len(responses), 2)
+        self.assertTrue(all(r.status_code == 200 for r in responses))
         self.assertEqual(len(sessions), 2)
         self.assertTrue(all(session.closed for session in sessions))
         self.assertTrue(all(session.request_count == 1 for session in sessions))
@@ -129,7 +132,7 @@ class TestClientBase(unittest.TestCase):
             client._build_session = build_session
             client._current_session = None
             result = client.send_request("POST", "https://example.com", {})
-            self.assertEqual(result, "ok")
+            self.assertEqual(result.status_code, status)
 
 
 if __name__ == "__main__":

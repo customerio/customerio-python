@@ -54,7 +54,7 @@ class ClientBase:
             result_status = response.status_code
             if result_status < 200 or result_status >= 300:
                 raise CustomerIOException(f"{result_status}: {url} {data} {response.text}")
-            return response.text
+            return response
 
         except CustomerIOException:
             raise
