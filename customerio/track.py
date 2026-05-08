@@ -158,7 +158,7 @@ class CustomerIO(ClientBase):
             else:
                 try:
                     timestamp = int(timestamp)
-                except (ValueError, TypeError):
+                except (ValueError, TypeError, OverflowError):
                     timestamp = None
             if timestamp is not None:
                 post_data["timestamp"] = timestamp
