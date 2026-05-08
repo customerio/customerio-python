@@ -108,10 +108,109 @@ class TestCustomerIO(HTTPSTestCase):
             )
         )
 
-        self.cio.track(customer_id=1, name="sign_up", email="john@test.com")
+        self.cio.track(customer_id=1, name="sign_up", data={"email": "john@test.com"})
 
         with self.assertRaises(TypeError):
             self.cio.track(random_attr="some_value")
+
+    def test_track_with_id(self):
+        self.cio.http.hooks = dict(
+            response=partial(
+                self._check_request,
+                rq={
+                    "method": "POST",
+                    "url_suffix": "/customers/1/events",
+                    "body": {
+                        "name": "purchase",
+                        "data": {"type": "socks"},
+                        "id": "01HB4HBDKTFWYZCK01DMRSWRFD",
+                    },
+                },
+            )
+        )
+
+        self.cio.track(1, "purchase", {"type": "socks"}, id="01HB4HBDKTFWYZCK01DMRSWRFD")
+
+    def test_track_without_id(self):
+        self.cio.http.hooks = dict(
+            response=partial(
+                self._check_request,
+                rq={
+                    "method": "POST",
+                    "url_suffix": "/customers/1/events",
+                    "body": {"name": "purchase", "data": {"type": "socks"}},
+                },
+            )
+        )
+
+        self.cio.track(1, "purchase", {"type": "socks"})
+
+    def test_track_with_timestamp(self):
+        self.cio.http.hooks = dict(
+            response=partial(
+                self._check_request,
+                rq={
+                    "method": "POST",
+                    "url_suffix": "/customers/1/events",
+                    "body": {
+                        "name": "purchase",
+                        "data": {"type": "socks"},
+                        "timestamp": 1561231234,
+                    },
+                },
+            )
+        )
+
+        self.cio.track(1, "purchase", {"type": "socks"}, timestamp=1561231234)
+
+    def test_track_with_id_and_timestamp(self):
+        self.cio.http.hooks = dict(
+            response=partial(
+                self._check_request,
+                rq={
+                    "method": "POST",
+                    "url_suffix": "/customers/1/events",
+                    "body": {
+                        "name": "purchase",
+                        "data": {"type": "socks"},
+                        "id": "01HB4HBDKTFWYZCK01DMRSWRFD",
+                        "timestamp": 1561231234,
+                    },
+                },
+            )
+        )
+
+        self.cio.track(
+            1, "purchase", {"type": "socks"}, id="01HB4HBDKTFWYZCK01DMRSWRFD", timestamp=1561231234
+        )
+
+    def test_track_with_invalid_timestamp(self):
+        self.cio.http.hooks = dict(
+            response=partial(
+                self._check_request,
+                rq={
+                    "method": "POST",
+                    "url_suffix": "/customers/1/events",
+                    "body": {"name": "purchase", "data": {"type": "socks"}},
+                },
+            )
+        )
+
+        self.cio.track(1, "purchase", {"type": "socks"}, timestamp="not-a-timestamp")
+
+    def test_track_with_no_data(self):
+        self.cio.http.hooks = dict(
+            response=partial(
+                self._check_request,
+                rq={
+                    "method": "POST",
+                    "url_suffix": "/customers/1/events",
+                    "body": {"name": "login", "data": {}},
+                },
+            )
+        )
+
+        self.cio.track(1, "login")
 
     def test_track_anonymous_call(self):
         self.cio.http.hooks = dict(
@@ -131,7 +230,47 @@ class TestCustomerIO(HTTPSTestCase):
             )
         )
 
-        self.cio.track_anonymous(anonymous_id=123, name="sign_up", email="john@test.com")
+        self.cio.track_anonymous(anonymous_id=123, name="sign_up", data={"email": "john@test.com"})
+
+    def test_track_anonymous_with_id(self):
+        self.cio.http.hooks = dict(
+            response=partial(
+                self._check_request,
+                rq={
+                    "method": "POST",
+                    "url_suffix": "/events",
+                    "body": {
+                        "name": "purchase",
+                        "data": {},
+                        "anonymous_id": "anon-123",
+                        "id": "01HB4HBDKTFWYZCK01DMRSWRFD",
+                    },
+                },
+            )
+        )
+
+        self.cio.track_anonymous("anon-123", "purchase", id="01HB4HBDKTFWYZCK01DMRSWRFD")
+
+    def test_track_anonymous_with_timestamp(self):
+        self.cio.http.hooks = dict(
+            response=partial(
+                self._check_request,
+                rq={
+                    "method": "POST",
+                    "url_suffix": "/events",
+                    "body": {
+                        "name": "purchase",
+                        "data": {"type": "socks"},
+                        "anonymous_id": "anon-123",
+                        "timestamp": 1561231234,
+                    },
+                },
+            )
+        )
+
+        self.cio.track_anonymous(
+            "anon-123", "purchase", {"type": "socks"}, timestamp=1561231234
+        )
 
     def test_pageview_call(self):
         self.cio.http.hooks = dict(
@@ -394,7 +533,7 @@ class TestCustomerIO(HTTPSTestCase):
                 },
             )
         )
-        self.cio.track(customer_id="1 ", name="test")
+        self.cio.track(customer_id="1 ", name="test", data={})
 
         self.cio.http.hooks = dict(
             response=partial(
