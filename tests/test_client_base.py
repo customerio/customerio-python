@@ -132,7 +132,7 @@ class TestClientBase(unittest.TestCase):
             client._build_session = build_session
             client._current_session = None
             result = client.send_request("POST", "https://example.com", {})
-            self.assertEqual(result, "ok")
+            self.assertEqual(result.status_code, status)
 
 
 if __name__ == "__main__":

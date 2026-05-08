@@ -247,7 +247,7 @@ class CustomerIO(ClientBase):
             url = f"https://{self.host}/api/v2/batch"
         else:
             url = f"https://{self.host}:{self.port}/api/v2/batch"
-        self.send_request("POST", url, {"batch": operations})
+        return self.send_request("POST", url, {"batch": operations})
 
     def _build_session(self):
         session = super()._build_session()
