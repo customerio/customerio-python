@@ -3,13 +3,46 @@ Implements the base client that is used by other classes to make requests.
 """
 
 import math
+import socket
 from datetime import datetime, timezone
 
 from requests import Session
-from requests.adapters import HTTPAdapter
+from requests.adapters import DEFAULT_POOLBLOCK, HTTPAdapter
+from urllib3.connection import HTTPConnection
 from urllib3.util.retry import Retry
 
 from .__version__ import __version__ as ClientVersion
+
+TCP_KEEPALIVE_IDLE_TIMEOUT = 300
+TCP_KEEPALIVE_INTERVAL = 60
+
+
+def _tcp_keepalive_socket_options():
+    tcp_protocol = getattr(socket, "SOL_TCP", socket.IPPROTO_TCP)
+    tcp_keepidle = getattr(socket, "TCP_KEEPIDLE", getattr(socket, "TCP_KEEPALIVE", None))
+
+    options = list(HTTPConnection.default_socket_options)
+    keepalive_options = [(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)]
+    if tcp_keepidle is not None:
+        keepalive_options.append((tcp_protocol, tcp_keepidle, TCP_KEEPALIVE_IDLE_TIMEOUT))
+    if hasattr(socket, "TCP_KEEPINTVL"):
+        keepalive_options.append((tcp_protocol, socket.TCP_KEEPINTVL, TCP_KEEPALIVE_INTERVAL))
+
+    for option in keepalive_options:
+        if option not in options:
+            options.append(option)
+
+    return options
+
+
+class TCPKeepAliveHTTPAdapter(HTTPAdapter):
+    def init_poolmanager(self, connections, maxsize, block=DEFAULT_POOLBLOCK, **pool_kwargs):
+        pool_kwargs.setdefault("socket_options", _tcp_keepalive_socket_options())
+        super().init_poolmanager(connections, maxsize, block=block, **pool_kwargs)
+
+    def proxy_manager_for(self, proxy, **proxy_kwargs):
+        proxy_kwargs.setdefault("socket_options", _tcp_keepalive_socket_options())
+        return super().proxy_manager_for(proxy, **proxy_kwargs)
 
 
 class CustomerIOException(Exception):
@@ -113,6 +146,6 @@ class ClientBase:
             allowed_methods=None,
             status_forcelist=[500, 502, 503, 504],
         )
-        session.mount("https://", HTTPAdapter(max_retries=retry))
+        session.mount("https://", TCPKeepAliveHTTPAdapter(max_retries=retry))
 
         return session
