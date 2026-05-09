@@ -1,12 +1,15 @@
 import json
+import socket
 import unittest
 from datetime import datetime
 from functools import partial
 
 import urllib3
 from requests.auth import _basic_auth_str
+from urllib3.connection import HTTPConnection
 
 from customerio import CustomerIO, CustomerIOException, Regions
+from customerio.client_base import TCP_KEEPALIVE_IDLE_TIMEOUT, TCP_KEEPALIVE_INTERVAL
 from customerio.constants import CIOID, EMAIL, ID
 from tests.server import HTTPSTestCase
 
@@ -80,6 +83,26 @@ class TestCustomerIO(HTTPSTestCase):
         # Raises an exception when an invalid region is passed in
         with self.assertRaises(CustomerIOException):
             CustomerIO(site_id="site_id", api_key="api_key", region="au")
+
+    def test_keepalive_socket_options_are_configured_on_adapter(self):
+        default_socket_options = list(HTTPConnection.default_socket_options)
+        client = CustomerIO(site_id="site_id", api_key="api_key")
+        socket_options = client.http.adapters["https://"].poolmanager.connection_pool_kw[
+            "socket_options"
+        ]
+        tcp_protocol = getattr(socket, "SOL_TCP", socket.IPPROTO_TCP)
+        tcp_keepidle = getattr(socket, "TCP_KEEPIDLE", getattr(socket, "TCP_KEEPALIVE", None))
+
+        for option in default_socket_options:
+            self.assertIn(option, socket_options)
+        self.assertIn((socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1), socket_options)
+        if tcp_keepidle is not None:
+            self.assertIn((tcp_protocol, tcp_keepidle, TCP_KEEPALIVE_IDLE_TIMEOUT), socket_options)
+        if hasattr(socket, "TCP_KEEPINTVL"):
+            self.assertIn(
+                (tcp_protocol, socket.TCP_KEEPINTVL, TCP_KEEPALIVE_INTERVAL), socket_options
+            )
+        self.assertEqual(HTTPConnection.default_socket_options, default_socket_options)
 
     def test_client_connection_handling(self):
         retries = self.cio.retries
