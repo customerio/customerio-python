@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+### Added
+- Add support for optional top-level `id` and `timestamp` event fields in `track()` and `track_anonymous()`.
+
+### Changed
+- `track()` and `track_anonymous()` now take custom event attributes in the `data` dict instead of arbitrary keyword arguments.
+
 ## [2.4]
 ### Added
 - Add support for sending transactional in-app messages [#113](https://github.com/customerio/customerio-python/pull/113)

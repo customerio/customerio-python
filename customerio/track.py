@@ -91,24 +91,18 @@ class CustomerIO(ClientBase):
         url = self.get_customer_query_string(id)
         return self.send_request("PUT", url, kwargs)
 
-    def track(self, customer_id, name, **data):
+    def track(self, customer_id, name, data=None, id=None, timestamp=None):
         """Track an event for a given customer_id."""
         if not customer_id:
             raise CustomerIOException("customer_id cannot be blank in track")
         url = self.get_event_query_string(customer_id)
-        post_data = {
-            "name": name,
-            "data": self._sanitize(data),
-        }
+        post_data = self._build_event(name, data, id=id, timestamp=timestamp)
         return self.send_request("POST", url, post_data)
 
-    def track_anonymous(self, anonymous_id, name, **data):
+    def track_anonymous(self, anonymous_id, name, data=None, id=None, timestamp=None):
         """Track an event for a given anonymous_id."""
         url = self.get_events_query_string()
-        post_data = {
-            "name": name,
-            "data": self._sanitize(data),
-        }
+        post_data = self._build_event(name, data, id=id, timestamp=timestamp)
         if anonymous_id:
             post_data["anonymous_id"] = anonymous_id
 
@@ -148,6 +142,27 @@ class CustomerIO(ClientBase):
         }
 
         return self.send_request("POST", url, post_data)
+
+    def _build_event(self, name, data=None, id=None, timestamp=None):
+        post_data = {
+            "name": name,
+            "data": self._sanitize(data or {}),
+        }
+        if id is not None:
+            post_data["id"] = id
+        if timestamp is not None:
+            if isinstance(timestamp, datetime):
+                timestamp = self._datetime_to_timestamp(timestamp)
+            elif isinstance(timestamp, int):
+                pass
+            else:
+                try:
+                    timestamp = int(timestamp)
+                except (ValueError, TypeError, OverflowError):
+                    timestamp = None
+            if timestamp is not None:
+                post_data["timestamp"] = timestamp
+        return post_data
 
     def delete(self, customer_id):
         """Delete a customer profile."""
