@@ -41,7 +41,7 @@ dev = [
 
 [project.urls]
 Homepage = "https://github.com/customerio/customerio-python"
-Changelog = "https://github.com/customerio/customerio-python/blob/main/CHANGELOG.md"
+Releases = "https://github.com/customerio/customerio-python/releases"
 Issues = "https://github.com/customerio/customerio-python/issues"
 
 [tool.setuptools.dynamic]
