@@ -100,7 +100,8 @@ class TestCustomerIO(HTTPSTestCase):
             self.assertIn((tcp_protocol, tcp_keepidle, TCP_KEEPALIVE_IDLE_TIMEOUT), socket_options)
         if hasattr(socket, "TCP_KEEPINTVL"):
             self.assertIn(
-                (tcp_protocol, socket.TCP_KEEPINTVL, TCP_KEEPALIVE_INTERVAL), socket_options
+                (tcp_protocol, socket.TCP_KEEPINTVL, TCP_KEEPALIVE_INTERVAL),
+                socket_options,
             )
         self.assertEqual(HTTPConnection.default_socket_options, default_socket_options)
 
@@ -221,7 +222,11 @@ class TestCustomerIO(HTTPSTestCase):
         )
 
         self.cio.track(
-            1, "purchase", {"type": "socks"}, id="01HB4HBDKTFWYZCK01DMRSWRFD", timestamp=1561231234
+            1,
+            "purchase",
+            {"type": "socks"},
+            id="01HB4HBDKTFWYZCK01DMRSWRFD",
+            timestamp=1561231234,
         )
 
     def test_track_with_invalid_timestamp(self):
@@ -444,14 +449,21 @@ class TestCustomerIO(HTTPSTestCase):
                     "content_type": "application/json",
                     "url_suffix": "/customers/1/devices",
                     "body": {
-                        "device": {"id": "device_2", "platform": "android", "last_used": 1234567890}
+                        "device": {
+                            "id": "device_2",
+                            "platform": "android",
+                            "last_used": 1234567890,
+                        }
                     },
                 },
             )
         )
 
         self.cio.add_device(
-            customer_id=1, device_id="device_2", platform="android", last_used=1234567890
+            customer_id=1,
+            device_id="device_2",
+            platform="android",
+            last_used=1234567890,
         )
 
     def test_device_call_valid_platform(self):
@@ -566,6 +578,57 @@ class TestCustomerIO(HTTPSTestCase):
         data_out = self.cio._sanitize(data_in)
         self.assertEqual(data_out, dict(dt=1234567890))
 
+    def test_sanitize_nested_dict_datetime(self):
+        from datetime import timezone
+
+        data_in = {"event": {"created_at": datetime(2009, 2, 13, 23, 31, 30, 0, timezone.utc)}}
+        data_out = self.cio._sanitize(data_in)
+        self.assertEqual(data_out, {"event": {"created_at": 1234567890}})
+
+    def test_sanitize_list_datetime(self):
+        from datetime import timezone
+
+        data_in = {
+            "dates": [
+                datetime(2009, 2, 13, 23, 31, 30, 0, timezone.utc),
+                datetime(2024, 1, 1, 0, 0, 0, 0, timezone.utc),
+            ]
+        }
+        data_out = self.cio._sanitize(data_in)
+        self.assertEqual(data_out, {"dates": [1234567890, 1704067200]})
+
+    def test_sanitize_nested_dict_nan(self):
+        data_in = {"metrics": {"score": float("nan"), "count": 5}}
+        data_out = self.cio._sanitize(data_in)
+        self.assertEqual(data_out, {"metrics": {"score": None, "count": 5}})
+
+    def test_sanitize_deeply_nested(self):
+        from datetime import timezone
+
+        data_in = {
+            "outer": {
+                "items": [
+                    {
+                        "ts": datetime(2009, 2, 13, 23, 31, 30, 0, timezone.utc),
+                        "val": float("nan"),
+                    },
+                    {"ts": datetime(2024, 1, 1, 0, 0, 0, 0, timezone.utc), "val": 42},
+                ],
+            },
+        }
+        data_out = self.cio._sanitize(data_in)
+        self.assertEqual(
+            data_out,
+            {
+                "outer": {
+                    "items": [
+                        {"ts": 1234567890, "val": None},
+                        {"ts": 1704067200, "val": 42},
+                    ],
+                },
+            },
+        )
+
     def test_sanitize_naive_datetime(self):
         """Naive datetimes are assumed UTC (backward compatible)."""
         data_in = dict(dt=datetime(2009, 2, 13, 23, 31, 30))
@@ -647,7 +710,10 @@ class TestCustomerIO(HTTPSTestCase):
                     "authorization": _basic_auth_str("siteid", "apikey"),
                     "content_type": "application/json",
                     "url_suffix": "/merge_customers",
-                    "body": {"primary": {"cio_id": "CIO456"}, "secondary": {"id": "MyCustomId"}},
+                    "body": {
+                        "primary": {"cio_id": "CIO456"},
+                        "secondary": {"id": "MyCustomId"},
+                    },
                 },
             )
         )
