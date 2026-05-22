@@ -578,7 +578,12 @@ class TestCustomerIO(HTTPSTestCase):
     def test_sanitize_list_datetime(self):
         from datetime import timezone
 
-        data_in = {"dates": [datetime(2009, 2, 13, 23, 31, 30, 0, timezone.utc), datetime(2024, 1, 1, 0, 0, 0, 0, timezone.utc)]}
+        data_in = {
+            "dates": [
+                datetime(2009, 2, 13, 23, 31, 30, 0, timezone.utc),
+                datetime(2024, 1, 1, 0, 0, 0, 0, timezone.utc),
+            ]
+        }
         data_out = self.cio._sanitize(data_in)
         self.assertEqual(data_out, {"dates": [1234567890, 1704067200]})
 
