@@ -2,6 +2,7 @@ import base64
 import json
 import unittest
 from functools import partial
+from importlib.metadata import version
 
 import urllib3
 
@@ -15,8 +16,9 @@ from customerio import (
     SendPushRequest,
     SendSMSRequest,
 )
-from customerio.__version__ import __version__ as ClientVersion
 from tests.server import HTTPSTestCase
+
+ClientVersion = version("customerio")
 
 # test uses a self signed certificate so disable the warning messages
 urllib3.disable_warnings()

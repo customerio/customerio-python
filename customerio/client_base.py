@@ -5,13 +5,14 @@ Implements the base client that is used by other classes to make requests.
 import math
 import socket
 from datetime import datetime, timezone
+from importlib.metadata import version
 
 from requests import Session
 from requests.adapters import DEFAULT_POOLBLOCK, HTTPAdapter
 from urllib3.connection import HTTPConnection
 from urllib3.util.retry import Retry
 
-from .__version__ import __version__ as ClientVersion
+ClientVersion = version("customerio")
 
 TCP_KEEPALIVE_IDLE_TIMEOUT = 300
 TCP_KEEPALIVE_INTERVAL = 60
