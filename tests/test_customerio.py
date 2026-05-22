@@ -568,6 +568,49 @@ class TestCustomerIO(HTTPSTestCase):
         data_out = self.cio._sanitize(data_in)
         self.assertEqual(data_out, dict(dt=1234567890))
 
+    def test_sanitize_nested_dict_datetime(self):
+        from datetime import timezone
+
+        data_in = {"event": {"created_at": datetime(2009, 2, 13, 23, 31, 30, 0, timezone.utc)}}
+        data_out = self.cio._sanitize(data_in)
+        self.assertEqual(data_out, {"event": {"created_at": 1234567890}})
+
+    def test_sanitize_list_datetime(self):
+        from datetime import timezone
+
+        data_in = {"dates": [datetime(2009, 2, 13, 23, 31, 30, 0, timezone.utc), datetime(2024, 1, 1, 0, 0, 0, 0, timezone.utc)]}
+        data_out = self.cio._sanitize(data_in)
+        self.assertEqual(data_out, {"dates": [1234567890, 1704067200]})
+
+    def test_sanitize_nested_dict_nan(self):
+        data_in = {"metrics": {"score": float("nan"), "count": 5}}
+        data_out = self.cio._sanitize(data_in)
+        self.assertEqual(data_out, {"metrics": {"score": None, "count": 5}})
+
+    def test_sanitize_deeply_nested(self):
+        from datetime import timezone
+
+        data_in = {
+            "outer": {
+                "items": [
+                    {"ts": datetime(2009, 2, 13, 23, 31, 30, 0, timezone.utc), "val": float("nan")},
+                    {"ts": datetime(2024, 1, 1, 0, 0, 0, 0, timezone.utc), "val": 42},
+                ],
+            },
+        }
+        data_out = self.cio._sanitize(data_in)
+        self.assertEqual(
+            data_out,
+            {
+                "outer": {
+                    "items": [
+                        {"ts": 1234567890, "val": None},
+                        {"ts": 1704067200, "val": 42},
+                    ],
+                },
+            },
+        )
+
     def test_ids_are_encoded_in_url(self):
         self.cio.http.hooks = dict(
             response=partial(
