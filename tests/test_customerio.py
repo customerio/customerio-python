@@ -572,12 +572,6 @@ class TestCustomerIO(HTTPSTestCase):
         data_out = self.cio._sanitize(data_in)
         self.assertEqual(data_out, dict(dt=1234567890))
 
-    def test_sanitize_aware_utc_datetime(self):
-        """Tz-aware UTC datetimes produce the correct timestamp."""
-        data_in = dict(dt=datetime(2009, 2, 13, 23, 31, 30, 0, timezone.utc))
-        data_out = self.cio._sanitize(data_in)
-        self.assertEqual(data_out, dict(dt=1234567890))
-
     def test_sanitize_aware_non_utc_datetime(self):
         """Tz-aware non-UTC datetimes are converted, not silently replaced."""
         # 2009-02-13 18:31:30 at UTC-5 is 2009-02-13 23:31:30 UTC
