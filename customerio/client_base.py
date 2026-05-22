@@ -123,6 +123,8 @@ class ClientBase:
         return value
 
     def _datetime_to_timestamp(self, dt):
+        if dt.tzinfo is not None:
+            return int(dt.astimezone(timezone.utc).timestamp())
         return int(dt.replace(tzinfo=timezone.utc).timestamp())
 
     def _stringify_list(self, customer_ids):
