@@ -53,11 +53,7 @@ class TestCustomerIO(HTTPSTestCase):
 
     def _check_request(self, resp, rq, *args, **kwargs):
         request = resp.request
-        body = (
-            request.body.decode("utf-8")
-            if isinstance(request.body, bytes)
-            else request.body
-        )
+        body = request.body.decode("utf-8") if isinstance(request.body, bytes) else request.body
         if rq.get("method", None):
             self.assertEqual(request.method, rq["method"])
         if rq.get("body", None):
@@ -67,9 +63,7 @@ class TestCustomerIO(HTTPSTestCase):
         if rq.get("content_type", None):
             self.assertEqual(request.headers["Content-Type"], rq["content_type"])
         if rq.get("body", None):
-            self.assertEqual(
-                int(request.headers["Content-Length"]), len(json.dumps(rq["body"]))
-            )
+            self.assertEqual(int(request.headers["Content-Length"]), len(json.dumps(rq["body"])))
         if rq.get("url_suffix", None):
             self.assertTrue(
                 request.url.endswith(rq["url_suffix"]),
@@ -93,21 +87,17 @@ class TestCustomerIO(HTTPSTestCase):
     def test_keepalive_socket_options_are_configured_on_adapter(self):
         default_socket_options = list(HTTPConnection.default_socket_options)
         client = CustomerIO(site_id="site_id", api_key="api_key")
-        socket_options = client.http.adapters[
-            "https://"
-        ].poolmanager.connection_pool_kw["socket_options"]
+        socket_options = client.http.adapters["https://"].poolmanager.connection_pool_kw[
+            "socket_options"
+        ]
         tcp_protocol = getattr(socket, "SOL_TCP", socket.IPPROTO_TCP)
-        tcp_keepidle = getattr(
-            socket, "TCP_KEEPIDLE", getattr(socket, "TCP_KEEPALIVE", None)
-        )
+        tcp_keepidle = getattr(socket, "TCP_KEEPIDLE", getattr(socket, "TCP_KEEPALIVE", None))
 
         for option in default_socket_options:
             self.assertIn(option, socket_options)
         self.assertIn((socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1), socket_options)
         if tcp_keepidle is not None:
-            self.assertIn(
-                (tcp_protocol, tcp_keepidle, TCP_KEEPALIVE_IDLE_TIMEOUT), socket_options
-            )
+            self.assertIn((tcp_protocol, tcp_keepidle, TCP_KEEPALIVE_IDLE_TIMEOUT), socket_options)
         if hasattr(socket, "TCP_KEEPINTVL"):
             self.assertIn(
                 (tcp_protocol, socket.TCP_KEEPINTVL, TCP_KEEPALIVE_INTERVAL),
@@ -180,9 +170,7 @@ class TestCustomerIO(HTTPSTestCase):
             )
         )
 
-        self.cio.track(
-            1, "purchase", {"type": "socks"}, id="01HB4HBDKTFWYZCK01DMRSWRFD"
-        )
+        self.cio.track(1, "purchase", {"type": "socks"}, id="01HB4HBDKTFWYZCK01DMRSWRFD")
 
     def test_track_without_id(self):
         self.cio.http.hooks = dict(
@@ -287,9 +275,7 @@ class TestCustomerIO(HTTPSTestCase):
             )
         )
 
-        self.cio.track_anonymous(
-            anonymous_id=123, name="sign_up", data={"email": "john@test.com"}
-        )
+        self.cio.track_anonymous(anonymous_id=123, name="sign_up", data={"email": "john@test.com"})
 
     def test_track_anonymous_invite_with_data_dict(self):
         self.cio.http.hooks = dict(
@@ -334,9 +320,7 @@ class TestCustomerIO(HTTPSTestCase):
             )
         )
 
-        self.cio.track_anonymous(
-            "anon-123", "purchase", id="01HB4HBDKTFWYZCK01DMRSWRFD"
-        )
+        self.cio.track_anonymous("anon-123", "purchase", id="01HB4HBDKTFWYZCK01DMRSWRFD")
 
     def test_track_anonymous_with_timestamp(self):
         self.cio.http.hooks = dict(
@@ -355,9 +339,7 @@ class TestCustomerIO(HTTPSTestCase):
             )
         )
 
-        self.cio.track_anonymous(
-            "anon-123", "purchase", {"type": "socks"}, timestamp=1561231234
-        )
+        self.cio.track_anonymous("anon-123", "purchase", {"type": "socks"}, timestamp=1561231234)
 
     def test_pageview_call(self):
         self.cio.http.hooks = dict(
@@ -419,9 +401,7 @@ class TestCustomerIO(HTTPSTestCase):
             )
         )
 
-        self.cio.backfill(
-            customer_id=1, name="signup", timestamp=1234567890, email="john@test.com"
-        )
+        self.cio.backfill(customer_id=1, name="signup", timestamp=1234567890, email="john@test.com")
 
         with self.assertRaises(TypeError):
             self.cio.backfill(random_attr="some_value")
@@ -601,9 +581,7 @@ class TestCustomerIO(HTTPSTestCase):
     def test_sanitize_nested_dict_datetime(self):
         from datetime import timezone
 
-        data_in = {
-            "event": {"created_at": datetime(2009, 2, 13, 23, 31, 30, 0, timezone.utc)}
-        }
+        data_in = {"event": {"created_at": datetime(2009, 2, 13, 23, 31, 30, 0, timezone.utc)}}
         data_out = self.cio._sanitize(data_in)
         self.assertEqual(data_out, {"event": {"created_at": 1234567890}})
 
