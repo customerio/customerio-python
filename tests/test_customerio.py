@@ -672,6 +672,56 @@ class TestCustomerIO(HTTPSTestCase):
                 secondary_id="",
             )
 
+    def test_identify_with_zero_id(self):
+        self.cio.http.hooks = dict(
+            response=partial(
+                self._check_request,
+                rq={
+                    "method": "PUT",
+                    "url_suffix": "/customers/0",
+                    "body": {"name": "john"},
+                },
+            )
+        )
+
+        self.cio.identify(id=0, name="john")
+
+    def test_track_with_zero_customer_id(self):
+        self.cio.http.hooks = dict(
+            response=partial(
+                self._check_request,
+                rq={
+                    "method": "POST",
+                    "url_suffix": "/customers/0/events",
+                    "body": {"data": {}, "name": "login"},
+                },
+            )
+        )
+
+        self.cio.track(customer_id=0, name="login")
+
+    def test_identify_with_none_raises(self):
+        with self.assertRaises(CustomerIOException):
+            self.cio.identify(id=None, name="john")
+
+    def test_identify_with_empty_string_raises(self):
+        with self.assertRaises(CustomerIOException):
+            self.cio.identify(id="", name="john")
+
+    def test_delete_with_zero_customer_id(self):
+        self.cio.http.hooks = dict(
+            response=partial(
+                self._check_request,
+                rq={
+                    "method": "DELETE",
+                    "url_suffix": "/customers/0",
+                    "body": {},
+                },
+            )
+        )
+
+        self.cio.delete(customer_id=0)
+
     def test_batch_call(self):
         self.cio.http.hooks = dict(
             response=partial(
