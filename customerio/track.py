@@ -86,14 +86,14 @@ class CustomerIO(ClientBase):
 
     def identify(self, id, **kwargs):
         """Identify a single customer by their unique id, and optionally add attributes."""
-        if not id:
+        if id is None or id == "":
             raise CustomerIOException("id cannot be blank in identify")
         url = self.get_customer_query_string(id)
         return self.send_request("PUT", url, kwargs)
 
     def track(self, customer_id, name, data=None, id=None, timestamp=None):
         """Track an event for a given customer_id."""
-        if not customer_id:
+        if customer_id is None or customer_id == "":
             raise CustomerIOException("customer_id cannot be blank in track")
         url = self.get_event_query_string(customer_id)
         post_data = self._build_event(name, data, id=id, timestamp=timestamp)
@@ -103,14 +103,14 @@ class CustomerIO(ClientBase):
         """Track an event for a given anonymous_id."""
         url = self.get_events_query_string()
         post_data = self._build_event(name, data, id=id, timestamp=timestamp)
-        if anonymous_id:
+        if anonymous_id is not None and anonymous_id != "":
             post_data["anonymous_id"] = anonymous_id
 
         return self.send_request("POST", url, post_data)
 
     def pageview(self, customer_id, page, **data):
         """Track a pageview for a given customer_id."""
-        if not customer_id:
+        if customer_id is None or customer_id == "":
             raise CustomerIOException("customer_id cannot be blank in pageview")
         url = self.get_event_query_string(customer_id)
         post_data = {
@@ -122,7 +122,7 @@ class CustomerIO(ClientBase):
 
     def backfill(self, customer_id, name, timestamp, **data):
         """Backfill an event (track with timestamp) for a given customer_id."""
-        if not customer_id:
+        if customer_id is None or customer_id == "":
             raise CustomerIOException("customer_id cannot be blank in backfill")
 
         url = self.get_event_query_string(customer_id)
@@ -166,7 +166,7 @@ class CustomerIO(ClientBase):
 
     def delete(self, customer_id):
         """Delete a customer profile."""
-        if not customer_id:
+        if customer_id is None or customer_id == "":
             raise CustomerIOException("customer_id cannot be blank in delete")
 
         url = self.get_customer_query_string(customer_id)
@@ -174,13 +174,13 @@ class CustomerIO(ClientBase):
 
     def add_device(self, customer_id, device_id, platform, **data):
         """Add a device to a customer profile."""
-        if not customer_id:
+        if customer_id is None or customer_id == "":
             raise CustomerIOException("customer_id cannot be blank in add_device")
 
-        if not device_id:
+        if device_id is None or device_id == "":
             raise CustomerIOException("device_id cannot be blank in add_device")
 
-        if not platform:
+        if platform is None or platform == "":
             raise CustomerIOException("platform cannot be blank in add_device")
 
         data.update(
@@ -195,10 +195,10 @@ class CustomerIO(ClientBase):
 
     def delete_device(self, customer_id, device_id):
         """Delete a device from a customer profile."""
-        if not customer_id:
+        if customer_id is None or customer_id == "":
             raise CustomerIOException("customer_id cannot be blank in delete_device")
 
-        if not device_id:
+        if device_id is None or device_id == "":
             raise CustomerIOException("device_id cannot be blank in delete_device")
 
         url = self.get_device_query_string(customer_id)
@@ -206,7 +206,7 @@ class CustomerIO(ClientBase):
         return self.send_request("DELETE", delete_url, {})
 
     def suppress(self, customer_id):
-        if not customer_id:
+        if customer_id is None or customer_id == "":
             raise CustomerIOException("customer_id cannot be blank in suppress")
 
         return self.send_request(
@@ -216,7 +216,7 @@ class CustomerIO(ClientBase):
         )
 
     def unsuppress(self, customer_id):
-        if not customer_id:
+        if customer_id is None or customer_id == "":
             raise CustomerIOException("customer_id cannot be blank in unsuppress")
 
         return self.send_request(
@@ -236,10 +236,10 @@ class CustomerIO(ClientBase):
         if not self.is_valid_id_type(secondary_id_type):
             raise CustomerIOException("invalid secondary id type")
 
-        if not primary_id:
+        if primary_id is None or primary_id == "":
             raise CustomerIOException("primary customer_id cannot be blank")
 
-        if not secondary_id:
+        if secondary_id is None or secondary_id == "":
             raise CustomerIOException("secondary customer_id cannot be blank")
 
         url = f"{self.base_url}/merge_customers"

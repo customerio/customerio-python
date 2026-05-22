@@ -1,16 +1,16 @@
 import json
 import socket
 import unittest
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from functools import partial
 
 import urllib3
-from requests.auth import _basic_auth_str
-from urllib3.connection import HTTPConnection
-
 from customerio import CustomerIO, CustomerIOException, Regions
 from customerio.client_base import TCP_KEEPALIVE_IDLE_TIMEOUT, TCP_KEEPALIVE_INTERVAL
 from customerio.constants import CIOID, EMAIL, ID
+from requests.auth import _basic_auth_str
+from urllib3.connection import HTTPConnection
+
 from tests.server import HTTPSTestCase
 
 # test uses a self signed certificate so disable the warning messages
@@ -53,7 +53,11 @@ class TestCustomerIO(HTTPSTestCase):
 
     def _check_request(self, resp, rq, *args, **kwargs):
         request = resp.request
-        body = request.body.decode("utf-8") if isinstance(request.body, bytes) else request.body
+        body = (
+            request.body.decode("utf-8")
+            if isinstance(request.body, bytes)
+            else request.body
+        )
         if rq.get("method", None):
             self.assertEqual(request.method, rq["method"])
         if rq.get("body", None):
@@ -63,7 +67,9 @@ class TestCustomerIO(HTTPSTestCase):
         if rq.get("content_type", None):
             self.assertEqual(request.headers["Content-Type"], rq["content_type"])
         if rq.get("body", None):
-            self.assertEqual(int(request.headers["Content-Length"]), len(json.dumps(rq["body"])))
+            self.assertEqual(
+                int(request.headers["Content-Length"]), len(json.dumps(rq["body"]))
+            )
         if rq.get("url_suffix", None):
             self.assertTrue(
                 request.url.endswith(rq["url_suffix"]),
@@ -87,20 +93,25 @@ class TestCustomerIO(HTTPSTestCase):
     def test_keepalive_socket_options_are_configured_on_adapter(self):
         default_socket_options = list(HTTPConnection.default_socket_options)
         client = CustomerIO(site_id="site_id", api_key="api_key")
-        socket_options = client.http.adapters["https://"].poolmanager.connection_pool_kw[
-            "socket_options"
-        ]
+        socket_options = client.http.adapters[
+            "https://"
+        ].poolmanager.connection_pool_kw["socket_options"]
         tcp_protocol = getattr(socket, "SOL_TCP", socket.IPPROTO_TCP)
-        tcp_keepidle = getattr(socket, "TCP_KEEPIDLE", getattr(socket, "TCP_KEEPALIVE", None))
+        tcp_keepidle = getattr(
+            socket, "TCP_KEEPIDLE", getattr(socket, "TCP_KEEPALIVE", None)
+        )
 
         for option in default_socket_options:
             self.assertIn(option, socket_options)
         self.assertIn((socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1), socket_options)
         if tcp_keepidle is not None:
-            self.assertIn((tcp_protocol, tcp_keepidle, TCP_KEEPALIVE_IDLE_TIMEOUT), socket_options)
+            self.assertIn(
+                (tcp_protocol, tcp_keepidle, TCP_KEEPALIVE_IDLE_TIMEOUT), socket_options
+            )
         if hasattr(socket, "TCP_KEEPINTVL"):
             self.assertIn(
-                (tcp_protocol, socket.TCP_KEEPINTVL, TCP_KEEPALIVE_INTERVAL), socket_options
+                (tcp_protocol, socket.TCP_KEEPINTVL, TCP_KEEPALIVE_INTERVAL),
+                socket_options,
             )
         self.assertEqual(HTTPConnection.default_socket_options, default_socket_options)
 
@@ -169,7 +180,9 @@ class TestCustomerIO(HTTPSTestCase):
             )
         )
 
-        self.cio.track(1, "purchase", {"type": "socks"}, id="01HB4HBDKTFWYZCK01DMRSWRFD")
+        self.cio.track(
+            1, "purchase", {"type": "socks"}, id="01HB4HBDKTFWYZCK01DMRSWRFD"
+        )
 
     def test_track_without_id(self):
         self.cio.http.hooks = dict(
@@ -221,7 +234,11 @@ class TestCustomerIO(HTTPSTestCase):
         )
 
         self.cio.track(
-            1, "purchase", {"type": "socks"}, id="01HB4HBDKTFWYZCK01DMRSWRFD", timestamp=1561231234
+            1,
+            "purchase",
+            {"type": "socks"},
+            id="01HB4HBDKTFWYZCK01DMRSWRFD",
+            timestamp=1561231234,
         )
 
     def test_track_with_invalid_timestamp(self):
@@ -270,7 +287,9 @@ class TestCustomerIO(HTTPSTestCase):
             )
         )
 
-        self.cio.track_anonymous(anonymous_id=123, name="sign_up", data={"email": "john@test.com"})
+        self.cio.track_anonymous(
+            anonymous_id=123, name="sign_up", data={"email": "john@test.com"}
+        )
 
     def test_track_anonymous_invite_with_data_dict(self):
         self.cio.http.hooks = dict(
@@ -315,7 +334,9 @@ class TestCustomerIO(HTTPSTestCase):
             )
         )
 
-        self.cio.track_anonymous("anon-123", "purchase", id="01HB4HBDKTFWYZCK01DMRSWRFD")
+        self.cio.track_anonymous(
+            "anon-123", "purchase", id="01HB4HBDKTFWYZCK01DMRSWRFD"
+        )
 
     def test_track_anonymous_with_timestamp(self):
         self.cio.http.hooks = dict(
@@ -334,7 +355,9 @@ class TestCustomerIO(HTTPSTestCase):
             )
         )
 
-        self.cio.track_anonymous("anon-123", "purchase", {"type": "socks"}, timestamp=1561231234)
+        self.cio.track_anonymous(
+            "anon-123", "purchase", {"type": "socks"}, timestamp=1561231234
+        )
 
     def test_pageview_call(self):
         self.cio.http.hooks = dict(
@@ -396,7 +419,9 @@ class TestCustomerIO(HTTPSTestCase):
             )
         )
 
-        self.cio.backfill(customer_id=1, name="signup", timestamp=1234567890, email="john@test.com")
+        self.cio.backfill(
+            customer_id=1, name="signup", timestamp=1234567890, email="john@test.com"
+        )
 
         with self.assertRaises(TypeError):
             self.cio.backfill(random_attr="some_value")
@@ -444,14 +469,21 @@ class TestCustomerIO(HTTPSTestCase):
                     "content_type": "application/json",
                     "url_suffix": "/customers/1/devices",
                     "body": {
-                        "device": {"id": "device_2", "platform": "android", "last_used": 1234567890}
+                        "device": {
+                            "id": "device_2",
+                            "platform": "android",
+                            "last_used": 1234567890,
+                        }
                     },
                 },
             )
         )
 
         self.cio.add_device(
-            customer_id=1, device_id="device_2", platform="android", last_used=1234567890
+            customer_id=1,
+            device_id="device_2",
+            platform="android",
+            last_used=1234567890,
         )
 
     def test_device_call_valid_platform(self):
@@ -562,8 +594,6 @@ class TestCustomerIO(HTTPSTestCase):
             self.cio.unsuppress(None)
 
     def test_sanitize(self):
-        from datetime import timezone
-
         data_in = dict(dt=datetime(2009, 2, 13, 23, 31, 30, 0, timezone.utc))
         data_out = self.cio._sanitize(data_in)
         self.assertEqual(data_out, dict(dt=1234567890))
@@ -571,7 +601,9 @@ class TestCustomerIO(HTTPSTestCase):
     def test_sanitize_nested_dict_datetime(self):
         from datetime import timezone
 
-        data_in = {"event": {"created_at": datetime(2009, 2, 13, 23, 31, 30, 0, timezone.utc)}}
+        data_in = {
+            "event": {"created_at": datetime(2009, 2, 13, 23, 31, 30, 0, timezone.utc)}
+        }
         data_out = self.cio._sanitize(data_in)
         self.assertEqual(data_out, {"event": {"created_at": 1234567890}})
 
@@ -598,7 +630,10 @@ class TestCustomerIO(HTTPSTestCase):
         data_in = {
             "outer": {
                 "items": [
-                    {"ts": datetime(2009, 2, 13, 23, 31, 30, 0, timezone.utc), "val": float("nan")},
+                    {
+                        "ts": datetime(2009, 2, 13, 23, 31, 30, 0, timezone.utc),
+                        "val": float("nan"),
+                    },
                     {"ts": datetime(2024, 1, 1, 0, 0, 0, 0, timezone.utc), "val": 42},
                 ],
             },
@@ -615,6 +650,20 @@ class TestCustomerIO(HTTPSTestCase):
                 },
             },
         )
+
+    def test_sanitize_naive_datetime(self):
+        """Naive datetimes are assumed UTC (backward compatible)."""
+        data_in = dict(dt=datetime(2009, 2, 13, 23, 31, 30))
+        data_out = self.cio._sanitize(data_in)
+        self.assertEqual(data_out, dict(dt=1234567890))
+
+    def test_sanitize_aware_non_utc_datetime(self):
+        """Tz-aware non-UTC datetimes are converted, not silently replaced."""
+        # 2009-02-13 18:31:30 at UTC-5 is 2009-02-13 23:31:30 UTC
+        tz_minus_5 = timezone(timedelta(hours=-5))
+        data_in = dict(dt=datetime(2009, 2, 13, 18, 31, 30, 0, tz_minus_5))
+        data_out = self.cio._sanitize(data_in)
+        self.assertEqual(data_out, dict(dt=1234567890))
 
     def test_ids_are_encoded_in_url(self):
         self.cio.http.hooks = dict(
@@ -683,7 +732,10 @@ class TestCustomerIO(HTTPSTestCase):
                     "authorization": _basic_auth_str("siteid", "apikey"),
                     "content_type": "application/json",
                     "url_suffix": "/merge_customers",
-                    "body": {"primary": {"cio_id": "CIO456"}, "secondary": {"id": "MyCustomId"}},
+                    "body": {
+                        "primary": {"cio_id": "CIO456"},
+                        "secondary": {"id": "MyCustomId"},
+                    },
                 },
             )
         )
@@ -719,6 +771,56 @@ class TestCustomerIO(HTTPSTestCase):
                 secondary_id_type="something",
                 secondary_id="",
             )
+
+    def test_identify_with_zero_id(self):
+        self.cio.http.hooks = dict(
+            response=partial(
+                self._check_request,
+                rq={
+                    "method": "PUT",
+                    "url_suffix": "/customers/0",
+                    "body": {"name": "john"},
+                },
+            )
+        )
+
+        self.cio.identify(id=0, name="john")
+
+    def test_track_with_zero_customer_id(self):
+        self.cio.http.hooks = dict(
+            response=partial(
+                self._check_request,
+                rq={
+                    "method": "POST",
+                    "url_suffix": "/customers/0/events",
+                    "body": {"data": {}, "name": "login"},
+                },
+            )
+        )
+
+        self.cio.track(customer_id=0, name="login")
+
+    def test_identify_with_none_raises(self):
+        with self.assertRaises(CustomerIOException):
+            self.cio.identify(id=None, name="john")
+
+    def test_identify_with_empty_string_raises(self):
+        with self.assertRaises(CustomerIOException):
+            self.cio.identify(id="", name="john")
+
+    def test_delete_with_zero_customer_id(self):
+        self.cio.http.hooks = dict(
+            response=partial(
+                self._check_request,
+                rq={
+                    "method": "DELETE",
+                    "url_suffix": "/customers/0",
+                    "body": {},
+                },
+            )
+        )
+
+        self.cio.delete(customer_id=0)
 
     def test_batch_call(self):
         self.cio.http.hooks = dict(
