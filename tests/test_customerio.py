@@ -5,12 +5,12 @@ from datetime import datetime, timedelta, timezone
 from functools import partial
 
 import urllib3
-from customerio import CustomerIO, CustomerIOException, Regions
-from customerio.client_base import TCP_KEEPALIVE_IDLE_TIMEOUT, TCP_KEEPALIVE_INTERVAL
-from customerio.constants import CIOID, EMAIL, ID
 from requests.auth import _basic_auth_str
 from urllib3.connection import HTTPConnection
 
+from customerio import CustomerIO, CustomerIOException, Regions
+from customerio.client_base import TCP_KEEPALIVE_IDLE_TIMEOUT, TCP_KEEPALIVE_INTERVAL
+from customerio.constants import CIOID, EMAIL, ID
 from tests.server import HTTPSTestCase
 
 # test uses a self signed certificate so disable the warning messages
