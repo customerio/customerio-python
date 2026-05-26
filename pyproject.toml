@@ -1,10 +1,11 @@
 [build-system]
-requires = ["setuptools>=77", "wheel"]
+requires = ["setuptools>=77", "setuptools-scm>=8", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "customerio"
 dynamic = ["version"]
+# Version is derived from git tags via setuptools-scm (e.g. tag v3.0.0 → version 3.0.0)
 description = "Customer.io Python bindings."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -44,8 +45,9 @@ Homepage = "https://github.com/customerio/customerio-python"
 Releases = "https://github.com/customerio/customerio-python/releases"
 Issues = "https://github.com/customerio/customerio-python/issues"
 
-[tool.setuptools.dynamic]
-version = { attr = "customerio.__version__.__version__" }
+[tool.setuptools_scm]
+version_scheme = "guess-next-dev"
+local_scheme = "no-local-version"
 
 [tool.setuptools.packages.find]
 include = ["customerio*"]
