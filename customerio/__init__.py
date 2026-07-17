@@ -5,6 +5,7 @@ from customerio.api import (
     SendInboxMessageRequest,
     SendPushRequest,
     SendSMSRequest,
+    SendWhatsAppRequest,
 )
 from customerio.client_base import CustomerIOException
 from customerio.regions import Regions
@@ -20,4 +21,5 @@ __all__ = [
     "SendInboxMessageRequest",
     "SendPushRequest",
     "SendSMSRequest",
+    "SendWhatsAppRequest",
 ]

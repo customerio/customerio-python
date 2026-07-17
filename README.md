@@ -285,6 +285,36 @@ response = client.send_push(request)
 print(response)
 ```
 
+## WhatsApp
+
+SendWhatsAppRequest requires:
+* `transactional_message_id`: the ID of the transactional WhatsApp message you want to send.
+* an `identifiers` object containing the `id` or `email` of your recipient. If the profile does not exist, Customer.io will create it.
+
+`to` and `_from` are WhatsApp numbers in E.164 format. `_from` (the object field for the `from` payload key, which is a reserved keyword in Python) is optional when the referenced `transactional_message_id` already defines it.
+
+Use `send_whatsapp` referencing your request to send a transactional message. [Learn more about transactional messages and `SendWhatsAppRequest` properties](https://customer.io/docs/journeys/transactional-api).
+
+```python
+from customerio import APIClient, Regions, SendWhatsAppRequest
+client = APIClient("your API key", region=Regions.US)
+
+request = SendWhatsAppRequest(
+  transactional_message_id="3",
+  to="+15551234567",
+  _from="+15559876543",
+  message_data={
+    "name": "person",
+  },
+  identifiers={
+    "id": "2",
+  }
+)
+
+response = client.send_whatsapp(request)
+print(response)
+```
+
 ## Notes
 - The Customer.io Python SDK depends on the [`Requests`](https://pypi.org/project/requests/) library which includes [`urllib3`](https://pypi.org/project/urllib3/) as a transitive dependency.  The [`Requests`](https://pypi.org/project/requests/) library leverages connection pooling defined in [`urllib3`](https://pypi.org/project/urllib3/).  [`urllib3`](https://pypi.org/project/urllib3/) only attempts to retry invocations of `HTTP` methods which are understood to be idempotent (See: [`Retry.DEFAULT_ALLOWED_METHODS`](https://github.com/urllib3/urllib3/blob/main/src/urllib3/util/retry.py#L184)).  Since the `POST` method is not considered to be idempotent, any invocations which require `POST` are not retried.
 
