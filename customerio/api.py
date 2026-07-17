@@ -32,6 +32,7 @@ EMAIL_FIELD_MAP = COMMON_MESSAGE_FIELD_MAP | {
     "to": "to",
     "headers": "headers",
     "reply_to": "reply_to",
+    "cc": "cc",
     "bcc": "bcc",
     "subject": "subject",
     "preheader": "preheader",
@@ -138,6 +139,7 @@ class SendEmailRequest:
         _from=None,
         headers=None,
         reply_to=None,
+        cc=None,
         bcc=None,
         subject=None,
         preheader=None,
@@ -161,6 +163,7 @@ class SendEmailRequest:
         self._from = _from
         self.headers = headers
         self.reply_to = reply_to
+        self.cc = cc
         self.bcc = bcc
         self.subject = subject
         self.preheader = preheader
