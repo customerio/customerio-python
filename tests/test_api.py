@@ -15,6 +15,7 @@ from customerio import (
     SendInboxMessageRequest,
     SendPushRequest,
     SendSMSRequest,
+    SendWhatsAppRequest,
 )
 from tests.server import HTTPSTestCase
 
@@ -146,6 +147,34 @@ class TestAPIClient(HTTPSTestCase):
         )
 
         self.client.send_sms(sms)
+
+    def test_send_whatsapp(self):
+        self.client.http.hooks = dict(
+            response=partial(
+                self._check_request,
+                rq={
+                    "method": "POST",
+                    "authorization": "Bearer app_api_key",
+                    "content_type": "application/json",
+                    "url_suffix": "/v1/send/whatsapp",
+                    "body": {
+                        "identifiers": {"id": "customer_1"},
+                        "transactional_message_id": 100,
+                        "to": "+15551234567",
+                        "tracked": True,
+                    },
+                },
+            )
+        )
+
+        whatsapp = SendWhatsAppRequest(
+            identifiers={"id": "customer_1"},
+            transactional_message_id=100,
+            to="+15551234567",
+            tracked=True,
+        )
+
+        self.client.send_whatsapp(whatsapp)
 
     def test_send_inbox_message(self):
         self.client.http.hooks = dict(
