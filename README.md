@@ -25,10 +25,11 @@ pip install customerio
 
 ```python
 from customerio import CustomerIO, Regions
+
 cio = CustomerIO(site_id, api_key, region=Regions.US)
-cio.identify(id="5", email='customer@example.com', name='Bob', plan='premium')
-cio.track(customer_id="5", name='purchased')
-cio.track(customer_id="5", name='purchased', data={"price": 23.45})
+cio.identify(id="5", email="customer@example.com", name="Bob", plan="premium")
+cio.track(customer_id="5", name="purchased")
+cio.track(customer_id="5", name="purchased", data={"price": 23.45})
 ```
 
 ### Instantiating customer.io object
@@ -37,6 +38,7 @@ Create an instance of the client with your [Customer.io credentials](https://fly
 
 ```python
 from customerio import CustomerIO, Regions
+
 cio = CustomerIO(site_id, api_key, region=Regions.US)
 ```
 `region` is optional and takes one of two values—`Regions.US` or `Regions.EU`. If you do not specify your region, we assume that your account is based in the US (`Regions.US`). If your account is based in the EU and you do not provide the correct region (`Regions.EU`), we'll route requests to our EU data centers accordingly, however this may cause data to be logged in the US. 
@@ -44,7 +46,7 @@ cio = CustomerIO(site_id, api_key, region=Regions.US)
 ### Create or update a Customer.io customer profile
 
 ```python
-cio.identify(id="5", email='customer@example.com', name='Bob', plan='premium')
+cio.identify(id="5", email="customer@example.com", name="Bob", plan="premium")
 ```
 
 Only the id field is used to identify the customer here.  Using an existing id with
@@ -58,13 +60,13 @@ See original REST documentation [here](http://customer.io/docs/api/track/#operat
 ### Track a custom event
 
 ```python
-cio.track(customer_id="5", name='purchased')
+cio.track(customer_id="5", name="purchased")
 ```
 
 ### Track a custom event with custom data values
 
 ```python
-cio.track(customer_id="5", name='purchased', data={"price": 23.45, "product": "widget"})
+cio.track(customer_id="5", name="purchased", data={"price": 23.45, "product": "widget"})
 ```
 
 Pass custom event attributes to `track` in the `data` dict.
@@ -75,11 +77,11 @@ See original REST documentation [here](http://customer.io/docs/api/track/#operat
 
 ```python
 cio.track(
-  customer_id="5",
-  name='purchased',
-  data={"price": 23.45, "product": "widget"},
-  id="01HB4HBDKTFWYZCK01DMRSWRFD",
-  timestamp=1561231234
+    customer_id="5",
+    name="purchased",
+    data={"price": 23.45, "product": "widget"},
+    id="01HB4HBDKTFWYZCK01DMRSWRFD",
+    timestamp=1561231234,
 )
 ```
 
@@ -114,9 +116,7 @@ See original REST documentation [here](http://customer.io/docs/api/track/#operat
 
 ```python
 cio.track_anonymous(
-  anonymous_id="anon-event",
-  name="purchased",
-  data={"price": 23.45, "product": "widget"}
+    anonymous_id="anon-event", name="purchased", data={"price": 23.45, "product": "widget"}
 )
 ```
 
@@ -130,9 +130,9 @@ If you previously sent [invite events](https://customer.io/docs/journeys/anonymo
 
 ```python
 cio.track_anonymous(
-  anonymous_id=None,
-  name="invite",
-  data={"first_name": "alex", "recipient": "alex.person@example.com"}
+    anonymous_id=None,
+    name="invite",
+    data={"first_name": "alex", "recipient": "alex.person@example.com"},
 )
 ```
 
@@ -158,16 +158,17 @@ For each person, you'll set the type of identifier you want to use to identify a
 
 ```python
 ## Please import identifier types
-cio.merge_customers(primary_id_type=ID,
-  primary_id="cool.person@company.com", 
-  secondary_id_type=EMAIL, 
-  secondary_id="cperson@gmail.com"
+cio.merge_customers(
+    primary_id_type=ID,
+    primary_id="cool.person@company.com",
+    secondary_id_type=EMAIL,
+    secondary_id="cperson@gmail.com",
 )
 ```
 
 ### Add a device
 ```python
-cio.add_device(customer_id="1", device_id='device_hash', platform='ios')
+cio.add_device(customer_id="1", device_id="device_hash", platform="ios")
 ```
 
 Adds the device `device_hash` with the platform `ios` for a specified customer.
@@ -184,7 +185,7 @@ This method returns nothing.
 
 ### Delete a device
 ```python
-cio.delete_device(customer_id="1", device_id='device_hash')
+cio.delete_device(customer_id="1", device_id="device_hash")
 ```
 
 Deletes the specified device for a specified customer.
@@ -226,28 +227,29 @@ Use `send_email` referencing your request to send a transactional message. [Lear
 
 ```python
 from customerio import APIClient, Regions, SendEmailRequest
+
 client = APIClient("your API key", region=Regions.US)
 
 request = SendEmailRequest(
-  to="person@example.com",
-  _from="override.sender@example.com",
-  transactional_message_id="3",
-  message_data={
-    "name": "person",
-    "items": [
-      {
-        "name": "shoes",
-        "price": "59.99",
-      },
-    ]
-  },
-  identifiers={
-    "email": "person@example.com",
-  }
+    to="person@example.com",
+    _from="override.sender@example.com",
+    transactional_message_id="3",
+    message_data={
+        "name": "person",
+        "items": [
+            {
+                "name": "shoes",
+                "price": "59.99",
+            },
+        ],
+    },
+    identifiers={
+        "email": "person@example.com",
+    },
 )
 
 with open("receipt.pdf", "rb") as f:
-  request.attach('receipt.pdf', f.read())
+    request.attach("receipt.pdf", f.read())
 
 response = client.send_email(request)
 print(response)
@@ -263,22 +265,23 @@ Use `send_push` referencing your request to send a transactional message. [Learn
 
 ```python
 from customerio import APIClient, Regions, SendPushRequest
+
 client = APIClient("your API key", region=Regions.US)
 
 request = SendPushRequest(
-  transactional_message_id="3",
-  message_data={
-    "name": "person",
-    "items": [
-      {
-        "name": "shoes",
-        "price": "59.99",
-      },
-    ]
-  },
-  identifiers={
-    "id": "2",
-  }
+    transactional_message_id="3",
+    message_data={
+        "name": "person",
+        "items": [
+            {
+                "name": "shoes",
+                "price": "59.99",
+            },
+        ],
+    },
+    identifiers={
+        "id": "2",
+    },
 )
 
 response = client.send_push(request)
@@ -297,18 +300,19 @@ Use `send_whatsapp` referencing your request to send a transactional message. [L
 
 ```python
 from customerio import APIClient, Regions, SendWhatsAppRequest
+
 client = APIClient("your API key", region=Regions.US)
 
 request = SendWhatsAppRequest(
-  transactional_message_id="3",
-  to="+15551234567",
-  _from="+15559876543",
-  message_data={
-    "name": "person",
-  },
-  identifiers={
-    "id": "2",
-  }
+    transactional_message_id="3",
+    to="+15551234567",
+    _from="+15559876543",
+    message_data={
+        "name": "person",
+    },
+    identifiers={
+        "id": "2",
+    },
 )
 
 response = client.send_whatsapp(request)
@@ -323,6 +327,7 @@ print(response)
 ### Usage Example Disabling Connection Pooling
 ```python
 from customerio import CustomerIO, Regions
+
 cio = CustomerIO(site_id, api_key, region=Regions.US, use_connection_pooling=False)
 ```
 
