@@ -64,8 +64,6 @@ SMS_FIELD_MAP = COMMON_MESSAGE_FIELD_MAP | {
 }
 
 WHATSAPP_FIELD_MAP = COMMON_MESSAGE_FIELD_MAP | {
-    # from is a reserved keyword, so the object field is `_from`.
-    "_from": "from",
     "to": "to",
     "send_to_unsubscribed": "send_to_unsubscribed",
     "tracked": "tracked",
@@ -298,7 +296,6 @@ class SendWhatsAppRequest:
         transactional_message_id=None,
         to=None,
         identifiers=None,
-        _from=None,
         tracked=None,
         disable_message_retention=None,
         send_to_unsubscribed=None,
@@ -310,7 +307,6 @@ class SendWhatsAppRequest:
         self.transactional_message_id = transactional_message_id
         self.to = to
         self.identifiers = identifiers
-        self._from = _from
         self.tracked = tracked
         self.disable_message_retention = disable_message_retention
         self.send_to_unsubscribed = send_to_unsubscribed

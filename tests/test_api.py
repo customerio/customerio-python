@@ -172,7 +172,6 @@ class TestAPIClient(HTTPSTestCase):
             identifiers={"id": "customer_1"},
             transactional_message_id=100,
             to="+15551234567",
-            _from="+15559876543",
             tracked=True,
         )
 
