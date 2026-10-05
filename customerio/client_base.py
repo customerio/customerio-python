@@ -50,6 +50,23 @@ class CustomerIOException(Exception):
     pass
 
 
+class KeyCapabilityError(CustomerIOException):
+    """Raised by :class:`customerio.Client` when its key can't do what a method asks.
+
+    Raised before the request when the key's type rules it out (a public ``wk_``
+    key can't send transactional messages). Otherwise the server's 401 or 403 is
+    re-raised as this error, chained from the original :class:`CustomerIOException`.
+
+    ``capability`` is ``"track"`` or ``"transactional"``. ``status_code`` is the
+    HTTP status when the server refused the key, else ``None``.
+    """
+
+    def __init__(self, capability, message, status_code=None):
+        super().__init__(message)
+        self.capability = capability
+        self.status_code = status_code
+
+
 class ClientBase:
     def __init__(self, retries=3, timeout=10, backoff_factor=0.02, use_connection_pooling=True):
         self.timeout = timeout
@@ -100,7 +117,10 @@ class ClientBase:
 
             result_status = response.status_code
             if result_status < 200 or result_status >= 300:
-                raise CustomerIOException(f"{result_status}: {url} {data} {response.text}")
+                error = CustomerIOException(f"{result_status}: {url} {data} {response.text}")
+                error.status_code = result_status
+                error.response = response
+                raise error
             return response
 
         except CustomerIOException:

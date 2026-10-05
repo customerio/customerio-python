@@ -32,6 +32,43 @@ cio.track(customer_id="5", name="purchased")
 cio.track(customer_id="5", name="purchased", data={"price": 23.45})
 ```
 
+### Quick start
+
+Create a client with your secret key (`ak_…`). It sends tracking calls to the Track API and transactional messages to the App API, and picks the US or EU region from the key.
+
+```python
+import os
+
+from customerio import Client
+
+cio = Client(api_key=os.environ["CIO_API_KEY"])
+cio.identify(id="user_123", email="a@example.com")
+cio.track(customer_id="user_123", name="order_completed")
+cio.send_email(
+    {
+        "to": "a@example.com",
+        "identifiers": {"id": "user_123"},
+        "transactional_message_id": 5,
+    }
+)
+```
+
+Pass `region` to override the region in the key. Legacy App API keys also work here; they default to `Regions.US` unless you pass `region`.
+
+`identify`, `track`, `track_anonymous`, `pageview` and the `send_*` methods are on the client directly. The rest of the Track and App API are on `cio.track_client` and `cio.api_client`.
+
+If the key can't do what you asked, the call raises a `KeyCapabilityError` (a subclass of `CustomerIOException`). A public key (`wk_…`) raises it before any request when you send a transactional message. A 401 or 403 from the server is re-raised as a `KeyCapabilityError` too, chained from the original error.
+
+```python
+from customerio import KeyCapabilityError
+
+try:
+    cio.send_email(request)
+except KeyCapabilityError as e:
+    # e.capability == "transactional", e.status_code == 401
+    print(e)  # This key can't send transactional messages (401): ...
+```
+
 ### Instantiating customer.io object
 
 Create an instance of the client with your [Customer.io credentials](https://fly.customer.io/settings/api_credentials).
