@@ -852,6 +852,36 @@ class TestCustomerIO(HTTPSTestCase):
         with self.assertRaises(CustomerIOException):
             self.cio.batch(None)
 
+    def test_entity_call(self):
+        self.cio.http.hooks = dict(
+            response=partial(
+                self._check_request,
+                rq={
+                    "method": "POST",
+                    "authorization": _basic_auth_str("siteid", "apikey"),
+                    "content_type": "application/json",
+                    "url_suffix": "/api/v2/entity",
+                    "body": {
+                        "type": "person",
+                        "action": "identify",
+                        "identifiers": {"id": "1"},
+                        "attributes": {"name": "Alice"},
+                    },
+                },
+            )
+        )
+
+        self.cio.entity(
+            type="person",
+            action="identify",
+            identifiers={"id": "1"},
+            attributes={"name": "Alice"},
+        )
+
+    def test_entity_empty_raises(self):
+        with self.assertRaises(CustomerIOException):
+            self.cio.entity()
+
 
 if __name__ == "__main__":
     unittest.main()

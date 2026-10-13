@@ -264,6 +264,22 @@ class CustomerIO(ClientBase):
             url = f"https://{self.host}:{self.port}/api/v2/batch"
         return self.send_request("POST", url, {"batch": operations})
 
+    def entity(self, **kwargs):
+        """Send a single operation to the v2 entity endpoint.
+
+        This is the singular counterpart to `batch`: the keyword arguments form
+        one batch-style operation (e.g. type, action, identifiers, attributes).
+        See https://customer.io/docs/api/track/#operation/entity
+        """
+        if not kwargs:
+            raise CustomerIOException("operation cannot be empty in entity")
+
+        if self.port == 443:
+            url = f"https://{self.host}/api/v2/entity"
+        else:
+            url = f"https://{self.host}:{self.port}/api/v2/entity"
+        return self.send_request("POST", url, kwargs)
+
     def _build_session(self):
         session = super()._build_session()
         session.auth = (self.site_id, self.api_key)
