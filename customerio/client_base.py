@@ -53,7 +53,7 @@ class CustomerIOException(Exception):
 class KeyCapabilityError(CustomerIOException):
     """Raised by :class:`customerio.Client` when its key can't do what a method asks.
 
-    Raised before the request when the key's type rules it out (a public ``wk_``
+    Raised before the request when the key's type rules it out (a public ``pk_``
     key can't send transactional messages). Otherwise the server's 401 or 403 is
     re-raised as this error, chained from the original :class:`CustomerIOException`.
 

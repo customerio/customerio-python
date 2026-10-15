@@ -11,9 +11,10 @@ from .client_base import CustomerIOException, KeyCapabilityError
 from .regions import Region, Regions
 from .track import CustomerIO
 
-# Keys in the shared format look like `{ak|wk}_{us|eu}_{random}_{checksum}`.
-# The server checks the checksum; the client only reads the prefix to pick a host.
-KEY_PREFIX = re.compile(r"^(ak|wk)_(us|eu)_")
+# Keys in the shared format look like `{type}_{us|eu}_{random}_{checksum}`, where type
+# is `pk` (public) or `sk` (secret). The server checks the checksum; the client only
+# reads the prefix to pick a host and spot public keys.
+KEY_PREFIX = re.compile(r"^([a-z]{2})_(us|eu)_")
 
 CAPABILITY_ACTIONS = {
     "track": "send tracking data",
@@ -69,12 +70,12 @@ class Client:
 
     Tracking methods (``identify``, ``track``, ``track_anonymous``, ``pageview``) go to
     the Track API; ``send_*`` methods go to the App API. Both send the key as a Bearer
-    token. For ``ak_us_…`` / ``ak_eu_…`` keys the region comes from the key; an explicit
+    token. For ``sk_us_…`` / ``sk_eu_…`` keys the region comes from the key; an explicit
     ``region`` wins. Legacy keys default to ``Regions.US``.
 
     When the key can't do what a method asks, the method raises a
     :class:`KeyCapabilityError`: before the request when the key's type says so (a
-    public ``wk_`` key can't send transactional messages), otherwise when the server
+    public ``pk_`` key can't send transactional messages), otherwise when the server
     answers 401 or 403.
 
     Other Track and App API methods are on ``track_client`` and ``api_client``.
@@ -140,13 +141,13 @@ class Client:
     def api_client(self):
         """App API client, authenticated with the key.
 
-        Raises :class:`KeyCapabilityError` if the key is a public ``wk_`` key.
+        Raises :class:`KeyCapabilityError` if the key is a public ``pk_`` key.
         """
-        if self._key_kind == "wk":
+        if self._key_kind == "pk":
             raise KeyCapabilityError(
                 "transactional",
-                "This key can't use the App API: public keys (wk_) are for tracking only. "
-                "Use a secret key (ak_).",
+                "This key can't use the App API: public keys (pk_) are for tracking only. "
+                "Use a secret key (sk_).",
             )
         return self._api_client
 

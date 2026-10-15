@@ -34,7 +34,7 @@ cio.track(customer_id="5", name="purchased", data={"price": 23.45})
 
 ### Quick start
 
-Create a client with your secret key (`ak_…`). It sends tracking calls to the Track API and transactional messages to the App API, and picks the US or EU region from the key.
+Create a client with your secret key (`sk_…`). It sends tracking calls to the Track API and transactional messages to the App API, and picks the US or EU region from the key.
 
 ```python
 import os
@@ -57,7 +57,7 @@ Pass `region` to override the region in the key. Legacy App API keys also work h
 
 `identify`, `track`, `track_anonymous`, `pageview` and the `send_*` methods are on the client directly. The rest of the Track and App API are on `cio.track_client` and `cio.api_client`.
 
-If the key can't do what you asked, the call raises a `KeyCapabilityError` (a subclass of `CustomerIOException`). A public key (`wk_…`) raises it before any request when you send a transactional message. A 401 or 403 from the server is re-raised as a `KeyCapabilityError` too, chained from the original error.
+If the key can't do what you asked, the call raises a `KeyCapabilityError` (a subclass of `CustomerIOException`). A public key (`pk_…`) raises it before any request when you send a transactional message. A 401 or 403 from the server is re-raised as a `KeyCapabilityError` too, chained from the original error.
 
 ```python
 from customerio import KeyCapabilityError

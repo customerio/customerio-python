@@ -21,9 +21,9 @@ from tests.server import HTTPSTestCase
 # test uses a self signed certificate so disable the warning messages
 urllib3.disable_warnings()
 
-US_KEY = "ak_us_0123456789ABCDEFGHIJKLMNOPQRSTUV_000000"
-EU_KEY = "ak_eu_0123456789ABCDEFGHIJKLMNOPQRSTUV_000000"
-PUBLIC_KEY = "wk_us_0123456789ABCDEFGHIJKLMNOPQRSTUV_000000"
+US_KEY = "sk_us_0123456789ABCDEFGHIJKLMNOPQRSTUV_000000"
+EU_KEY = "sk_eu_0123456789ABCDEFGHIJKLMNOPQRSTUV_000000"
+PUBLIC_KEY = "pk_us_0123456789ABCDEFGHIJKLMNOPQRSTUV_000000"
 LEGACY_KEY = "abc123"
 
 EMAIL = {"to": "a@example.com", "identifiers": {"id": "user_123"}, "transactional_message_id": 5}
@@ -188,7 +188,7 @@ class TestClientKeyCapability(unittest.TestCase):
                 send(dict(EMAIL))
             self.assertEqual(ctx.exception.capability, "transactional")
             self.assertIsNone(ctx.exception.status_code)
-            self.assertIn("public keys (wk_) are for tracking only", str(ctx.exception))
+            self.assertIn("public keys (pk_) are for tracking only", str(ctx.exception))
 
         with self.assertRaises(KeyCapabilityError):
             cio.api_client  # noqa: B018
