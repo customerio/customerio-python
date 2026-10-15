@@ -112,7 +112,9 @@ class Client:
         track_host = track_port = track_prefix = None
         if track_url:
             parts = urlsplit(track_url)
-            track_host, track_port, track_prefix = parts.hostname, parts.port, parts.path or None
+            track_host, track_port = parts.hostname, parts.port
+            # A bare "/" path falls back to the default /api/v1 prefix.
+            track_prefix = parts.path.rstrip("/") or None
 
         #: Track API client, authenticated with the key as a Bearer token.
         self.track_client = _BearerTrackClient(

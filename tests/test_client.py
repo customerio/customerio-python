@@ -75,6 +75,15 @@ class TestClientSetup(unittest.TestCase):
         self.assertEqual(cio.track_client.base_url, f"https://{Regions.US.track_host}/api/v1")
         self.assertEqual(cio.api_client.url, f"https://{Regions.US.api_host}")
 
+    def test_track_url_without_a_path_keeps_the_api_prefix(self):
+        for url in ("https://track.example.com", "https://track.example.com/"):
+            cio = Client(api_key=US_KEY, track_url=url)
+            self.assertEqual(cio.track_client.base_url, "https://track.example.com/api/v1")
+
+    def test_track_url_with_a_path_uses_it_as_the_prefix(self):
+        cio = Client(api_key=US_KEY, track_url="https://track.example.com/custom/")
+        self.assertEqual(cio.track_client.base_url, "https://track.example.com/custom")
+
     def test_legacy_keys_keep_the_region_option_and_us_default(self):
         self.assertEqual(Client(api_key=LEGACY_KEY).region, Regions.US)
         self.assertEqual(Client(api_key=LEGACY_KEY, region=Regions.EU).region, Regions.EU)
