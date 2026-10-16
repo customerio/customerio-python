@@ -51,14 +51,14 @@ class CustomerIOException(Exception):
 
 
 class KeyCapabilityError(CustomerIOException):
-    """Raised by :class:`customerio.Client` when its key can't do what a method asks.
+    """Raised by :class:`customerio.Client` when a call is refused for its key.
 
     Raised before the request when the key's type rules it out (a public ``pk_``
     key can't send transactional messages). Otherwise the server's 401 or 403 is
     re-raised as this error, chained from the original :class:`CustomerIOException`.
 
     ``capability`` is ``"track"`` or ``"transactional"``. ``status_code`` is the
-    HTTP status when the server refused the key, else ``None``.
+    HTTP status when the server refused the request, else ``None``.
     """
 
     def __init__(self, capability, message, status_code=None):

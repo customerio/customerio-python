@@ -53,11 +53,11 @@ cio.send_email(
 )
 ```
 
-Pass `region` to override the region in the key. Legacy App API keys also work here; they default to `Regions.US` unless you pass `region`.
+Pass `region` to override the region in the key. Legacy App API keys still work for transactional and other App API calls, and default to `Regions.US` unless you pass `region`. Tracking calls send the key as a Bearer token, so on Pipelines workspaces they need a new secret key (`sk_…`) tied to a source.
 
 `identify`, `track`, `track_anonymous`, `pageview` and the `send_*` methods are on the client directly. The rest of the Track and App API are on `cio.track_client` and `cio.api_client`.
 
-If the key can't do what you asked, the call raises a `KeyCapabilityError` (a subclass of `CustomerIOException`). A public key (`pk_…`) raises it before any request when you send a transactional message. A 401 or 403 from the server is re-raised as a `KeyCapabilityError` too, chained from the original error.
+If a call is refused, it raises a `KeyCapabilityError` (a subclass of `CustomerIOException`). A public key (`pk_…`) raises it before any request when you send a transactional message. A 401 or 403 from the server is re-raised as a `KeyCapabilityError` too, chained from the original error. A 401 or 403 can come from the key, its permissions, an IP allowlist or a disabled workspace.
 
 ```python
 from customerio import KeyCapabilityError
@@ -66,7 +66,7 @@ try:
     cio.send_email(request)
 except KeyCapabilityError as e:
     # e.capability == "transactional", e.status_code == 401
-    print(e)  # This key can't send transactional messages (401): ...
+    print(e)  # The request to send transactional messages was refused (401): ...
 ```
 
 ### Instantiating customer.io object

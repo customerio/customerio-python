@@ -1,7 +1,9 @@
 import json
 import unittest
 from functools import partial
+from unittest import mock
 
+import requests
 import urllib3
 
 from customerio import (
@@ -84,14 +86,24 @@ class TestClientSetup(unittest.TestCase):
         cio = Client(api_key=US_KEY, track_url="https://track.example.com/custom/")
         self.assertEqual(cio.track_client.base_url, "https://track.example.com/custom")
 
+    def test_netrc_entry_does_not_replace_the_bearer_token(self):
+        cio = Client(api_key=US_KEY)
+        with mock.patch("requests.sessions.get_netrc_auth", return_value=("user", "pass")):
+            prepared = cio.track_client.http.prepare_request(
+                requests.Request("PUT", cio.track_client.get_customer_query_string("1"))
+            )
+        self.assertEqual(prepared.headers["Authorization"], f"Bearer {US_KEY}")
+
     def test_legacy_keys_keep_the_region_option_and_us_default(self):
         self.assertEqual(Client(api_key=LEGACY_KEY).region, Regions.US)
         self.assertEqual(Client(api_key=LEGACY_KEY, region=Regions.EU).region, Regions.EU)
 
     def test_both_clients_use_bearer_auth(self):
         cio = Client(api_key=US_KEY)
-        self.assertIsNone(cio.track_client.http.auth)
-        self.assertEqual(cio.track_client.http.headers["Authorization"], f"Bearer {US_KEY}")
+        track_request = cio.track_client.http.prepare_request(
+            requests.Request("PUT", cio.track_client.get_customer_query_string("1"))
+        )
+        self.assertEqual(track_request.headers["Authorization"], f"Bearer {US_KEY}")
         self.assertEqual(cio.api_client.http.headers["Authorization"], f"Bearer {US_KEY}")
 
 
@@ -214,7 +226,9 @@ class TestClientKeyCapability(unittest.TestCase):
         self.assertEqual(ctx.exception.capability, "transactional")
         self.assertEqual(ctx.exception.status_code, 401)
         self.assertEqual(
-            str(ctx.exception), "This key can't send transactional messages (401): unauthorized"
+            str(ctx.exception),
+            "The request to send transactional messages was refused (401): unauthorized. "
+            "Check the key, its permissions, the IP allowlist and the workspace status.",
         )
         self.assertIsInstance(ctx.exception.__cause__, CustomerIOException)
         self.assertNotIsInstance(ctx.exception.__cause__, KeyCapabilityError)
@@ -228,7 +242,11 @@ class TestClientKeyCapability(unittest.TestCase):
 
         self.assertEqual(ctx.exception.capability, "track")
         self.assertEqual(ctx.exception.status_code, 403)
-        self.assertEqual(str(ctx.exception), "This key can't send tracking data (403): forbidden")
+        self.assertEqual(
+            str(ctx.exception),
+            "The request to send tracking data was refused (403): forbidden. "
+            "Check the key, its permissions, the IP allowlist and the workspace status.",
+        )
         self.assertIsInstance(ctx.exception.__cause__, CustomerIOException)
 
     def test_other_request_errors_pass_through_unchanged(self):

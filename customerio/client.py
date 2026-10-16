@@ -6,6 +6,8 @@ import re
 from functools import wraps
 from urllib.parse import urlsplit
 
+from requests.auth import AuthBase
+
 from .api import APIClient
 from .client_base import CustomerIOException, KeyCapabilityError
 from .regions import Region, Regions
@@ -22,18 +24,29 @@ CAPABILITY_ACTIONS = {
 }
 
 
+class _BearerAuth(AuthBase):
+    """Sends the key as a Bearer token. Set as ``session.auth`` so Requests never swaps
+    in Basic auth from a matching ``.netrc`` entry."""
+
+    def __init__(self, key):
+        self.key = key
+
+    def __call__(self, request):
+        request.headers["Authorization"] = f"Bearer {self.key}"
+        return request
+
+
 class _BearerTrackClient(CustomerIO):
     """Track API client that sends the key as a Bearer token instead of Basic auth."""
 
     def _build_session(self):
         session = super()._build_session()
-        session.auth = None
-        session.headers["Authorization"] = f"Bearer {self.api_key}"
+        session.auth = _BearerAuth(self.api_key)
         return session
 
 
 def _guard(capability):
-    """Re-raises a 401 or 403 as a KeyCapabilityError so a key mismatch is never a bare
+    """Re-raises a 401 or 403 as a KeyCapabilityError so a refusal is never a bare
     auth failure."""
 
     def decorator(method):
@@ -48,8 +61,9 @@ def _guard(capability):
                 if status not in (401, 403):
                     raise
                 message = (
-                    f"This key can't {CAPABILITY_ACTIONS[capability]} "
-                    f"({status}): {_server_message(e.response)}"
+                    f"The request to {CAPABILITY_ACTIONS[capability]} was refused ({status}): "
+                    f"{_server_message(e.response)}. Check the key, its permissions, the IP "
+                    "allowlist and the workspace status."
                 )
                 raise KeyCapabilityError(capability, message, status_code=status) from e
 
@@ -73,7 +87,7 @@ class Client:
     token. For ``sk_us_…`` / ``sk_eu_…`` keys the region comes from the key; an explicit
     ``region`` wins. Legacy keys default to ``Regions.US``.
 
-    When the key can't do what a method asks, the method raises a
+    When a call is refused, the method raises a
     :class:`KeyCapabilityError`: before the request when the key's type says so (a
     public ``pk_`` key can't send transactional messages), otherwise when the server
     answers 401 or 403.
