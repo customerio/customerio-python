@@ -1,0 +1,340 @@
+import json
+import unittest
+from functools import partial
+from unittest import mock
+
+import requests
+import urllib3
+
+from customerio import (
+    Client,
+    CustomerIOException,
+    KeyCapabilityError,
+    Regions,
+    SendEmailRequest,
+    SendInAppRequest,
+    SendInboxMessageRequest,
+    SendPushRequest,
+    SendSMSRequest,
+    SendWhatsAppRequest,
+)
+from customerio.regions import Region
+from tests.server import HTTPSTestCase
+
+# test uses a self signed certificate so disable the warning messages
+urllib3.disable_warnings()
+
+US_KEY = "sk_us_0123456789ABCDEFGHIJKLMNOPQRSTUV_000000"
+EU_KEY = "sk_eu_0123456789ABCDEFGHIJKLMNOPQRSTUV_000000"
+PUBLIC_KEY = "pk_us_0123456789ABCDEFGHIJKLMNOPQRSTUV_000000"
+LEGACY_KEY = "abc123"
+
+EMAIL = {"to": "a@example.com", "identifiers": {"id": "user_123"}, "transactional_message_id": 5}
+
+
+class FakeResponse:
+    def __init__(self, status_code, body):
+        self.status_code = status_code
+        self.text = json.dumps(body)
+
+    def json(self):
+        return json.loads(self.text)
+
+
+class FakeSession:
+    def __init__(self, response):
+        self.response = response
+        self.request_count = 0
+
+    def request(self, *args, **kwargs):
+        self.request_count += 1
+        return self.response
+
+    def close(self):
+        pass
+
+
+class TestClientSetup(unittest.TestCase):
+    def test_requires_api_key(self):
+        with self.assertRaises(CustomerIOException):
+            Client(api_key="")
+
+    def test_rejects_invalid_region(self):
+        with self.assertRaises(CustomerIOException):
+            Client(api_key=US_KEY, region="eu")
+
+    def test_region_comes_from_the_key(self):
+        self.assertEqual(Client(api_key=US_KEY).region, Regions.US)
+        self.assertEqual(Client(api_key=EU_KEY).region, Regions.EU)
+        self.assertEqual(Client(api_key=PUBLIC_KEY).region, Regions.US)
+
+        cio = Client(api_key=EU_KEY)
+        self.assertEqual(cio.track_client.base_url, f"https://{Regions.EU.track_host}/api/v1")
+        self.assertEqual(cio.api_client.url, f"https://{Regions.EU.api_host}")
+
+    def test_region_that_disagrees_with_the_key_raises(self):
+        for key, region in ((EU_KEY, Regions.US), (US_KEY, Regions.EU)):
+            with self.assertRaises(CustomerIOException) as ctx:
+                Client(api_key=key, region=region)
+            self.assertIn("does not match", str(ctx.exception))
+
+    def test_custom_region_is_accepted_with_a_prefixed_key(self):
+        custom = Region("test", "track.example.com", "api.example.com")
+        cio = Client(api_key=EU_KEY, region=custom)
+        self.assertEqual(cio.region, custom)
+        self.assertEqual(cio.track_client.base_url, "https://track.example.com/api/v1")
+
+    def test_region_that_matches_the_key_is_accepted(self):
+        self.assertEqual(Client(api_key=EU_KEY, region=Regions.EU).region, Regions.EU)
+
+    def test_key_is_stripped_so_it_never_reaches_an_error_message(self):
+        cio = Client(api_key=US_KEY + "\n")
+        self.assertEqual(cio.track_client.api_key, US_KEY)
+        self.assertEqual(cio._api_client.key, US_KEY)
+        prepared = cio._api_client.http.prepare_request(
+            requests.Request("POST", "https://api.customer.io/v1/send/email")
+        )
+        self.assertEqual(prepared.headers["Authorization"], f"Bearer {US_KEY}")
+        with self.assertRaises(CustomerIOException):
+            Client(api_key=" \n")
+
+    def test_track_url_without_a_path_keeps_the_api_prefix(self):
+        for url in ("https://track.example.com", "https://track.example.com/"):
+            cio = Client(api_key=US_KEY, track_url=url)
+            self.assertEqual(cio.track_client.base_url, "https://track.example.com/api/v1")
+
+    def test_track_url_with_a_path_uses_it_as_the_prefix(self):
+        cio = Client(api_key=US_KEY, track_url="https://track.example.com/custom/")
+        self.assertEqual(cio.track_client.base_url, "https://track.example.com/custom")
+
+    def test_track_url_keeps_the_brackets_around_an_ipv6_host(self):
+        cio = Client(api_key=US_KEY, track_url="https://[::1]:8443")
+        self.assertEqual(cio.track_client.base_url, "https://[::1]:8443/api/v1")
+
+    def test_track_url_with_an_explicit_prefix_and_port_is_kept(self):
+        cio = Client(api_key=US_KEY, track_url="https://localhost:8080/api/v1")
+        self.assertEqual(cio.track_client.base_url, "https://localhost:8080/api/v1")
+
+    def test_track_url_that_is_not_https_is_refused(self):
+        for url in ("http://localhost:8080/api/v1", "localhost:8080"):
+            with self.assertRaises(CustomerIOException):
+                Client(api_key=US_KEY, track_url=url)
+
+    def test_api_url_that_is_not_https_is_refused(self):
+        with self.assertRaises(CustomerIOException):
+            Client(api_key=US_KEY, api_url="http://localhost:8080")
+
+    def test_api_url_trailing_slash_is_dropped(self):
+        cio = Client(api_key=US_KEY, api_url="https://api.example.com/")
+        self.assertEqual(cio.api_client.url, "https://api.example.com")
+
+    def test_malformed_urls_are_refused(self):
+        for url in ("https://h:abc", "https://h:99999", "https://[::1"):
+            for name in ("track_url", "api_url"):
+                with self.subTest(name=name, url=url):
+                    with self.assertRaises(CustomerIOException) as ctx:
+                        Client(api_key=US_KEY, **{name: url})
+                    self.assertEqual(str(ctx.exception), f"{name} is not a valid URL")
+
+    def test_netrc_entry_does_not_replace_the_bearer_token_on_the_app_api(self):
+        cio = Client(api_key=US_KEY)
+        with mock.patch("requests.sessions.get_netrc_auth", return_value=("user", "pass")):
+            prepared = cio._api_client.http.prepare_request(
+                requests.Request("POST", "https://api.customer.io/v1/send/email")
+            )
+        self.assertEqual(prepared.headers["Authorization"], f"Bearer {US_KEY}")
+
+    def test_netrc_entry_does_not_replace_the_bearer_token(self):
+        cio = Client(api_key=US_KEY)
+        with mock.patch("requests.sessions.get_netrc_auth", return_value=("user", "pass")):
+            prepared = cio.track_client.http.prepare_request(
+                requests.Request("PUT", cio.track_client.get_customer_query_string("1"))
+            )
+        self.assertEqual(prepared.headers["Authorization"], f"Bearer {US_KEY}")
+
+    def test_legacy_keys_keep_the_region_option_and_us_default(self):
+        self.assertEqual(Client(api_key=LEGACY_KEY).region, Regions.US)
+        self.assertEqual(Client(api_key=LEGACY_KEY, region=Regions.EU).region, Regions.EU)
+
+    def test_unknown_prefix_is_a_legacy_key(self):
+        key = "xx_eu_abc"
+        self.assertEqual(Client(api_key=key).region, Regions.US)
+        self.assertEqual(Client(api_key=key, region=Regions.EU).region, Regions.EU)
+        self.assertEqual(Client(api_key=key)._key_kind, "legacy")
+
+    def test_both_clients_use_bearer_auth(self):
+        cio = Client(api_key=US_KEY)
+        track_request = cio.track_client.http.prepare_request(
+            requests.Request("PUT", cio.track_client.get_customer_query_string("1"))
+        )
+        self.assertEqual(track_request.headers["Authorization"], f"Bearer {US_KEY}")
+        self.assertEqual(cio.api_client.http.headers["Authorization"], f"Bearer {US_KEY}")
+
+
+class TestClientRequests(HTTPSTestCase):
+    """Starts server which the client connects to in the following tests"""
+
+    def setUp(self):
+        url = f"https://{self.server.server_address[0]}:{self.server.server_port}"
+        self.cio = self._client(US_KEY, url)
+
+    def _client(self, key, url):
+        cio = Client(api_key=key, track_url=url, api_url=url, retries=5, backoff_factor=0)
+
+        # do not verify the ssl certificate as it is self signed
+        # should only be done for tests
+        cio.track_client.http.verify = False
+        cio._api_client.http.verify = False
+        return cio
+
+    def _check_request(self, resp, rq, *args, **kwargs):
+        request = resp.request
+        self.assertEqual(request.method, rq["method"])
+        self.assertEqual(request.headers["Authorization"], rq["authorization"])
+        self.assertTrue(
+            request.url.endswith(rq["url_suffix"]),
+            "url: {} expected suffix: {}".format(request.url, rq["url_suffix"]),
+        )
+
+    def _expect(self, http, method, url_suffix, key=US_KEY):
+        http.hooks = dict(
+            response=partial(
+                self._check_request,
+                rq={"method": method, "authorization": f"Bearer {key}", "url_suffix": url_suffix},
+            )
+        )
+
+    def test_tracking_goes_to_the_track_api_with_bearer(self):
+        http = self.cio.track_client.http
+
+        self._expect(http, "PUT", "/api/v1/customers/user_123")
+        self.cio.identify("user_123", email="a@example.com")
+
+        self._expect(http, "POST", "/api/v1/customers/user_123/events")
+        self.cio.track("user_123", "order_completed", data={"price": 1})
+
+        self._expect(http, "POST", "/api/v1/events")
+        self.cio.track_anonymous("anon_1", "viewed")
+
+        self._expect(http, "POST", "/api/v1/customers/user_123/events")
+        self.cio.pageview("user_123", "/pricing")
+
+    def test_send_methods_go_to_the_app_api_with_bearer(self):
+        http = self.cio.api_client.http
+        identifiers = {"id": "user_123"}
+        sends = [
+            (self.cio.send_email, SendEmailRequest(**EMAIL), "email"),
+            (self.cio.send_push, SendPushRequest(identifiers=identifiers), "push"),
+            (self.cio.send_sms, SendSMSRequest(identifiers=identifiers), "sms"),
+            (self.cio.send_whatsapp, SendWhatsAppRequest(identifiers=identifiers), "whatsapp"),
+            (
+                self.cio.send_inbox_message,
+                SendInboxMessageRequest(identifiers=identifiers),
+                "inbox_message",
+            ),
+            (self.cio.send_in_app, SendInAppRequest(identifiers=identifiers), "in_app"),
+        ]
+
+        for send, request, path in sends:
+            self._expect(http, "POST", f"/v1/send/{path}")
+            self.assertEqual(send(request), {})
+
+        self._expect(http, "POST", "/v1/send/email")
+        self.cio.send_email(dict(EMAIL))
+
+    def test_public_key_can_still_track(self):
+        url = f"https://{self.server.server_address[0]}:{self.server.server_port}"
+        cio = self._client(PUBLIC_KEY, url)
+
+        self._expect(cio.track_client.http, "POST", "/api/v1/customers/user_123/events", PUBLIC_KEY)
+        cio.track("user_123", "viewed")
+
+
+class TestClientKeyCapability(unittest.TestCase):
+    def _fail_with(self, client, status, body):
+        session = FakeSession(FakeResponse(status, body))
+        client._build_session = lambda: session
+        client._current_session = None
+        return session
+
+    def test_public_key_raises_on_transactional_calls_without_a_request(self):
+        cio = Client(api_key=PUBLIC_KEY)
+        session = self._fail_with(cio._api_client, 200, {})
+
+        for send in [
+            cio.send_email,
+            cio.send_push,
+            cio.send_sms,
+            cio.send_whatsapp,
+            cio.send_inbox_message,
+            cio.send_in_app,
+        ]:
+            with self.assertRaises(KeyCapabilityError) as ctx:
+                send(dict(EMAIL))
+            self.assertEqual(ctx.exception.capability, "transactional")
+            self.assertIsNone(ctx.exception.status_code)
+            self.assertIn("public keys (pk_) are for tracking only", str(ctx.exception))
+
+        with self.assertRaises(KeyCapabilityError):
+            cio.api_client  # noqa: B018
+
+        self.assertEqual(session.request_count, 0)
+
+    def test_401_from_the_app_api_becomes_key_capability_error(self):
+        cio = Client(api_key=US_KEY)
+        self._fail_with(
+            cio._api_client, 401, {"errors": [{"detail": "unauthorized", "status": "401"}]}
+        )
+
+        with self.assertRaises(KeyCapabilityError) as ctx:
+            cio.send_email(dict(EMAIL))
+
+        self.assertEqual(ctx.exception.capability, "transactional")
+        self.assertEqual(ctx.exception.status_code, 401)
+        self.assertEqual(
+            str(ctx.exception),
+            "The request to send transactional messages was refused (401): unauthorized. "
+            "Check the key, its permissions, the IP allowlist and the workspace status.",
+        )
+        self.assertIsInstance(ctx.exception.__cause__, CustomerIOException)
+        self.assertNotIsInstance(ctx.exception.__cause__, KeyCapabilityError)
+
+    def test_403_from_the_track_api_becomes_key_capability_error(self):
+        cio = Client(api_key=US_KEY)
+        self._fail_with(cio.track_client, 403, {"meta": {"error": "forbidden"}})
+
+        with self.assertRaises(KeyCapabilityError) as ctx:
+            cio.identify("1")
+
+        self.assertEqual(ctx.exception.capability, "track")
+        self.assertEqual(ctx.exception.status_code, 403)
+        self.assertEqual(
+            str(ctx.exception),
+            "The request to send tracking data was refused (403): forbidden. "
+            "Check the key, its permissions, the IP allowlist and the workspace status.",
+        )
+        self.assertIsInstance(ctx.exception.__cause__, CustomerIOException)
+
+    def test_other_request_errors_pass_through_unchanged(self):
+        cio = Client(api_key=US_KEY)
+        self._fail_with(cio.track_client, 400, {"meta": {"error": "bad request"}})
+
+        with self.assertRaises(CustomerIOException) as ctx:
+            cio.identify("1")
+
+        self.assertNotIsInstance(ctx.exception, KeyCapabilityError)
+        self.assertIn("400", str(ctx.exception))
+
+    def test_missing_params_still_raise_before_a_request(self):
+        cio = Client(api_key=US_KEY)
+        session = self._fail_with(cio.track_client, 200, {})
+
+        with self.assertRaises(CustomerIOException) as ctx:
+            cio.identify("")
+
+        self.assertNotIsInstance(ctx.exception, KeyCapabilityError)
+        self.assertEqual(session.request_count, 0)
+
+
+if __name__ == "__main__":
+    unittest.main()

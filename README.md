@@ -32,6 +32,43 @@ cio.track(customer_id="5", name="purchased")
 cio.track(customer_id="5", name="purchased", data={"price": 23.45})
 ```
 
+### Quick start
+
+Create a client with your secret key (`sk_…`). It sends tracking calls to the Track API and transactional messages to the App API, and picks the US or EU region from the key.
+
+```python
+import os
+
+from customerio import Client
+
+cio = Client(api_key=os.environ["CIO_API_KEY"])
+cio.identify(id="user_123", email="a@example.com")
+cio.track(customer_id="user_123", name="order_completed")
+cio.send_email(
+    {
+        "to": "a@example.com",
+        "identifiers": {"id": "user_123"},
+        "transactional_message_id": 5,
+    }
+)
+```
+
+Passing `Regions.US` or `Regions.EU` when it disagrees with the key's region raises an error. A custom `Region` is accepted. Legacy App API keys still work for transactional and other App API calls, and default to `Regions.US` unless you pass `region`. Tracking calls send the key as a Bearer token, so on Pipelines workspaces they need a new secret key (`sk_…`) tied to a source.
+
+`identify`, `track`, `track_anonymous`, `pageview` and the `send_*` methods are on the client directly. The rest of the Track and App API are on `cio.track_client` and `cio.api_client`.
+
+If a call is refused, it raises a `KeyCapabilityError` (a subclass of `CustomerIOException`). A public key (`pk_…`) raises it before any request when you send a transactional message. A 401 or 403 from the server is re-raised as a `KeyCapabilityError` too, chained from the original error. A 401 or 403 can come from the key, its permissions, an IP allowlist or a disabled workspace.
+
+```python
+from customerio import KeyCapabilityError
+
+try:
+    cio.send_email(request)
+except KeyCapabilityError as e:
+    # e.capability == "transactional", e.status_code == 401
+    print(e)  # The request to send transactional messages was refused (401): ...
+```
+
 ### Instantiating customer.io object
 
 Create an instance of the client with your [Customer.io credentials](https://fly.customer.io/settings/api_credentials).
