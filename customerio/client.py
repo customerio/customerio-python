@@ -36,6 +36,16 @@ class _BearerAuth(AuthBase):
         return request
 
 
+class _BearerAPIClient(APIClient):
+    """App API client that sends the key through :class:`_BearerAuth` as well, so a
+    matching ``.netrc`` entry can't replace the header either."""
+
+    def _build_session(self):
+        session = super()._build_session()
+        session.auth = _BearerAuth(self.key)
+        return session
+
+
 class _BearerTrackClient(CustomerIO):
     """Track API client that sends the key as a Bearer token instead of Basic auth."""
 
@@ -73,10 +83,19 @@ def _guard(capability):
 
 
 def _server_message(response):
+    # The App API answers {"errors": [{"detail": ...}]}; the Track API uses meta.error.
     try:
-        return response.json()["meta"]["error"]
+        body = response.json()
+        if body.get("errors"):
+            return body["errors"][0]["detail"]
+        return body["meta"]["error"]
     except Exception:
         return response.text
+
+
+def _require_https(name, url):
+    if urlsplit(url).scheme != "https":
+        raise CustomerIOException(f"{name} must start with https://")
 
 
 class Client:
@@ -84,8 +103,8 @@ class Client:
 
     Tracking methods (``identify``, ``track``, ``track_anonymous``, ``pageview``) go to
     the Track API; ``send_*`` methods go to the App API. Both send the key as a Bearer
-    token. For ``sk_us_…`` / ``sk_eu_…`` keys the region comes from the key; an explicit
-    ``region`` wins. Legacy keys default to ``Regions.US``.
+    token. For ``sk_us_…`` / ``sk_eu_…`` keys the region comes from the key, and a
+    ``region`` that disagrees with it raises. Legacy keys default to ``Regions.US``.
 
     When a call is refused, the method raises a
     :class:`KeyCapabilityError`: before the request when the key's type says so (a
@@ -106,6 +125,9 @@ class Client:
         backoff_factor=0.02,
         use_connection_pooling=True,
     ):
+        # A key read from a file often ends in a newline, which Requests rejects and
+        # then copies, key included, into the exception message.
+        api_key = api_key.strip() if isinstance(api_key, str) else api_key
         if not api_key:
             raise CustomerIOException("api_key is required")
         if region is not None and not isinstance(region, Region):
@@ -114,6 +136,10 @@ class Client:
         match = KEY_PREFIX.match(api_key)
         self._key_kind = match.group(1) if match else "legacy"
         key_region = (Regions.EU if match.group(2) == "eu" else Regions.US) if match else None
+        if key_region and region and region != key_region:
+            raise CustomerIOException(
+                f"region {region.name} does not match the {key_region.name} region of this key"
+            )
         self.region = region or key_region or Regions.US
 
         options = dict(
@@ -126,8 +152,7 @@ class Client:
         track_host = track_port = track_prefix = None
         if track_url:
             parts = urlsplit(track_url)
-            if parts.scheme != "https":
-                raise CustomerIOException("track_url must start with https://")
+            _require_https("track_url", track_url)
             track_host, track_port = parts.hostname, parts.port
             # Requests rejects an IPv6 literal without its brackets.
             if track_host and ":" in track_host:
@@ -144,7 +169,9 @@ class Client:
             region=self.region,
             **options,
         )
-        self._api_client = APIClient(api_key, url=api_url, region=self.region, **options)
+        if api_url:
+            _require_https("api_url", api_url)
+        self._api_client = _BearerAPIClient(api_key, url=api_url, region=self.region, **options)
 
     def __enter__(self):
         return self

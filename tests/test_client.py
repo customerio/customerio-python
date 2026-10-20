@@ -71,11 +71,25 @@ class TestClientSetup(unittest.TestCase):
         self.assertEqual(cio.track_client.base_url, f"https://{Regions.EU.track_host}/api/v1")
         self.assertEqual(cio.api_client.url, f"https://{Regions.EU.api_host}")
 
-    def test_explicit_region_wins_over_the_key(self):
-        cio = Client(api_key=EU_KEY, region=Regions.US)
-        self.assertEqual(cio.region, Regions.US)
-        self.assertEqual(cio.track_client.base_url, f"https://{Regions.US.track_host}/api/v1")
-        self.assertEqual(cio.api_client.url, f"https://{Regions.US.api_host}")
+    def test_region_that_disagrees_with_the_key_raises(self):
+        for key, region in ((EU_KEY, Regions.US), (US_KEY, Regions.EU)):
+            with self.assertRaises(CustomerIOException) as ctx:
+                Client(api_key=key, region=region)
+            self.assertIn("does not match", str(ctx.exception))
+
+    def test_region_that_matches_the_key_is_accepted(self):
+        self.assertEqual(Client(api_key=EU_KEY, region=Regions.EU).region, Regions.EU)
+
+    def test_key_is_stripped_so_it_never_reaches_an_error_message(self):
+        cio = Client(api_key=US_KEY + "\n")
+        self.assertEqual(cio.track_client.api_key, US_KEY)
+        self.assertEqual(cio._api_client.key, US_KEY)
+        prepared = cio._api_client.http.prepare_request(
+            requests.Request("POST", "https://api.customer.io/v1/send/email")
+        )
+        self.assertEqual(prepared.headers["Authorization"], f"Bearer {US_KEY}")
+        with self.assertRaises(CustomerIOException):
+            Client(api_key=" \n")
 
     def test_track_url_without_a_path_keeps_the_api_prefix(self):
         for url in ("https://track.example.com", "https://track.example.com/"):
@@ -98,6 +112,18 @@ class TestClientSetup(unittest.TestCase):
         for url in ("http://localhost:8080/api/v1", "localhost:8080"):
             with self.assertRaises(CustomerIOException):
                 Client(api_key=US_KEY, track_url=url)
+
+    def test_api_url_that_is_not_https_is_refused(self):
+        with self.assertRaises(CustomerIOException):
+            Client(api_key=US_KEY, api_url="http://localhost:8080")
+
+    def test_netrc_entry_does_not_replace_the_bearer_token_on_the_app_api(self):
+        cio = Client(api_key=US_KEY)
+        with mock.patch("requests.sessions.get_netrc_auth", return_value=("user", "pass")):
+            prepared = cio._api_client.http.prepare_request(
+                requests.Request("POST", "https://api.customer.io/v1/send/email")
+            )
+        self.assertEqual(prepared.headers["Authorization"], f"Bearer {US_KEY}")
 
     def test_netrc_entry_does_not_replace_the_bearer_token(self):
         cio = Client(api_key=US_KEY)
@@ -231,7 +257,9 @@ class TestClientKeyCapability(unittest.TestCase):
 
     def test_401_from_the_app_api_becomes_key_capability_error(self):
         cio = Client(api_key=US_KEY)
-        self._fail_with(cio._api_client, 401, {"meta": {"error": "unauthorized"}})
+        self._fail_with(
+            cio._api_client, 401, {"errors": [{"detail": "unauthorized", "status": "401"}]}
+        )
 
         with self.assertRaises(KeyCapabilityError) as ctx:
             cio.send_email(dict(EMAIL))
