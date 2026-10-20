@@ -16,7 +16,7 @@ from .track import CustomerIO
 # Keys in the shared format look like `{type}_{us|eu}_{random}_{checksum}`, where type
 # is `pk` (public) or `sk` (secret). The server checks the checksum; the client only
 # reads the prefix to pick a host and spot public keys.
-KEY_PREFIX = re.compile(r"^([a-z]{2})_(us|eu)_")
+KEY_PREFIX = re.compile(r"^(pk|sk)_(us|eu)_")
 
 CAPABILITY_ACTIONS = {
     "track": "send tracking data",
@@ -94,8 +94,15 @@ def _server_message(response):
 
 
 def _require_https(name, url):
-    if urlsplit(url).scheme != "https":
+    try:
+        parts = urlsplit(url)
+        # Reading the port is what checks it.
+        parts.port  # noqa: B018
+    except ValueError:
+        raise CustomerIOException(f"{name} is not a valid URL") from None
+    if parts.scheme != "https":
         raise CustomerIOException(f"{name} must start with https://")
+    return parts
 
 
 class Client:
@@ -103,8 +110,9 @@ class Client:
 
     Tracking methods (``identify``, ``track``, ``track_anonymous``, ``pageview``) go to
     the Track API; ``send_*`` methods go to the App API. Both send the key as a Bearer
-    token. For ``sk_us_…`` / ``sk_eu_…`` keys the region comes from the key, and a
-    ``region`` that disagrees with it raises. Legacy keys default to ``Regions.US``.
+    token. For ``sk_us_…`` / ``sk_eu_…`` keys the region comes from the key: passing the
+    other built-in region (``Regions.US`` or ``Regions.EU``) raises, and a custom
+    ``Region`` is accepted. Legacy keys default to ``Regions.US``.
 
     When a call is refused, the method raises a
     :class:`KeyCapabilityError`: before the request when the key's type says so (a
@@ -153,8 +161,7 @@ class Client:
 
         track_host = track_port = track_prefix = None
         if track_url:
-            parts = urlsplit(track_url)
-            _require_https("track_url", track_url)
+            parts = _require_https("track_url", track_url)
             track_host, track_port = parts.hostname, parts.port
             # Requests rejects an IPv6 literal without its brackets.
             if track_host and ":" in track_host:
@@ -173,6 +180,8 @@ class Client:
         )
         if api_url:
             _require_https("api_url", api_url)
+            # The App API client appends paths that start with "/".
+            api_url = api_url.rstrip("/")
         self._api_client = _BearerAPIClient(api_key, url=api_url, region=self.region, **options)
 
     def __enter__(self):

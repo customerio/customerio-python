@@ -124,6 +124,18 @@ class TestClientSetup(unittest.TestCase):
         with self.assertRaises(CustomerIOException):
             Client(api_key=US_KEY, api_url="http://localhost:8080")
 
+    def test_api_url_trailing_slash_is_dropped(self):
+        cio = Client(api_key=US_KEY, api_url="https://api.example.com/")
+        self.assertEqual(cio.api_client.url, "https://api.example.com")
+
+    def test_malformed_urls_are_refused(self):
+        for url in ("https://h:abc", "https://h:99999", "https://[::1"):
+            for name in ("track_url", "api_url"):
+                with self.subTest(name=name, url=url):
+                    with self.assertRaises(CustomerIOException) as ctx:
+                        Client(api_key=US_KEY, **{name: url})
+                    self.assertEqual(str(ctx.exception), f"{name} is not a valid URL")
+
     def test_netrc_entry_does_not_replace_the_bearer_token_on_the_app_api(self):
         cio = Client(api_key=US_KEY)
         with mock.patch("requests.sessions.get_netrc_auth", return_value=("user", "pass")):
@@ -143,6 +155,12 @@ class TestClientSetup(unittest.TestCase):
     def test_legacy_keys_keep_the_region_option_and_us_default(self):
         self.assertEqual(Client(api_key=LEGACY_KEY).region, Regions.US)
         self.assertEqual(Client(api_key=LEGACY_KEY, region=Regions.EU).region, Regions.EU)
+
+    def test_unknown_prefix_is_a_legacy_key(self):
+        key = "xx_eu_abc"
+        self.assertEqual(Client(api_key=key).region, Regions.US)
+        self.assertEqual(Client(api_key=key, region=Regions.EU).region, Regions.EU)
+        self.assertEqual(Client(api_key=key)._key_kind, "legacy")
 
     def test_both_clients_use_bearer_auth(self):
         cio = Client(api_key=US_KEY)

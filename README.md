@@ -53,7 +53,7 @@ cio.send_email(
 )
 ```
 
-A `region` that disagrees with the key's region raises an error. Legacy App API keys still work for transactional and other App API calls, and default to `Regions.US` unless you pass `region`. Tracking calls send the key as a Bearer token, so on Pipelines workspaces they need a new secret key (`sk_…`) tied to a source.
+Passing `Regions.US` or `Regions.EU` when it disagrees with the key's region raises an error. A custom `Region` is accepted. Legacy App API keys still work for transactional and other App API calls, and default to `Regions.US` unless you pass `region`. Tracking calls send the key as a Bearer token, so on Pipelines workspaces they need a new secret key (`sk_…`) tied to a source.
 
 `identify`, `track`, `track_anonymous`, `pageview` and the `send_*` methods are on the client directly. The rest of the Track and App API are on `cio.track_client` and `cio.api_client`.
 
