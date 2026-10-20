@@ -126,7 +126,12 @@ class Client:
         track_host = track_port = track_prefix = None
         if track_url:
             parts = urlsplit(track_url)
+            if parts.scheme != "https":
+                raise CustomerIOException("track_url must start with https://")
             track_host, track_port = parts.hostname, parts.port
+            # Requests rejects an IPv6 literal without its brackets.
+            if track_host and ":" in track_host:
+                track_host = f"[{track_host}]"
             # A bare "/" path falls back to the default /api/v1 prefix.
             track_prefix = parts.path.rstrip("/") or None
 

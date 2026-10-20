@@ -86,6 +86,19 @@ class TestClientSetup(unittest.TestCase):
         cio = Client(api_key=US_KEY, track_url="https://track.example.com/custom/")
         self.assertEqual(cio.track_client.base_url, "https://track.example.com/custom")
 
+    def test_track_url_keeps_the_brackets_around_an_ipv6_host(self):
+        cio = Client(api_key=US_KEY, track_url="https://[::1]:8443")
+        self.assertEqual(cio.track_client.base_url, "https://[::1]:8443/api/v1")
+
+    def test_track_url_with_an_explicit_prefix_and_port_is_kept(self):
+        cio = Client(api_key=US_KEY, track_url="https://localhost:8080/api/v1")
+        self.assertEqual(cio.track_client.base_url, "https://localhost:8080/api/v1")
+
+    def test_track_url_that_is_not_https_is_refused(self):
+        for url in ("http://localhost:8080/api/v1", "localhost:8080"):
+            with self.assertRaises(CustomerIOException):
+                Client(api_key=US_KEY, track_url=url)
+
     def test_netrc_entry_does_not_replace_the_bearer_token(self):
         cio = Client(api_key=US_KEY)
         with mock.patch("requests.sessions.get_netrc_auth", return_value=("user", "pass")):
