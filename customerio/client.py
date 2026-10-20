@@ -136,7 +136,9 @@ class Client:
         match = KEY_PREFIX.match(api_key)
         self._key_kind = match.group(1) if match else "legacy"
         key_region = (Regions.EU if match.group(2) == "eu" else Regions.US) if match else None
-        if key_region and region and region != key_region:
+        # A prefixed key belongs to one region, so a different built-in one can only fail.
+        # A custom Region (a proxy or test server) is left alone.
+        if key_region and region in (Regions.US, Regions.EU) and region != key_region:
             raise CustomerIOException(
                 f"region {region.name} does not match the {key_region.name} region of this key"
             )

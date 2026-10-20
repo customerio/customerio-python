@@ -18,6 +18,7 @@ from customerio import (
     SendSMSRequest,
     SendWhatsAppRequest,
 )
+from customerio.regions import Region
 from tests.server import HTTPSTestCase
 
 # test uses a self signed certificate so disable the warning messages
@@ -76,6 +77,12 @@ class TestClientSetup(unittest.TestCase):
             with self.assertRaises(CustomerIOException) as ctx:
                 Client(api_key=key, region=region)
             self.assertIn("does not match", str(ctx.exception))
+
+    def test_custom_region_is_accepted_with_a_prefixed_key(self):
+        custom = Region("test", "track.example.com", "api.example.com")
+        cio = Client(api_key=EU_KEY, region=custom)
+        self.assertEqual(cio.region, custom)
+        self.assertEqual(cio.track_client.base_url, "https://track.example.com/api/v1")
 
     def test_region_that_matches_the_key_is_accepted(self):
         self.assertEqual(Client(api_key=EU_KEY, region=Regions.EU).region, Regions.EU)
