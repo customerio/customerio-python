@@ -143,7 +143,7 @@ class ClientBase:
             return None
         if isinstance(value, dict):
             return self._sanitize(value)
-        if isinstance(value, list):
+        if isinstance(value, (list, tuple)):
             return [self._sanitize_value(item) for item in value]
         return value
 
