@@ -371,6 +371,10 @@ cio = CustomerIO(site_id, api_key, region=Regions.US, use_connection_pooling=Fal
 
 Changes to the library can be tested by running `make test` from the parent directory.
 
+## Support
+
+For help or to report a bug, [contact Customer.io Support](https://fly.customer.io/?support=true). We don't track issues in this repository.
+
 ## Thanks!
 
 * [Dimitriy Narkevich](https://github.com/dimier) for creating the library.
