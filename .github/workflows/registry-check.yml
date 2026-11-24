@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 60
     env:
       # Secrets cannot be read in step conditions, so expose it here and test the env var.
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_NOTIFY_SERVER_SDK_RELEASES_WEBHOOK_URL }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_NOTIFY_RELEASES_WEBHOOK_URL }}
       RAW_VERSION: ${{ github.event.inputs.version || github.event.release.tag_name }}
       PYPI_DIST: customerio
       # Poll every 3 minutes for about 50 minutes.
@@ -54,7 +54,7 @@ jobs:
           payload: |
             {
               "text": "Python SDK missing from PyPI",
-              "channel": "#server-sdk-deployments",
+              "channel": "#mobile-deployments",
               "blocks": [
                 {
                   "type": "section",
