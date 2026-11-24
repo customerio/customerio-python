@@ -1,8 +1,11 @@
 name: Check PyPI release
 
+# The publish job waits for an approval, so the wait starts when that workflow
+# finishes, not when the release is published.
 on:
-  release:
-    types: [published]
+  workflow_run:
+    workflows: [Publish to PyPI]
+    types: [completed]
   workflow_dispatch:
     inputs:
       version:
@@ -16,12 +19,15 @@ permissions:
 jobs:
   check:
     name: Confirm version is on PyPI
+    # A cancelled publish run released nothing.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion != 'cancelled' }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
       # Secrets cannot be read in step conditions, so expose it here and test the env var.
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_NOTIFY_RELEASES_WEBHOOK_URL }}
-      RAW_VERSION: ${{ github.event.inputs.version || github.event.release.tag_name }}
+      # For a publish run started by a release, head_branch is the release tag.
+      RAW_VERSION: ${{ github.event.inputs.version || github.event.workflow_run.head_branch }}
       PYPI_DIST: customerio
       # Poll every 3 minutes for about 50 minutes.
       MAX_ATTEMPTS: "17"
@@ -30,6 +36,10 @@ jobs:
       - name: Wait for the version to appear on PyPI
         run: |
           version="${RAW_VERSION#v}"
+          if ! printf '%s' "$version" | grep -Eq '^[0-9]+(\.[0-9A-Za-z]+)*([-+][0-9A-Za-z.]+)?$'; then
+            echo "::error::'$RAW_VERSION' is not a valid version"
+            exit 1
+          fi
           url="https://pypi.org/pypi/${PYPI_DIST}/${version}/json"
           for attempt in $(seq 1 "$MAX_ATTEMPTS"); do
             status=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "$url" || true)
@@ -63,7 +73,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Python* SDK ${{ env.RAW_VERSION }} is not on PyPI after 50 minutes :warning:\nView the <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|CI logs> and check the publish workflow."
+                    "text": "*Python* SDK ${{ env.RAW_VERSION }} is not on PyPI 50 minutes after the publish workflow finished :warning:\nView the <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|CI logs> and check the publish workflow."
                   }
                 }
               ]
