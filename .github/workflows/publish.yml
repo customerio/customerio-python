@@ -15,7 +15,7 @@ jobs:
     environment: pypi
     env:
       # Secrets cannot be read in step conditions, so expose it here and test the env var.
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_NOTIFY_SERVER_SDK_RELEASES_WEBHOOK_URL }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_NOTIFY_RELEASES_WEBHOOK_URL }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -48,7 +48,7 @@ jobs:
           payload: |
             {
               "text": "Python SDK ${{ github.event.release.tag_name }} published to PyPI",
-              "channel": "#server-sdk-deployments",
+              "channel": "#mobile-deployments",
               "blocks": [
                 {
                   "type": "section",
@@ -69,7 +69,7 @@ jobs:
           payload: |
             {
               "text": "Python SDK release failure",
-              "channel": "#server-sdk-deployments",
+              "channel": "#mobile-deployments",
               "blocks": [
                 {
                   "type": "section",
