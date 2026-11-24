@@ -48,6 +48,8 @@ jobs:
           payload: |
             {
               "text": "Python SDK ${{ github.event.release.tag_name }} published to PyPI",
+              "username": "Python deployment bot",
+              "icon_url": "https://raw.githubusercontent.com/github/explore/main/topics/python/python.png",
               "channel": "#server-sdk-deployments",
               "blocks": [
                 {
@@ -69,6 +71,8 @@ jobs:
           payload: |
             {
               "text": "Python SDK release failure",
+              "username": "Python deployment bot",
+              "icon_url": "https://raw.githubusercontent.com/github/explore/main/topics/python/python.png",
               "channel": "#server-sdk-deployments",
               "blocks": [
                 {
