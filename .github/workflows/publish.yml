@@ -1,25 +1,53 @@
 name: Publish to PyPI
 
 on:
+  push:
+    branches: [main]
   release:
     types: [published]
 
-permissions:
-  contents: read
-  id-token: write
+permissions: {}
 
 jobs:
+  release-please:
+    name: Open or tag a release
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      sha: ${{ steps.release.outputs.sha }}
+    steps:
+      - id: release
+        uses: googleapis/release-please-action@v5
+
+  # Publishing lives in this file because PyPI trusted publishing is bound to
+  # publish.yml. A release created by release-please with GITHUB_TOKEN does not
+  # fire the `release` event, so the push run publishes it here instead.
   publish:
     name: Build and publish
+    needs: release-please
+    if: ${{ !cancelled() && (github.event_name == 'release' || needs.release-please.outputs.release_created == 'true') }}
     runs-on: ubuntu-latest
     environment: pypi
+    permissions:
+      contents: read
+      id-token: write
     env:
       # Secrets cannot be read in step conditions, so expose it here and test the env var.
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_NOTIFY_RELEASES_WEBHOOK_URL }}
+      TAG_NAME: ${{ needs.release-please.outputs.tag_name || github.event.release.tag_name }}
     steps:
+      # Overlapping pushes can make a later run create an earlier release, so
+      # build the tagged commit rather than the commit that triggered this run.
+      # Full history because the package version comes from the git tag.
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          ref: ${{ needs.release-please.outputs.sha || github.ref }}
 
       - name: Set up Python
         uses: actions/setup-python@v7
@@ -36,6 +64,16 @@ jobs:
       - name: Build package
         run: python -m build
 
+      # A build that cannot see the tag gets a dev version, which must not ship.
+      - name: Check the built version matches the tag
+        run: |
+          version="${TAG_NAME#v}"
+          if ! ls "dist/customerio-${version}.tar.gz" "dist/customerio-${version}-"*.whl; then
+            echo "::error::dist/ does not hold version ${version}"
+            ls dist
+            exit 1
+          fi
+
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
 
@@ -48,7 +86,7 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": "Python SDK ${{ github.event.release.tag_name }} published to PyPI",
+              "text": "Python SDK ${{ env.TAG_NAME }} published to PyPI",
               "username": "Python deployment bot",
               "icon_url": "https://raw.githubusercontent.com/github/explore/main/topics/python/python.png",
               "channel": "#server-sdk-deployments",
@@ -57,7 +95,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Python* SDK ${{ github.event.release.tag_name }} published to PyPI. <${{ github.event.release.html_url }}|View release>"
+                    "text": "*Python* SDK ${{ env.TAG_NAME }} published to PyPI. <https://github.com/${{ github.repository }}/releases/tag/${{ env.TAG_NAME }}|View release>"
                   }
                 }
               ]
