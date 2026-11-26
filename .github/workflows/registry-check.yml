@@ -16,6 +16,8 @@ on:
 
 permissions:
   contents: read
+  # To read the jobs of the publish run.
+  actions: read
 
 jobs:
   check:
@@ -48,6 +50,8 @@ jobs:
           # For a publish run started by a release, head_branch is the release tag.
           RELEASE_TAG: ${{ github.event.workflow_run.head_branch }}
           RUN_STARTED_AT: ${{ github.event.workflow_run.run_started_at }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
           GH_TOKEN: ${{ github.token }}
         run: |
           check=true
@@ -71,7 +75,14 @@ jobs:
             if ! printf '%s' "$published_at" | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:]{8}Z$'; then
               published_at=""
             fi
-            if [ -n "$tagged" ] && [ "$tagged" = "$(git rev-parse HEAD)" ]; then
+            # A run that ended cleanly with its publish job skipped released
+            # nothing itself, even when another run has since tagged its commit.
+            publish_job=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/jobs" \
+              --jq '.jobs[] | select(.name == "Build and publish") | .conclusion' 2>/dev/null || true)
+            if [ "$RUN_CONCLUSION" = "success" ] && [ "$publish_job" = "skipped" ]; then
+              check=false
+              echo "The publish job was skipped, nothing to check."
+            elif [ -n "$tagged" ] && [ "$tagged" = "$(git rev-parse HEAD)" ]; then
               check=true
             elif [ -n "$tagged" ] && [ -n "$published_at" ] && [ ! "$published_at" \< "$RUN_STARTED_AT" ]; then
               check=true
