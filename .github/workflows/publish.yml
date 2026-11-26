@@ -69,7 +69,8 @@ jobs:
       # A build that cannot see the tag gets a dev version, which must not ship.
       - name: Check the built version matches the tag
         run: |
-          version="${TAG_NAME#v}"
+          # Python rewrites versions, so v3.3.0-rc.1 builds as 3.3.0rc1.
+          version=$(python -c 'import sys; from packaging.version import Version; print(Version(sys.argv[1]))' "$TAG_NAME")
           if ! ls "dist/customerio-${version}.tar.gz" "dist/customerio-${version}-"*.whl; then
             echo "::error::dist/ does not hold version ${version}"
             ls dist
