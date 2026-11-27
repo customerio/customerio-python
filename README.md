@@ -355,6 +355,46 @@ response = client.send_whatsapp(request)
 print(response)
 ```
 
+## Import data from a CSV
+
+Use `create_import` to start an import from a CSV file at a public URL, and `get_import` to read its result. Both calls use an [app key](https://customer.io/docs/managing-credentials#app-api-keys).
+
+This example starts a `device` import, which adds push tokens to people who already exist.
+
+```python
+from customerio import APIClient, Regions
+
+client = APIClient("your API key", region=Regions.US)
+
+response = client.create_import(
+    {
+        "name": "Device tokens",
+        "type": "device",
+        "identifier": "id",
+        "data_file_url": "https://example.com/devices.csv",
+    }
+)
+import_id = response["import"]["id"]
+
+result = client.get_import(import_id)["import"]
+print(result["state"])
+print(result.get("error_download_url"))
+```
+
+`create_import` takes a dict and requires `data_file_url` and `type`. The API also requires `name`, and `identifier` (`id` or `email`) for a `device` import. The import runs in the background, so call `get_import` again until `state` shows it has finished.
+
+A device file needs these columns:
+* `id` or `email`, matching the `identifier` you chose
+* `token`: the device's push token
+* `platform`: `ios` or `android`
+* `last_used` (optional): a unix timestamp in seconds
+
+Any other column is saved as a device attribute.
+
+Only people who already exist get devices. Rows for unknown people are skipped, and so are tokens repeated for another person. The skipped rows and the reasons are in the file at `error_download_url`, which can be set even when the import succeeds.
+
+With the one key `Client`, the same calls are on `cio.api_client`, for example `cio.api_client.create_import(...)`.
+
 ## Notes
 - The Customer.io Python SDK depends on the [`Requests`](https://pypi.org/project/requests/) library which includes [`urllib3`](https://pypi.org/project/urllib3/) as a transitive dependency.  The [`Requests`](https://pypi.org/project/requests/) library leverages connection pooling defined in [`urllib3`](https://pypi.org/project/urllib3/).  [`urllib3`](https://pypi.org/project/urllib3/) only attempts to retry invocations of `HTTP` methods which are understood to be idempotent (See: [`Retry.DEFAULT_ALLOWED_METHODS`](https://github.com/urllib3/urllib3/blob/main/src/urllib3/util/retry.py#L184)).  Since the `POST` method is not considered to be idempotent, any invocations which require `POST` are not retried.
 

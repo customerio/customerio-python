@@ -95,15 +95,19 @@ class ClientBase:
 
         return self._current_session
 
-    def send_request(self, method, url, data):
-        """Dispatches the request and returns a response."""
+    def send_request(self, method, url, data=None):
+        """Dispatches the request and returns a response.
+
+        When ``data`` is ``None`` the request is sent without a body.
+        """
 
         try:
+            body = None if data is None else self._sanitize(data)
             if self.use_connection_pooling:
                 response = self.http.request(
                     method,
                     url=url,
-                    json=self._sanitize(data),
+                    json=body,
                     timeout=self.timeout,
                 )
             else:
@@ -111,7 +115,7 @@ class ClientBase:
                     response = http.request(
                         method,
                         url=url,
-                        json=self._sanitize(data),
+                        json=body,
                         timeout=self.timeout,
                     )
 
