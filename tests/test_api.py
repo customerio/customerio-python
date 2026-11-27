@@ -218,6 +218,67 @@ class TestAPIClient(HTTPSTestCase):
 
         self.client.send_in_app(in_app)
 
+    def test_create_import(self):
+        import_data = {
+            "name": "Device tokens",
+            "data_file_url": "https://example.com/devices.csv",
+            "type": "device",
+            "identifier": "id",
+        }
+
+        self.client.http.hooks = dict(
+            response=partial(
+                self._check_request,
+                rq={
+                    "method": "POST",
+                    "authorization": "Bearer app_api_key",
+                    "content_type": "application/json",
+                    "url_suffix": "/v1/imports",
+                    "body": {"import": import_data},
+                },
+            )
+        )
+
+        self.client.create_import(import_data)
+
+    def test_create_import_requires_fields(self):
+        with self.assertRaises(CustomerIOException):
+            self.client.create_import({"name": "Device tokens", "type": "device"})
+
+        with self.assertRaises(CustomerIOException):
+            self.client.create_import(
+                {"name": "Device tokens", "data_file_url": "https://example.com/devices.csv"}
+            )
+
+        with self.assertRaises(CustomerIOException):
+            self.client.create_import("https://example.com/devices.csv")
+
+    def test_get_import(self):
+        requests_seen = []
+
+        def check_request(resp, *args, **kwargs):
+            request = resp.request
+            requests_seen.append(request)
+            self.assertEqual(request.method, "GET")
+            self.assertIsNone(request.body)
+            self.assertEqual(request.headers["Authorization"], "Bearer app_api_key")
+            self.assertTrue(
+                request.url.endswith("/v1/imports/15"),
+                f"url: {request.url} expected suffix: /v1/imports/15",
+            )
+
+        self.client.http.hooks = dict(response=check_request)
+
+        self.assertEqual(self.client.get_import(15), {})
+        self.assertEqual(len(requests_seen), 1)
+
+    def test_get_import_requires_id(self):
+        with self.assertRaises(CustomerIOException):
+            self.client.get_import(None)
+
+        with self.assertRaises(CustomerIOException):
+            self.client.get_import("")
+
 
 if __name__ == "__main__":
     unittest.main()

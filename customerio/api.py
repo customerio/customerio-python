@@ -3,6 +3,7 @@ Implements the client that interacts with Customer.io's App API using app keys.
 """
 
 import base64
+from urllib.parse import quote
 
 from .client_base import ClientBase, CustomerIOException
 from .regions import Region, Regions
@@ -131,6 +132,28 @@ class APIClient(ClientBase):
         if isinstance(request, SendInAppRequest):
             request = request._to_dict()
         resp = self.send_request("POST", self.url + "/v1/send/in_app", request)
+        return resp.json()
+
+    def create_import(self, import_data):
+        """Start a CSV import, such as a ``device`` import, and return the API response.
+
+        ``import_data`` is a dict with the import settings. It needs at least
+        ``data_file_url`` and ``type``. The API checks the other fields.
+        """
+        if not isinstance(import_data, dict):
+            raise CustomerIOException("import_data must be a dict")
+        for field in ("data_file_url", "type"):
+            if not import_data.get(field):
+                raise CustomerIOException(f"{field} is required to create an import")
+        resp = self.send_request("POST", self.url + "/v1/imports", {"import": import_data})
+        return resp.json()
+
+    def get_import(self, import_id):
+        """Return the import with the given id, including its state and row counts."""
+        if import_id is None or import_id == "":
+            raise CustomerIOException("import_id is required to get an import")
+        url = f"{self.url}/v1/imports/{quote(str(import_id), safe='')}"
+        resp = self.send_request("GET", url)
         return resp.json()
 
     def _build_session(self):
